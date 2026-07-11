@@ -13208,12 +13208,7 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
     }
     catch (e) { } };
     const [sheet, setSheet] = useState(null); // espaces "compte" / "param" (null = fermé)
-    const [tourMain, setTourMain] = useState(() => { try {
-        return localStorage.getItem("sm_onboarded") !== "1";
-    }
-    catch (e) {
-        return true;
-    } }); // tour immersif (projecteur) au 1er lancement
+    const [tourMain, setTourMain] = useState(false); // ancien tour "projecteur" désactivé : remplacé par l'onboarding cinématique <Onboarding/> (passation du DS)
     const [tourExpert, setTourExpert] = useState(false); // mini-guide au 1er passage en Expert
     const [formation, setFormation] = useState(() => { const _f = _sv("formation", null); return (_f && FORMATIONS[_f]) ? _f : (FORMATIONS[club.defaultFormation] ? club.defaultFormation : "433d"); });
     const [order, setOrder] = useState(_sv("order", {}));
@@ -14660,7 +14655,7 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
     return (React.createElement(ExplainCtx.Provider, { value: setExplain },
         React.createElement("div", { className: "wrap " + (expertMode ? "ui-exp" : "ui-simple"), style: { "--navy": club.meta.colors.primary, "--red": club.meta.colors.accent, "--gold": club.meta.colors.gold } },
             React.createElement("div", { style: { position: "fixed", top: 0, left: "50%", transform: "translateX(-50%)", width: 460, maxWidth: "100vw", height: 210, background: "radial-gradient(60% 100% at 50% 0%, var(--navy), transparent 72%)", opacity: .22, zIndex: 0, pointerEvents: "none" } }),
-            false && React.createElement(Onboarding, { club: club }),
+            React.createElement(Onboarding, { club: club }),
             endOpen && React.createElement(SeasonEnd, { checks: seasonChecks, note: boardNote, grade: boardGrade, line: boardLine, bulletin: bulletin, badges: badges, recapStats: recapStats, clubName: club.meta.name, modeShort: START_MODES[startMode].short, seedKey: clubId + "|" + startMode, recruits: recruits, sold: sold, imgs: imgs, teamShareImg: teamShareImg, onGenerate: genImages, onClose: () => setEndOpen(false) }),
             React.createElement(Assistant, { tips: coachTips, tab: tab, explain: explain, onCloseExplain: () => setExplain(null) }),
             tourMain && React.createElement(Tour, { steps: TOUR_MAIN, tab: tab, setTab: setTab, onDone: () => { try {
@@ -17258,6 +17253,7 @@ function Onboarding({ club }) {
     catch (e) {
         return -1;
     } });
+    const [typed, setTyped] = useState(0);
     useEffect(() => { if (step < 0)
         return; const onKey = (e) => { if (e.key === "Escape") {
         try {
@@ -17284,11 +17280,16 @@ function Onboarding({ club }) {
     const euTxt = eu ? " Comme le " + sh + " joue l'Europe, tu dois AUSSI respecter le ratio UEFA (coûts d'effectif ≤ 70 % des revenus) et composer une Liste UEFA de 25 joueurs, dont 8 formés localement." : "";
     const natLabel = rule === "DNCG" ? "la DNCG" : rule === "PSR" ? "la Premier League (SCR/PSR)" : rule === "Bundesliga" ? "la licence DFL" : rule === "LaLiga" ? "le plafond LaLiga" : "l'indicateur FIGC";
     const steps = [
-        { emoji: "🤝", title: sdName + " te passe les clés", txt: (sd ? "Salut. Moi c'est " + sd + " — je quitte mon poste de directeur sportif du " + nm + ". " : "Salut. Je quitte mon poste de directeur sportif du " + nm + ". ") + "Le fauteuil est à toi. Avant de filer, je te fais faire le tour du bureau, vite fait — ensuite c'est toi le patron du sportif au " + sh + " (" + lg + "). Ta mission : l'effectif le plus performant possible, sans faire exploser les comptes." },
-        { emoji: "📊", title: "1 · Onglet Budget — les règles à tenir", txt: ruleTxt + euTxt + " Touche une icône ⓘ pour comprendre chaque chiffre ; en haut, bascule 🔰 Débutant / 🎓 Pro selon ton niveau." },
-        { emoji: "🔄", title: "2 · Onglet Mercato — recrute & vends", txt: "Achète, vends, prête ou prolonge : chaque mouvement recalcule tes comptes EN DIRECT." + (eu ? " Tu y pilotes aussi ta Liste UEFA (joueurs formés au club / au pays), modifiable à la main." : "") + " Tu peux même créer un jeune de ton centre de formation et le faire monter en équipe première." },
-        { emoji: "🎯", title: "3 · Onglet Terrain — ta compo", txt: "Place tes joueurs, choisis ton dispositif et ton capitaine. Ton entraîneur (affiché en bas à gauche du terrain) et la profondeur de ton effectif apparaissent ici." },
-        { emoji: "🚪", title: "Je te laisse les clés", txt: "Voilà, tu sais l'essentiel. Reste dans les clous de " + natLabel + (eu ? " ET de l'UEFA" : "") + ", vise le haut du tableau — ta progression se sauvegarde toute seule (⌂ en haut = accueil, jusqu'à 4 clubs). Moi je m'en vais… mais tu ne restes pas seul : mon adjoint reste avec toi et te glissera un conseil selon la situation. Bonne saison au " + sh + " ! — " + sdName },
+        { hero: "crest", tag: "Passation", punch: "Le fauteuil est à toi.", sig: true,
+            txt: (sd ? "Moi c'est " + sd + ", je quitte mon poste de directeur sportif du " + nm + ". " : "Je quitte mon poste de directeur sportif du " + nm + ". ") + "À partir de maintenant, c'est toi le patron du sportif au " + sh + " (" + lg + "). Ta mission : l'effectif le plus fort possible, sans faire exploser les comptes. Je te montre le bureau en 30 secondes." },
+        { hero: "📊", tag: "① Budget", punch: "Tiens les comptes.",
+            txt: ruleTxt + euTxt + " Touche une icône ⓘ pour comprendre chaque chiffre ; en haut, bascule 🔰 Débutant / 🎓 Pro selon ton niveau." },
+        { hero: "🔄", tag: "② Mercato", punch: "Fais ton marché.",
+            txt: "Achète, vends, prête ou prolonge : chaque mouvement recalcule tes comptes EN DIRECT." + (eu ? " Tu y pilotes aussi ta Liste UEFA (joueurs formés au club / au pays)." : "") + " Tu peux même faire monter un jeune de ton centre de formation." },
+        { hero: "🎯", tag: "③ Terrain", punch: "Pose ton onze.",
+            txt: "Place tes joueurs, choisis ton dispositif et ton capitaine. Ton entraîneur (en bas à gauche du terrain) et la profondeur de ton effectif s'affichent ici." },
+        { hero: "crest", tag: "À toi de jouer", punch: "Bonne saison au " + sh + " !", sig: true,
+            txt: "Tu sais l'essentiel. Reste dans les clous de " + natLabel + (eu ? " ET de l'UEFA" : "") + ", vise le haut du tableau — ta progression se sauvegarde toute seule (⌂ = accueil, jusqu'à 4 clubs). Je m'en vais, mais tu n'es pas seul : mon adjoint reste et te glissera un conseil quand il faut." },
     ];
     const s = steps[step];
     const last = step === steps.length - 1;
@@ -17296,19 +17297,89 @@ function Onboarding({ club }) {
         localStorage.setItem(okey, "1");
     }
     catch (e) { } setStep(-1); };
-    const ov = { position: "fixed", inset: 0, zIndex: 1000, background: "rgba(6,10,20,.82)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 };
-    const card = { width: 342, maxWidth: "92vw", background: "linear-gradient(160deg,#1a212b,#141b24)", border: "1px solid rgba(0,255,106,.4)", borderRadius: 16, padding: "22px 20px", textAlign: "center", boxShadow: "0 20px 60px rgba(0,0,0,.6)" };
-    return (React.createElement("div", { style: ov, onClick: done },
-        React.createElement("div", { style: { ...card, position: "relative" }, onClick: (e) => e.stopPropagation() },
-            React.createElement("button", { onClick: done, title: "Fermer (\u00C9chap)", style: { position: "absolute", top: 8, right: 8, width: 26, height: 26, borderRadius: "50%", border: "none", background: "rgba(255,255,255,.08)", color: "#cdd8ee", fontSize: 17, cursor: "pointer" } }, "\u00D7"),
-            React.createElement("div", { style: { fontSize: 44, lineHeight: 1, marginBottom: 10 } }, TOUR_EMO[s.emoji] ? React.createElement(Icon, { name: TOUR_EMO[s.emoji], size: 42 }) : s.emoji),
-            React.createElement("div", { style: { fontFamily: "Raleway, sans-serif", fontSize: 19, fontWeight: 700, color: "#fff", marginBottom: 8 } }, s.title),
-            React.createElement("div", { style: { fontSize: 13.5, lineHeight: 1.55, color: "#adbbd6", marginBottom: 16 } }, s.txt),
-            React.createElement("div", { style: { display: "flex", gap: 6, justifyContent: "center", marginBottom: 16 } }, steps.map((_, i) => React.createElement("span", { key: i, style: { width: 8, height: 8, borderRadius: "50%", background: i === step ? "#00ff6a" : "rgba(255,255,255,.22)" } }))),
-            React.createElement("div", { style: { display: "flex", gap: 10, justifyContent: "center", alignItems: "center" } },
-                React.createElement("button", { onClick: done, style: { background: "transparent", border: "none", color: "#7d8eae", fontSize: 12.5, cursor: "pointer" } }, "Passer"),
-                React.createElement("button", { onClick: () => last ? done() : setStep(step + 1), style: { background: "#00ff6a", color: "#14213c", border: "none", borderRadius: 9, padding: "9px 18px", fontFamily: "Raleway, sans-serif", fontWeight: 700, fontSize: 14, cursor: "pointer" } }, last ? "Commencer ✓" : "Suivant →")))));
+    const next = () => { if (last)
+        done();
+    else
+        setStep(step + 1); };
+    const acc = (m.colors && m.colors.accent) || "#00ff6a";
+    const prim = (m.colors && m.colors.primary) || "#0e1622";
+    // machine à écrire sur la punchline + relance à chaque étape
+    useEffect(() => { if (step < 0)
+        return; setTyped(0); const full = steps[step].punch || ""; let i = 0; const id = setInterval(() => { i++; setTyped(i); if (i >= full.length)
+        clearInterval(id); }, 34); return () => clearInterval(id); }, [step]);
+    useEffect(() => { if (step < 0)
+        return; const onKey = (e) => { if (e.key === "Enter" || e.key === "ArrowRight" || e.key === " ") {
+        e.preventDefault();
+        next();
+    } }; document.addEventListener("keydown", onKey); return () => document.removeEventListener("keydown", onKey); }, [step]);
+    const punchShown = (s.punch || "").slice(0, typed), typing = typed < (s.punch || "").length;
+    const CONF = ["#00ff6a", acc, "#7B3DFF", "#ffffff", "#9ad0ff"];
+    return (React.createElement("div", { className: "ob-ov", onClick: done, style: { "--acc": acc, "--prim": prim } },
+        React.createElement("style", null, OB_CSS),
+        React.createElement("div", { className: "ob-glow" }),
+        React.createElement("div", { className: "ob-card", onClick: (e) => e.stopPropagation() },
+            React.createElement("div", { className: "ob-sweep", key: "sw" + step }),
+            last ? React.createElement("div", { className: "ob-conf" }, Array.from({ length: 40 }).map((_, i) => { const L = Math.random() * 100, d = Math.random() * .5, du = 1.4 + Math.random() * 1.3, sz = 6 + Math.random() * 7; return React.createElement("span", { key: i, style: { left: L + "%", width: sz, height: sz * .5, background: CONF[i % CONF.length], animation: "obConf " + du + "s " + d + "s ease-in both" } }); })) : null,
+            React.createElement("button", { onClick: done, title: "Fermer (\u00C9chap)", className: "ob-x" }, "\u00D7"),
+            React.createElement("div", { className: "ob-hero", key: "h" + step }, s.hero === "crest"
+                ? React.createElement("span", { className: "ob-crest" },
+                    React.createElement("span", { className: "ob-ring" }),
+                    React.createElement(ClubBadge, { club: club, size: 78 }))
+                : React.createElement("span", { className: "ob-emoji" }, TOUR_EMO[s.hero] ? React.createElement(Icon, { name: TOUR_EMO[s.hero], size: 52 }) : s.hero)),
+            React.createElement("div", { className: "ob-txt", key: "b" + step },
+                s.tag ? React.createElement("div", { className: "ob-tag" }, s.tag) : null,
+                React.createElement("div", { className: "ob-punch" },
+                    punchShown,
+                    React.createElement("span", { className: "ob-caret", style: { opacity: typing ? 1 : 0 } })),
+                React.createElement("div", { className: "ob-para" }, s.txt),
+                s.sig ? React.createElement("div", { className: "ob-sig" },
+                    "\u2014 ",
+                    sdName) : null),
+            React.createElement("div", { className: "ob-dots" }, steps.map((_, i) => React.createElement("button", { key: i, onClick: () => setStep(i), className: "ob-dot" + (i === step ? " on" : "") + (i < step ? " past" : ""), "aria-label": "étape " + (i + 1) }))),
+            React.createElement("div", { className: "ob-actions" },
+                React.createElement("button", { onClick: done, className: "ob-skip" }, "Passer"),
+                React.createElement("button", { onClick: next, className: "ob-next" }, last ? "Prends les clés 🔑" : "Suivant →")))));
 }
+const OB_CSS = `
+.ob-ov{ position:fixed; inset:0; z-index:1000; display:flex; align-items:center; justify-content:center; padding:20px; background:rgba(5,9,16,.86); animation:obFade .3s ease both; }
+.ob-glow{ position:absolute; top:8%; left:50%; transform:translateX(-50%); width:min(560px,96vw); height:340px; background:radial-gradient(60% 100% at 50% 0%, var(--prim), transparent 70%); opacity:.55; pointer-events:none; filter:blur(6px); }
+.ob-card{ position:relative; overflow:hidden; width:352px; max-width:92vw; background:linear-gradient(165deg,#161d27,#0f151d); border:1px solid rgba(0,255,106,.34); border-radius:20px; padding:26px 22px 20px; text-align:center; box-shadow:0 24px 70px rgba(0,0,0,.62), 0 0 0 1px rgba(255,255,255,.03) inset; animation:obIn .5s cubic-bezier(.16,1,.3,1) both; }
+.ob-sweep{ position:absolute; top:0; left:0; height:100%; width:60%; pointer-events:none; background:linear-gradient(115deg,transparent, rgba(0,255,106,.16), var(--acc), transparent); mix-blend-mode:screen; opacity:.9; animation:obSweep .62s cubic-bezier(.5,0,.2,1) both; }
+.ob-x{ position:absolute; top:9px; right:9px; z-index:3; width:27px; height:27px; border-radius:50%; border:none; background:rgba(255,255,255,.08); color:#cdd8ee; font-size:17px; cursor:pointer; line-height:1; }
+.ob-x:hover{ background:rgba(255,255,255,.16); }
+.ob-hero{ position:relative; height:96px; display:flex; align-items:center; justify-content:center; margin-bottom:6px; animation:obPop .5s cubic-bezier(.2,1.5,.4,1) both; }
+.ob-crest{ position:relative; display:inline-flex; align-items:center; justify-content:center; animation:obFloat 3.2s ease-in-out infinite; }
+.ob-ring{ position:absolute; inset:-12px; border-radius:50%; box-shadow:0 0 0 2px rgba(0,255,106,.35); animation:obPulse 1.9s ease-out infinite; }
+.ob-emoji{ font-size:56px; line-height:1; display:inline-block; animation:obBob 2.6s ease-in-out infinite; }
+.ob-txt{ animation:obRise .5s .06s cubic-bezier(.16,1,.3,1) both; }
+.ob-tag{ font-family:Raleway,sans-serif; font-size:11px; font-weight:800; letter-spacing:.14em; color:var(--acc); text-transform:uppercase; margin-bottom:7px; filter:brightness(1.35); }
+.ob-punch{ font-family:Raleway,sans-serif; font-size:23px; font-weight:800; line-height:1.15; color:#fff; margin-bottom:9px; min-height:27px; }
+.ob-caret{ display:inline-block; width:2px; height:20px; vertical-align:-3px; margin-left:2px; background:var(--acc); animation:obBlink .8s steps(1) infinite; }
+.ob-para{ font-size:13.5px; line-height:1.58; color:#aebbd4; margin-bottom:12px; }
+.ob-sig{ font-size:12.5px; font-style:italic; color:#7d8eae; margin-bottom:4px; }
+.ob-dots{ display:flex; gap:7px; justify-content:center; margin:8px 0 16px; }
+.ob-dot{ width:8px; height:8px; padding:0; border:none; border-radius:50%; background:rgba(255,255,255,.2); cursor:pointer; transition:all .25s; }
+.ob-dot.past{ background:rgba(0,255,106,.5); }
+.ob-dot.on{ width:22px; border-radius:5px; background:#00ff6a; box-shadow:0 0 10px rgba(0,255,106,.6); }
+.ob-actions{ display:flex; gap:10px; justify-content:center; align-items:center; }
+.ob-skip{ background:transparent; border:none; color:#7d8eae; font-size:12.5px; cursor:pointer; padding:8px 6px; }
+.ob-skip:hover{ color:#aebbd4; }
+.ob-next{ background:#00ff6a; color:#062a13; border:none; border-radius:11px; padding:11px 20px; font-family:Raleway,sans-serif; font-weight:800; font-size:14px; cursor:pointer; box-shadow:0 6px 18px rgba(0,255,106,.28); transition:transform .12s, box-shadow .2s; }
+.ob-next:hover{ transform:translateY(-1px); box-shadow:0 9px 24px rgba(0,255,106,.4); }
+.ob-next:active{ transform:translateY(0); }
+.ob-conf{ position:absolute; inset:0; overflow:hidden; pointer-events:none; z-index:2; }
+.ob-conf span{ position:absolute; top:-16px; border-radius:2px; }
+@keyframes obFade{ from{ opacity:0 } to{ opacity:1 } }
+@keyframes obIn{ from{ opacity:0; transform:translateY(16px) scale(.94) } to{ opacity:1; transform:none } }
+@keyframes obSweep{ from{ transform:translateX(-170%) skewX(-12deg) } to{ transform:translateX(230%) skewX(-12deg) } }
+@keyframes obPop{ 0%{ opacity:0; transform:scale(.6) } 60%{ opacity:1; transform:scale(1.08) } 100%{ transform:scale(1) } }
+@keyframes obRise{ from{ opacity:0; transform:translateY(10px) } to{ opacity:1; transform:none } }
+@keyframes obPulse{ 0%{ box-shadow:0 0 0 2px rgba(0,255,106,.45) } 70%{ box-shadow:0 0 0 16px rgba(0,255,106,0) } 100%{ box-shadow:0 0 0 2px rgba(0,255,106,0) } }
+@keyframes obFloat{ 0%,100%{ transform:translateY(0) } 50%{ transform:translateY(-5px) } }
+@keyframes obBob{ 0%,100%{ transform:translateY(0) rotate(-3deg) } 50%{ transform:translateY(-6px) rotate(3deg) } }
+@keyframes obBlink{ 0%,50%{ opacity:1 } 51%,100%{ opacity:0 } }
+@keyframes obConf{ 0%{ transform:translateY(0) rotate(0); opacity:1 } 100%{ transform:translateY(480px) rotate(540deg); opacity:0 } }
+`;
 // === COMPARAISON (item B) — DÉMO LOCALE : classement de notes par « club · mode ». Adversaires FACTICES à seed STABLE
 // (mêmes faux joueurs/notes à chaque ouverture d'un même club·mode) + ton score réel persisté en localStorage.
 // ⚠️ Provisoire : à remplacer par un vrai backend en ligne plus tard (cf. roadmap B). Sert juste à VOIR le concept.
