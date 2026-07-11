@@ -17254,18 +17254,9 @@ function Onboarding({ club, setTab }) {
         return -1;
     } });
     const [typed, setTyped] = useState(0);
-    useEffect(() => { if (step < 0)
-        return; const onKey = (e) => { if (e.key === "Escape") {
-        try {
-            localStorage.setItem(okey, "1");
-        }
-        catch (er) { }
-        setStep(-1);
-    } }; document.addEventListener("keydown", onKey); return () => document.removeEventListener("keydown", onKey); }, [step, okey]);
-    if (step < 0 || !club)
-        return null;
-    const m = club.meta, nm = m.name, sh = m.shortName, lg = m.league, rule = m.domesticRule, eu = !!m.europe;
-    const sd = SPORTING_DIR[m.id] || "";
+    const m = club ? club.meta : null;
+    const nm = m ? m.name : "", sh = m ? m.shortName : "", lg = m ? m.league : "", rule = m ? m.domesticRule : "", eu = !!(m && m.europe);
+    const sd = m ? (SPORTING_DIR[m.id] || "") : "";
     const sdName = sd || "le directeur sportif sortant";
     // Règle nationale résumée, ADAPTÉE au championnat du club choisi
     const ruleTxt = rule === "DNCG"
@@ -17279,7 +17270,7 @@ function Onboarding({ club, setTab }) {
                     : "En Allemagne, la licence DFL repose sur une preuve de liquidité : tu dois démontrer que tu peux financer ta saison (pas de plafond de masse salariale comme en France).";
     const euTxt = eu ? " Comme le " + sh + " joue l'Europe, tu dois AUSSI respecter le ratio UEFA (coûts d'effectif ≤ 70 % des revenus) et composer une Liste UEFA de 25 joueurs, dont 8 formés localement." : "";
     const natLabel = rule === "DNCG" ? "la DNCG" : rule === "PSR" ? "la Premier League (SCR/PSR)" : rule === "Bundesliga" ? "la licence DFL" : rule === "LaLiga" ? "le plafond LaLiga" : "l'indicateur FIGC";
-    const steps = [
+    const steps = m ? [
         { hero: "crest", goTab: "terrain", tag: "Passation", punch: "Le fauteuil est à toi.", sig: true,
             txt: (sd ? "Moi c'est " + sd + ", je quitte mon poste de directeur sportif du " + nm + ". " : "Je quitte mon poste de directeur sportif du " + nm + ". ") + "À partir de maintenant, c'est toi le patron du sportif au " + sh + " (" + lg + "). Ta mission : l'effectif le plus fort possible, sans faire exploser les comptes. Je te montre le bureau en 30 secondes." },
         { hero: "wallet", goTab: "compta", tag: "① Budget", punch: "Tiens les comptes.",
@@ -17290,8 +17281,7 @@ function Onboarding({ club, setTab }) {
             txt: "Place tes joueurs, choisis ton dispositif et ton capitaine. Ton entraîneur (en bas à gauche du terrain) et la profondeur de ton effectif s'affichent ici." },
         { hero: "crest", goTab: "terrain", tag: "À toi de jouer", punch: "Bonne saison au " + sh + " !", sig: true,
             txt: "Tu sais l'essentiel. Reste dans les clous de " + natLabel + (eu ? " ET de l'UEFA" : "") + ", vise le haut du tableau — ta progression se sauvegarde toute seule (⌂ = accueil, jusqu'à 4 clubs). Je m'en vais, mais tu n'es pas seul : mon adjoint reste et te glissera un conseil quand il faut." },
-    ];
-    const s = steps[step];
+    ] : [];
     const last = step === steps.length - 1;
     const done = () => { try {
         localStorage.setItem(okey, "1");
@@ -17301,10 +17291,18 @@ function Onboarding({ club, setTab }) {
         done();
     else
         setStep(step + 1); };
-    const acc = (m.colors && m.colors.accent) || "#00ff6a";
-    const prim = (m.colors && m.colors.primary) || "#0e1622";
-    // machine à écrire sur la punchline + relance à chaque étape
+    const acc = (m && m.colors && m.colors.accent) || "#00ff6a";
+    const prim = (m && m.colors && m.colors.primary) || "#0e1622";
+    // TOUS les hooks appelés inconditionnellement AVANT tout return (règle des hooks React) ; ils no-op si l'onboarding est fermé (step<0)
     useEffect(() => { if (step < 0)
+        return; const onKey = (e) => { if (e.key === "Escape") {
+        try {
+            localStorage.setItem(okey, "1");
+        }
+        catch (er) { }
+        setStep(-1);
+    } }; document.addEventListener("keydown", onKey); return () => document.removeEventListener("keydown", onKey); }, [step, okey]);
+    useEffect(() => { if (step < 0 || !steps[step])
         return; setTyped(0); const full = steps[step].punch || ""; let i = 0; const id = setInterval(() => { i++; setTyped(i); if (i >= full.length)
         clearInterval(id); }, 34); return () => clearInterval(id); }, [step]);
     useEffect(() => { if (step < 0)
@@ -17315,6 +17313,9 @@ function Onboarding({ club, setTab }) {
     useEffect(() => { if (step < 0)
         return; var gt = steps[step] && steps[step].goTab; if (gt && setTab)
         setTab(gt); }, [step]); // change la page EN DIRECT derrière le modal quand le DS parle d'un onglet
+    if (step < 0 || !club)
+        return null;
+    const s = steps[step];
     const punchShown = (s.punch || "").slice(0, typed), typing = typed < (s.punch || "").length;
     const CONF = ["#00ff6a", acc, "#7B3DFF", "#ffffff", "#9ad0ff"];
     return (React.createElement("div", { className: "ob-ov", onClick: done, style: { "--acc": acc, "--prim": prim } },
