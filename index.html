@@ -14655,7 +14655,7 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
     return (React.createElement(ExplainCtx.Provider, { value: setExplain },
         React.createElement("div", { className: "wrap " + (expertMode ? "ui-exp" : "ui-simple"), style: { "--navy": club.meta.colors.primary, "--red": club.meta.colors.accent, "--gold": club.meta.colors.gold } },
             React.createElement("div", { style: { position: "fixed", top: 0, left: "50%", transform: "translateX(-50%)", width: 460, maxWidth: "100vw", height: 210, background: "radial-gradient(60% 100% at 50% 0%, var(--navy), transparent 72%)", opacity: .22, zIndex: 0, pointerEvents: "none" } }),
-            React.createElement(Onboarding, { club: club }),
+            React.createElement(Onboarding, { club: club, setTab: setTab }),
             endOpen && React.createElement(SeasonEnd, { checks: seasonChecks, note: boardNote, grade: boardGrade, line: boardLine, bulletin: bulletin, badges: badges, recapStats: recapStats, clubName: club.meta.name, modeShort: START_MODES[startMode].short, seedKey: clubId + "|" + startMode, recruits: recruits, sold: sold, imgs: imgs, teamShareImg: teamShareImg, onGenerate: genImages, onClose: () => setEndOpen(false) }),
             React.createElement(Assistant, { tips: coachTips, tab: tab, explain: explain, onCloseExplain: () => setExplain(null) }),
             tourMain && React.createElement(Tour, { steps: TOUR_MAIN, tab: tab, setTab: setTab, onDone: () => { try {
@@ -17245,7 +17245,7 @@ function Assistant({ tips, tab, explain, onCloseExplain }) {
             " de joueur \u2014 je te l'explique ici m\u00EAme.")));
 }
 const SPORTING_DIR = { psg: "Luis Campos", om: "Medhi Benatia", monaco: "Thiago Scuro", ol: "Matthieu Louis-Jean", losc: "Olivier Létang", lens: "Jean-Louis Leca", nice: "Florian Maurice", strasbourg: "David Weir", parisfc: "Marco Neppe", auxerre: "David Wantier", toulouse: "Viktor Bezhani", rennes: "Loïc Désiré", lorient: "Laurent Koscielny", lemans: "", lehavre: "Mathieu Bodmer", brest: "Grégory Lorenzi", angers: "Laurent Boissier", troyes: "Antoine Sibierski", arsenal: "Andrea Berta", liverpool: "Richard Hughes", mancity: "Hugo Viana", manutd: "Jason Wilcox", chelsea: "Paul Winstanley", tottenham: "Johan Lange", newcastle: "Ross Wilson", villa: "Roberto Olabe", brighton: "Jason Ayto", bournemouth: "Tiago Pinto", palace: "Ben Stevens", everton: "Nick Cox", fulham: "Tony Khan", brentford: "Phil Giles", forest: "George Syrianos", leeds: "Adam Underwood", sunderland: "Florent Ghisolfi", ipswich: "Dmitri Halajko", coventry: "Dean Austin", hull: "Jared Dublin", bayern: "Max Eberl", dortmund: "Ole Book", leipzig: "Marcel Schäfer", stuttgart: "Fabian Wohlgemuth", hoffenheim: "Andreas Schicker", freiburg: "Jochen Saier", frankfurt: "Markus Krösche", augsburg: "Benjamin Weber", union: "Horst Heldt", mainz: "Christian Heidel", koln: "Thomas Kessler", leverkusen: "Simon Rolfes", werder: "Clemens Fritz", gladbach: "Rouven Schröder", paderborn: "Sebastian Lange", schalke: "Frank Baumann", hsv: "Claus Costa", elversberg: "Christian Weber", realmadrid: "Juni Calafat", juventus: "François Modesto" };
-function Onboarding({ club }) {
+function Onboarding({ club, setTab }) {
     const okey = "sm_onboarded_" + (club && club.meta && club.meta.id);
     const [step, setStep] = useState(() => { try {
         return localStorage.getItem(okey) ? -1 : 0;
@@ -17280,15 +17280,15 @@ function Onboarding({ club }) {
     const euTxt = eu ? " Comme le " + sh + " joue l'Europe, tu dois AUSSI respecter le ratio UEFA (coûts d'effectif ≤ 70 % des revenus) et composer une Liste UEFA de 25 joueurs, dont 8 formés localement." : "";
     const natLabel = rule === "DNCG" ? "la DNCG" : rule === "PSR" ? "la Premier League (SCR/PSR)" : rule === "Bundesliga" ? "la licence DFL" : rule === "LaLiga" ? "le plafond LaLiga" : "l'indicateur FIGC";
     const steps = [
-        { hero: "crest", tag: "Passation", punch: "Le fauteuil est à toi.", sig: true,
+        { hero: "crest", goTab: "terrain", tag: "Passation", punch: "Le fauteuil est à toi.", sig: true,
             txt: (sd ? "Moi c'est " + sd + ", je quitte mon poste de directeur sportif du " + nm + ". " : "Je quitte mon poste de directeur sportif du " + nm + ". ") + "À partir de maintenant, c'est toi le patron du sportif au " + sh + " (" + lg + "). Ta mission : l'effectif le plus fort possible, sans faire exploser les comptes. Je te montre le bureau en 30 secondes." },
-        { hero: "📊", tag: "① Budget", punch: "Tiens les comptes.",
+        { hero: "wallet", goTab: "compta", tag: "① Budget", punch: "Tiens les comptes.",
             txt: ruleTxt + euTxt + " Touche une icône ⓘ pour comprendre chaque chiffre ; en haut, bascule 🔰 Débutant / 🎓 Pro selon ton niveau." },
-        { hero: "🔄", tag: "② Mercato", punch: "Fais ton marché.",
+        { hero: "mercato", goTab: "mercato", tag: "② Mercato", punch: "Fais ton marché.",
             txt: "Achète, vends, prête ou prolonge : chaque mouvement recalcule tes comptes EN DIRECT." + (eu ? " Tu y pilotes aussi ta Liste UEFA (joueurs formés au club / au pays)." : "") + " Tu peux même faire monter un jeune de ton centre de formation." },
-        { hero: "🎯", tag: "③ Terrain", punch: "Pose ton onze.",
+        { hero: "terrain", goTab: "terrain", tag: "③ Terrain", punch: "Pose ton onze.",
             txt: "Place tes joueurs, choisis ton dispositif et ton capitaine. Ton entraîneur (en bas à gauche du terrain) et la profondeur de ton effectif s'affichent ici." },
-        { hero: "crest", tag: "À toi de jouer", punch: "Bonne saison au " + sh + " !", sig: true,
+        { hero: "crest", goTab: "terrain", tag: "À toi de jouer", punch: "Bonne saison au " + sh + " !", sig: true,
             txt: "Tu sais l'essentiel. Reste dans les clous de " + natLabel + (eu ? " ET de l'UEFA" : "") + ", vise le haut du tableau — ta progression se sauvegarde toute seule (⌂ = accueil, jusqu'à 4 clubs). Je m'en vais, mais tu n'es pas seul : mon adjoint reste et te glissera un conseil quand il faut." },
     ];
     const s = steps[step];
@@ -17312,6 +17312,9 @@ function Onboarding({ club }) {
         e.preventDefault();
         next();
     } }; document.addEventListener("keydown", onKey); return () => document.removeEventListener("keydown", onKey); }, [step]);
+    useEffect(() => { if (step < 0)
+        return; var gt = steps[step] && steps[step].goTab; if (gt && setTab)
+        setTab(gt); }, [step]); // change la page EN DIRECT derrière le modal quand le DS parle d'un onglet
     const punchShown = (s.punch || "").slice(0, typed), typing = typed < (s.punch || "").length;
     const CONF = ["#00ff6a", acc, "#7B3DFF", "#ffffff", "#9ad0ff"];
     return (React.createElement("div", { className: "ob-ov", onClick: done, style: { "--acc": acc, "--prim": prim } },
@@ -17325,7 +17328,9 @@ function Onboarding({ club }) {
                 ? React.createElement("span", { className: "ob-crest" },
                     React.createElement("span", { className: "ob-ring" }),
                     React.createElement(ClubBadge, { club: club, size: 78 }))
-                : React.createElement("span", { className: "ob-emoji" }, TOUR_EMO[s.hero] ? React.createElement(Icon, { name: TOUR_EMO[s.hero], size: 52 }) : s.hero)),
+                : React.createElement("span", { className: "ob-navic" },
+                    React.createElement("span", { className: "ob-navring" }),
+                    React.createElement(Icon, { name: s.hero, size: 46 }))),
             React.createElement("div", { className: "ob-txt", key: "b" + step },
                 s.tag ? React.createElement("div", { className: "ob-tag" }, s.tag) : null,
                 React.createElement("div", { className: "ob-punch" },
@@ -17341,7 +17346,7 @@ function Onboarding({ club }) {
                 React.createElement("button", { onClick: next, className: "ob-next" }, last ? "Prends les clés 🔑" : "Suivant →")))));
 }
 const OB_CSS = `
-.ob-ov{ position:fixed; inset:0; z-index:1000; display:flex; align-items:center; justify-content:center; padding:20px; background:rgba(5,9,16,.86); animation:obFade .3s ease both; }
+.ob-ov{ position:fixed; inset:0; z-index:1000; display:flex; align-items:center; justify-content:center; padding:20px; background:rgba(5,9,16,.62); animation:obFade .3s ease both; }
 .ob-glow{ position:absolute; top:8%; left:50%; transform:translateX(-50%); width:min(560px,96vw); height:340px; background:radial-gradient(60% 100% at 50% 0%, var(--prim), transparent 70%); opacity:.55; pointer-events:none; filter:blur(6px); }
 .ob-card{ position:relative; overflow:hidden; width:352px; max-width:92vw; background:linear-gradient(165deg,#161d27,#0f151d); border:1px solid rgba(0,255,106,.34); border-radius:20px; padding:26px 22px 20px; text-align:center; box-shadow:0 24px 70px rgba(0,0,0,.62), 0 0 0 1px rgba(255,255,255,.03) inset; animation:obIn .5s cubic-bezier(.16,1,.3,1) both; }
 .ob-sweep{ position:absolute; top:0; left:0; height:100%; width:60%; pointer-events:none; background:linear-gradient(115deg,transparent, rgba(0,255,106,.16), var(--acc), transparent); mix-blend-mode:screen; opacity:.9; animation:obSweep .62s cubic-bezier(.5,0,.2,1) both; }
@@ -17351,6 +17356,8 @@ const OB_CSS = `
 .ob-crest{ position:relative; display:inline-flex; align-items:center; justify-content:center; animation:obFloat 3.2s ease-in-out infinite; }
 .ob-ring{ position:absolute; inset:-12px; border-radius:50%; box-shadow:0 0 0 2px rgba(0,255,106,.35); animation:obPulse 1.9s ease-out infinite; }
 .ob-emoji{ font-size:56px; line-height:1; display:inline-block; animation:obBob 2.6s ease-in-out infinite; }
+.ob-navic{ position:relative; display:inline-flex; align-items:center; justify-content:center; color:#00ff6a; filter:drop-shadow(0 5px 14px rgba(0,255,106,.4)); animation:obBob 2.6s ease-in-out infinite; }
+.ob-navring{ position:absolute; inset:-18px; border-radius:50%; background:radial-gradient(circle, rgba(0,255,106,.18), transparent 68%); }
 .ob-txt{ animation:obRise .5s .06s cubic-bezier(.16,1,.3,1) both; }
 .ob-tag{ font-family:Raleway,sans-serif; font-size:11px; font-weight:800; letter-spacing:.14em; color:var(--acc); text-transform:uppercase; margin-bottom:7px; filter:brightness(1.35); }
 .ob-punch{ font-family:Raleway,sans-serif; font-size:23px; font-weight:800; line-height:1.15; color:#fff; margin-bottom:9px; min-height:27px; }
