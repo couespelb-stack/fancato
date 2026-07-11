@@ -15711,6 +15711,18 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
                 const apportWired = !!domApportPhrase;
                 const apportInd = (domKey === "seriea" || domKey === "laliga") ? 0 : 1; // indice de l'indicateur que l'apport affecte : ① Liquidità (Italie) / LCPD (Espagne) vs ② fonds propres/SSR/Eigenkapital (FR/EN/DE)
                 return (React.createElement(React.Fragment, null,
+                    React.createElement("div", { className: "card", style: { padding: "13px 15px", marginBottom: 12, background: "linear-gradient(180deg,rgba(26,33,43,.92),rgba(15,21,29,.92))", border: "1px solid " + simpleColor + "55", borderLeft: "4px solid " + simpleColor, borderRadius: 14 } },
+                        React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 10 } },
+                            React.createElement("span", { style: { fontSize: 26, lineHeight: 1 } }, simpleDot),
+                            React.createElement("div", { style: { flex: 1, minWidth: 0 } },
+                                React.createElement("div", { style: { fontFamily: "Raleway,sans-serif", fontWeight: 800, fontSize: 15, color: simpleColor } }, simpleLabel),
+                                React.createElement("div", { style: { fontSize: 12, color: "#aebbd4", lineHeight: 1.4, marginTop: 2 } }, simpleAdvice))),
+                        React.createElement("div", { style: { display: "flex", alignItems: "baseline", gap: 8, marginTop: 10, paddingTop: 10, borderTop: "1px solid rgba(255,255,255,.07)" } },
+                            React.createElement("span", { style: { fontSize: 12, color: "#93a4c4" } }, "Tu peux encore d\u00E9penser"),
+                            React.createElement("span", { style: { fontFamily: "Raleway,sans-serif", fontWeight: 800, fontSize: 18, color: investRoom >= 0 ? "#00ff6a" : "#ff96a6" } },
+                                investRoom >= 0 ? "≈ " : "",
+                                fmt(investRoom)),
+                            React.createElement("span", { style: { fontSize: 11, color: "#7d8eae", marginLeft: "auto" } }, "indemnit\u00E9s + salaires"))),
                     React.createElement("div", { className: "card", style: { padding: "10px 12px", marginBottom: 12, background: "rgba(110,168,255,.07)", border: "1px solid rgba(110,168,255,.3)", borderRadius: 12 } },
                         React.createElement("div", { style: { fontSize: 12.5, color: "#cdd8ee", lineHeight: 1.5 } },
                             React.createElement("b", { style: { color: "#8fb8ff" } },
@@ -17093,7 +17105,9 @@ function Home({ slots, onResume, onEnter, onRemove, onCommunity }) {
             React.createElement("div", { style: { fontSize: 13.5, lineHeight: 1.5, color: "#b7c0cf" } },
                 "Le mercato vient d'ouvrir.",
                 React.createElement("br", null),
-                React.createElement("b", { style: { color: "#fff" } }, "Pr\u00E9pare ta saison 2026/2027."))),
+                React.createElement("b", { style: { color: "#fff" } }, "Pr\u00E9pare ta saison 2026/2027."),
+                React.createElement("br", null),
+                React.createElement("span", { style: { display: "inline-block", marginTop: 6, fontSize: 12, color: "#8b9cbe", lineHeight: 1.45 } }, "Refais le mercato de ton club dans les vraies r\u00E8gles financi\u00E8res \u2014 et compare ton flair \u00E0 la communaut\u00E9."))),
         React.createElement("div", { style: { maxWidth: 620, margin: "0 auto" } },
             React.createElement("div", { style: { textAlign: "center", marginBottom: 12 } },
                 React.createElement("div", { style: { fontFamily: "Raleway, sans-serif", fontWeight: 800, fontSize: 16, letterSpacing: ".08em", textTransform: "uppercase", color: "#fff" } }, "Choisis ton club"),
@@ -17601,7 +17615,7 @@ function StartModePicker({ clubId, onPick, onCancel }) {
     const MODES = [
         { m: 1, lab: "Vierge", desc: "Effectif de départ, aucun transfert de l'été. Tout est à faire — à toi de bâtir ton mercato de zéro." },
         { m: 2, lab: "Coup d'envoi", desc: "Les mouvements officiels du 1er juillet sont déjà actés. Tu continues à partir de là." },
-        { m: 3, lab: "Jour J", desc: "Tous les transferts réels de l'été 2026 sont déjà faits. Tu reprends l'effectif à jour." },
+        { m: 3, lab: "Jour J", desc: "★ Recommandé — le plus réaliste pour commencer. Tous les transferts réels de l'été 2026 sont déjà faits, tu reprends l'effectif à jour." },
     ];
     const cur = MODES.find((x) => x.m === sel) || MODES[2];
     return (React.createElement("div", { style: { minHeight: "100dvh", background: "radial-gradient(1200px 600px at 50% -10%, #16264c 0%, #0a1224 60%)", display: "flex", alignItems: "center", justifyContent: "center", padding: "max(24px, env(safe-area-inset-top)) 16px max(24px, env(safe-area-inset-bottom))", fontFamily: "Raleway, system-ui, sans-serif", boxSizing: "border-box" } },
@@ -17951,7 +17965,7 @@ function Splash({ onStart }) {
             React.createElement("span", { style: { color: "#00ff6a" } }, "imagin\u00E9 par les fans")),
         React.createElement("div", { style: { flex: 1 } }),
         React.createElement("button", { onClick: onStart, style: { width: "100%", maxWidth: 330, background: "linear-gradient(180deg,#00ff6a,#00c452)", color: "#04120a", border: "none", borderRadius: 13, padding: "16px", fontFamily: "Raleway,sans-serif", fontWeight: 800, fontSize: 16, letterSpacing: ".05em", textTransform: "uppercase", cursor: "pointer", boxShadow: "0 10px 30px rgba(0,255,106,.3)" } }, "Commencer"),
-        React.createElement("button", { onClick: onStart, style: { width: "100%", maxWidth: 330, marginTop: 11, background: "rgba(255,255,255,.06)", color: "#e7edf8", border: "1px solid rgba(255,255,255,.16)", borderRadius: 13, padding: "15px", fontFamily: "Raleway,sans-serif", fontWeight: 700, fontSize: 15, letterSpacing: ".05em", textTransform: "uppercase", cursor: "pointer" } }, "Connexion"),
+        React.createElement("button", { disabled: true, title: "Compte en ligne bient\u00F4t disponible", style: { width: "100%", maxWidth: 330, marginTop: 11, background: "rgba(255,255,255,.035)", color: "#6b7a95", border: "1px solid rgba(255,255,255,.09)", borderRadius: 13, padding: "15px", fontFamily: "Raleway,sans-serif", fontWeight: 700, fontSize: 15, letterSpacing: ".05em", textTransform: "uppercase", cursor: "not-allowed" } }, "Connexion \u00B7 bient\u00F4t"),
         React.createElement("div", { style: { marginTop: 22, fontSize: 12, color: "#7d8eae", lineHeight: 1.5 } },
             "Rejoins la communaut\u00E9",
             React.createElement("br", null),
