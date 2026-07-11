@@ -5252,7 +5252,7 @@ function playerPool(excludeId) {
             const _f = UEFA_FORM[p.name];
             out.push({
                 name: p.name, pos: p.pos, mkt: +p.mkt || 0, sal: +p.sal || 0, club: c.meta.shortName, clubId: id,
-                end: +p.end || 0, age: (_f && _f.by) ? (2026 - _f.by) : 0,
+                end: +p.end || 0, age: (_f && _f.by) ? (2026 - _f.by) : 0, clause: CLAUSES[id + "|" + p.name] || 0,
             });
         });
     });
@@ -9149,6 +9149,97 @@ var PHOTO_ADJ = {
     "Gedson Fernandes": { "s": 1.65, "cf": 0.08, "cfx": 0.497 },
     "Wendel": { "s": 1.41, "cf": 0, "cfx": 0.47 }
 };
+// Clause de libération (M€) par (club|nom) — montant à payer pour lever le joueur sans négocier.
+// Source : Capology, colonne CLAUSE LIBÉRATOIRE (relevé juillet 2026).
+// LaLiga impose une clause à tout contrat -> clubs espagnols bien couverts. La Serie A n'en impose pas
+// (seul Koné/Sassuolo en a une). Purement INFORMATIF : aucun effet sur le moteur financier.
+const CLAUSES = {
+    // athletic
+    "athletic|Yeray Álvarez": 70,
+    "athletic|Yuri Berchiche": 100,
+    "athletic|Iñigo Lekue": 45,
+    "athletic|Mikel Vesga": 50,
+    "athletic|Oihan Sancet": 80,
+    "athletic|Nico Williams": 95,
+    "athletic|Iñaki Williams": 135,
+    // atletico
+    "atletico|Marcos Llorente": 120,
+    "atletico|Nahuel Molina": 100,
+    "atletico|Pablo Barrios": 100,
+    "atletico|Giuliano Simeone": 500,
+    "atletico|Antoine Griezmann": 25,
+    "atletico|Julián Alvarez": 500,
+    // barcelona
+    "barcelona|Marc-André ter Stegen": 500,
+    "barcelona|Pau Cubarsí": 500,
+    "barcelona|Gerard Martín": 100,
+    "barcelona|Ronald Araujo": 1000,
+    "barcelona|Andreas Christensen": 500,
+    "barcelona|Alejandro Balde": 1000,
+    "barcelona|Jules Koundé": 1000,
+    "barcelona|Marc Bernal": 500,
+    "barcelona|Marc Casadó": 100,
+    "barcelona|Pedri": 1000,
+    "barcelona|Frenkie de Jong": 500,
+    "barcelona|Gavi": 1000,
+    "barcelona|Guille Fernández": 6,
+    "barcelona|Fermín López": 500,
+    "barcelona|Dani Olmo": 500,
+    "barcelona|Toni Fernández": 6,
+    "barcelona|Juan Hernández": 6,
+    "barcelona|Raphinha": 1000,
+    "barcelona|Lamine Yamal": 1000,
+    "barcelona|Ferran Torres": 1000,
+    "barcelona|Robert Lewandowski": 500,
+    // betis
+    "betis|Sergi Altimira": 60,
+    "betis|Isco": 20,
+    // getafe
+    "getafe|Borja Mayoral": 20,
+    // levante
+    "levante|Karl Etta Eyong": 30,
+    // osasuna
+    "osasuna|Aitor Fernández": 14,
+    "osasuna|Rafa Fernández": 14,
+    "osasuna|Enzo Boyomo": 25,
+    "osasuna|Juan Cruz": 15,
+    "osasuna|Jon Moncayola": 22,
+    "osasuna|Jon García": 8,
+    "osasuna|Aimar Oroz": 30,
+    "osasuna|Moi Gómez": 20,
+    "osasuna|Víctor Muñoz": 40,
+    "osasuna|Rubén García": 8,
+    "osasuna|Ante Budimir": 8,
+    // rayo
+    "rayo|Isi Palazón": 50,
+    // realsociedad
+    "realsociedad|Álex Remiro": 70,
+    "realsociedad|Igor Zubeldia": 50,
+    "realsociedad|Aritz Elustondo": 60,
+    "realsociedad|Aihen Muñoz": 50,
+    "realsociedad|Jon Aramburu": 60,
+    "realsociedad|Brais Méndez": 60,
+    "realsociedad|Ander Barrenetxea": 75,
+    "realsociedad|Takefusa Kubo": 60,
+    "realsociedad|Mikel Oyarzabal": 75,
+    // sassuolo
+    "sassuolo|Ismaël Koné": 35,
+    // sevilla
+    "sevilla|Rafa Romero": 30,
+    "sevilla|Tanguy Nianzou": 90,
+    "sevilla|José Ángel Carmona": 30,
+    "sevilla|Juanlu Sánchez": 40,
+    "sevilla|Isaac Romero": 30,
+    // valencia
+    "valencia|José Gayà": 100,
+    "valencia|Pepelu": 100,
+    "valencia|Javi Guerra": 100,
+    "valencia|Pablo López": 100,
+    "valencia|Diego López": 100,
+    // villarreal
+    "villarreal|Sergi Cardona": 15,
+    "villarreal|Gerard Moreno": 100,
+};
 // Override photo par (club|nom) — pour les HOMONYMES (2 vrais joueurs, même nom, clubs différents).
 // PHOTOS étant indexé par nom seul, cet override donne une photo distincte par joueur. { u, s, cf, cfx }
 const PHOTO_BY_ID = {
@@ -12352,9 +12443,42 @@ const BACKOFFICE = (function () {
         label: "Résultat football (Football Earnings)", op: "",
         src: "<b>Ex-règle du break-even.</b> Résultat cumulé sur 3 ans (add-backs : formation, infrastructures, féminin, communautaire). Déviation acceptable ≥ <b>−5 M€</b> seule, relevée à <b>−60 M€</b> si couverte par apport en capital / financement sécurisé, <b>−90 M€</b> si « bonne santé financière ». Au-delà → settlement (plan pluriannuel avec amendes conditionnelles + cibles dégressives).",
         kids: [
-            { label: "Résultat football cumulé (3 ans)", src: "Somme des résultats football sur 3 exercices, add-backs déduits." },
-            { label: "Statut UEFA (football earnings)", src: "Conforme, sous settlement (avec durée et amende), ou sorti du régime." },
-            { label: "−5 seul · −60 si apport capital · −90 si bonne santé", src: "L'apport actionnaire couvre jusqu'à −60 (ou −90 si sain) mais NE comble PAS au-delà : le SCR reste un 2e verrou indépendant." },
+            { label: "Résultat football cumulé (3 ans)", src: "Somme des résultats football des 3 dernières saisons. C'est CE chiffre qui est comparé au plafond UEFA." },
+            { label: "Statut UEFA (football earnings)", src: "Conforme, sous settlement (avec durée et amende), ou sorti du régime. Utile surtout quand le club a eu des soucis avec l'UEFA." },
+            { label: "↓ Détail du calcul de la saison", op: "", src: "Comment on obtient le résultat football de CETTE saison : on part du résultat net comptable, puis on ajoute les retraitements UEFA.",
+                kids: [
+                    { label: "Résultat net (comptable)", op: "", src: "Le résultat net officiel de la saison, avant retraitements UEFA. On le construit poste par poste ci-dessous.",
+                        kids: [
+                            { label: "+ Produits d'exploitation", op: "( +", src: "Tous les revenus récurrents (hors ventes de joueurs).",
+                                kids: [
+                                    { label: "· Droits TV & audiovisuels", src: "Droits de retransmission (championnat + UEFA)." },
+                                    { label: "· Sponsors & publicité", src: "Maillot, équipementier, partenaires commerciaux." },
+                                    { label: "· Recettes de matches (billetterie)", src: "Guichets, abonnements, hospitalités — bouge avec le parcours à domicile." },
+                                    { label: "· Autres produits", src: "Merchandising, licences, divers." },
+                                ] },
+                            { label: "− Charges d'exploitation", op: "( −", src: "Tous les coûts récurrents (hors trading de joueurs).",
+                                kids: [
+                                    { label: "· Rémunération chargée (salaires)", src: "Salaires joueurs + staff + charges patronales — le plus gros poste, bouge avec ton mercato." },
+                                    { label: "· Amortissements des transferts", src: "Étalement du prix d'achat des joueurs sur la durée du contrat." },
+                                    { label: "· Honoraires d'agents", src: "Commissions versées aux intermédiaires — augmentent avec tes recrues." },
+                                    { label: "· Autres charges", src: "Fonctionnement, déplacements, structure." },
+                                ] },
+                            { label: "= Résultat d'exploitation", src: "Produits − charges (hors ventes de joueurs)." },
+                            { label: "+ Résultat des mutations", src: "Plus-values réalisées sur les ventes de joueurs." },
+                            { label: "+ Résultat financier", src: "Intérêts, produits/charges financiers." },
+                            { label: "+ Résultat exceptionnel", src: "Éléments non récurrents (souvent neutralisés en projection)." },
+                            { label: "− Impôt", src: "Impôt sur les bénéfices (0 si perte ou déficits reportables)." },
+                            { label: "= Résultat net", src: "Le résultat net comptable de la saison." },
+                        ] },
+                    { label: "+ Retraitements UEFA (add-backs)", op: "+", src: "Dépenses que l'UEFA NE pénalise PAS : elles sont réintégrées (ajoutées) au résultat. Estimées, non publiées.",
+                        kids: [
+                            { label: "· Formation (centre)", src: "Coûts de formation des jeunes." },
+                            { label: "· Football féminin", src: "Section féminine." },
+                            { label: "· Infrastructures", src: "Amortissement stade/centre d'entraînement." },
+                            { label: "· Communautaire", src: "Actions solidaires / d'intérêt général." },
+                        ] },
+                    { label: "= Football earnings de la saison", src: "Résultat net + retraitements UEFA. C'est la brique qu'on additionne sur 3 ans." },
+                ] },
         ]
     };
     const SCR_UEFA_BY_CLUB = { "psg": { "Ratio coûts d'effectif (Squad Cost Ratio)": ["~67 %", "~67 %", "≤70 %"], "Base du ratio (onglet national)": ["calibrage UEFA", "", ""], "Verdict UEFA (contrôle année civile 2025)": ["✓ settlement ATTEINT (sorti 2026)", "", ""], "ℹ Seuil 70 % (permanent dès 2025) · sinon amende + restrictions listes": ["70 %", "70 %", "70 %"] }, "om": { "Ratio coûts d'effectif (Squad Cost Ratio)": ["~92 %", "~92 %", "≤70 %"], "Base du ratio (onglet national)": ["onglet Ligue 1", "", ""], "Verdict UEFA (contrôle année civile 2025)": ["SCR >70 · +4 M€ (SCR) · a ÉCHOUÉ la cible FINALE du settlement → +6 M€ (FE) · menace d'exclusion conditionnelle (3 ans) sauf conformité 2026-27", "", ""], "ℹ Seuil 70 % (permanent dès 2025) · sinon amende + restrictions listes": ["70 %", "70 %", "70 %"] }, "monaco": { "Ratio coûts d'effectif (Squad Cost Ratio)": ["~82 %", "~82 %", "≤70 %"], "Base du ratio (onglet national)": ["onglet Ligue 1", "", ""], "Verdict UEFA (contrôle année civile 2025)": ["✓ settlement ATTEINT (sorti 2026)", "", ""], "ℹ Seuil 70 % (permanent dès 2025) · sinon amende + restrictions listes": ["70 %", "70 %", "70 %"] }, "ol": { "Ratio coûts d'effectif (Squad Cost Ratio)": ["~83 %", "~83 %", "≤70 %"], "Base du ratio (onglet national)": ["onglet Ligue 1", "", ""], "Verdict UEFA (contrôle année civile 2025)": ["sous settlement 4 ans (50 M€)", "", ""], "ℹ Seuil 70 % (permanent dès 2025) · sinon amende + restrictions listes": ["70 %", "70 %", "70 %"] }, "losc": { "Ratio coûts d'effectif (Squad Cost Ratio)": ["~45 %", "~45 %", "≤70 %"], "Base du ratio (onglet national)": ["onglet Ligue 1", "", ""], "Verdict UEFA (contrôle année civile 2025)": ["✓ conforme", "", ""], "ℹ Seuil 70 % (permanent dès 2025) · sinon amende + restrictions listes": ["70 %", "70 %", "70 %"] }, "lens": { "Ratio coûts d'effectif (Squad Cost Ratio)": ["~68 %", "~68 %", "≤70 %"], "Base du ratio (onglet national)": ["onglet Ligue 1", "", ""], "Verdict UEFA (contrôle année civile 2025)": ["✓ conforme", "", ""], "ℹ Seuil 70 % (permanent dès 2025) · sinon amende + restrictions listes": ["70 %", "70 %", "70 %"] }, "nice": { "Ratio coûts d'effectif (Squad Cost Ratio)": ["n.d. (>70)", "n.d. (>70)", "≤70 %"], "Base du ratio (onglet national)": ["—", "", ""], "Verdict UEFA (contrôle année civile 2025)": ["SANCTIONNÉ 0,45 (SCR) + 2 M€ (FE) 2026", "", ""], "ℹ Seuil 70 % (permanent dès 2025) · sinon amende + restrictions listes": ["70 %", "70 %", "70 %"] }, "strasbourg": { "Ratio coûts d'effectif (Squad Cost Ratio)": ["n.d. (>70)", "n.d. (>70)", "≤70 %"], "Base du ratio (onglet national)": ["—", "", ""], "Verdict UEFA (contrôle année civile 2025)": ["SANCTIONNÉ 25 M€ · restrictions listes", "", ""], "ℹ Seuil 70 % (permanent dès 2025) · sinon amende + restrictions listes": ["70 %", "70 %", "70 %"] }, "chelsea": { "Ratio coûts d'effectif (Squad Cost Ratio)": ["97 %", "97 %", "≤70 %"], "Base du ratio (onglet national)": ["onglet Premier League", "", ""], "Verdict UEFA (contrôle année civile 2025)": ["settlement 4 ans en cours · +3 M€ (SCR, dont 2 susp.) en 2026 · 'improving trend'", "", ""], "ℹ Seuil 70 % (permanent dès 2025) · sinon amende + restrictions listes": ["70 %", "70 %", "70 %"] }, "arsenal": { "Ratio coûts d'effectif (Squad Cost Ratio)": ["57 %", "57 %", "≤70 %"], "Base du ratio (onglet national)": ["onglet Premier League", "", ""], "Verdict UEFA (contrôle année civile 2025)": ["✓ conforme", "", ""], "ℹ Seuil 70 % (permanent dès 2025) · sinon amende + restrictions listes": ["70 %", "70 %", "70 %"] }, "mancity": { "Ratio coûts d'effectif (Squad Cost Ratio)": ["71 % (24-25)", "71 % (24-25)", "≤70 %"], "Base du ratio (onglet national)": ["onglet Premier League", "", ""], "Verdict UEFA (contrôle année civile 2025)": ["✓ conforme (non sanctionné)", "", ""], "ℹ Seuil 70 % (permanent dès 2025) · sinon amende + restrictions listes": ["70 %", "70 %", "70 %"] }, "liverpool": { "Ratio coûts d'effectif (Squad Cost Ratio)": ["47 %", "47 %", "≤70 %"], "Base du ratio (onglet national)": ["onglet Premier League", "", ""], "Verdict UEFA (contrôle année civile 2025)": ["✓ conforme", "", ""], "ℹ Seuil 70 % (permanent dès 2025) · sinon amende + restrictions listes": ["70 %", "70 %", "70 %"] }, "tottenham": { "Ratio coûts d'effectif (Squad Cost Ratio)": ["54 %", "54 %", "≤70 %"], "Base du ratio (onglet national)": ["onglet Premier League", "", ""], "Verdict UEFA (contrôle année civile 2025)": ["✓ conforme", "", ""], "ℹ Seuil 70 % (permanent dès 2025) · sinon amende + restrictions listes": ["70 %", "70 %", "70 %"] }, "villa": { "Ratio coûts d'effectif (Squad Cost Ratio)": ["110 %", "110 %", "≤70 %"], "Base du ratio (onglet national)": ["onglet Premier League", "", ""], "Verdict UEFA (contrôle année civile 2025)": ["SANCTIONNÉ 22,5 M€ · restrictions listes", "", ""], "ℹ Seuil 70 % (permanent dès 2025) · sinon amende + restrictions listes": ["70 %", "70 %", "70 %"] }, "newcastle": { "Ratio coûts d'effectif (Squad Cost Ratio)": ["n.d. (>70)", "n.d. (>70)", "≤70 %"], "Base du ratio (onglet national)": ["—", "", ""], "Verdict UEFA (contrôle année civile 2025)": ["SANCTIONNÉ 3 M€ SCR + 10 M€ FE · settlement 3 ans", "", ""], "ℹ Seuil 70 % (permanent dès 2025) · sinon amende + restrictions listes": ["70 %", "70 %", "70 %"] }, "forest": { "Ratio coûts d'effectif (Squad Cost Ratio)": ["75 %", "75 %", "≤70 %"], "Base du ratio (onglet national)": ["onglet Premier League", "", ""], "Verdict UEFA (contrôle année civile 2025)": ["SANCTIONNÉ 2,5 M€", "", ""], "ℹ Seuil 70 % (permanent dès 2025) · sinon amende + restrictions listes": ["70 %", "70 %", "70 %"] }, "realmadrid": { "Ratio coûts d'effectif (Squad Cost Ratio)": ["~50 %", "~50 %", "≤70 %"], "Base du ratio (onglet national)": ["calibrage UEFA", "", ""], "Verdict UEFA (contrôle année civile 2025)": ["✓ conforme", "", ""], "ℹ Seuil 70 % (permanent dès 2025) · sinon amende + restrictions listes": ["70 %", "70 %", "70 %"] }, "barcelona": { "Ratio coûts d'effectif (Squad Cost Ratio)": ["~100 %", "~100 %", "≤70 %"], "Base du ratio (onglet national)": ["onglet LaLiga", "", ""], "Verdict UEFA (contrôle année civile 2025)": ["settlement 2 ans (60 M€) · conformité 2026-27", "", ""], "ℹ Seuil 70 % (permanent dès 2025) · sinon amende + restrictions listes": ["70 %", "70 %", "70 %"] }, "juventus": { "Ratio coûts d'effectif (Squad Cost Ratio)": ["70 %", "70 %", "≤70 %"], "Base du ratio (onglet national)": ["onglet Serie A", "", ""], "Verdict UEFA (contrôle année civile 2025)": ["SANCTIONNÉ 20 M€ (FE) · settlement 3 ans", "", ""], "ℹ Seuil 70 % (permanent dès 2025) · sinon amende + restrictions listes": ["70 %", "70 %", "70 %"] }, "inter": { "Ratio coûts d'effectif (Squad Cost Ratio)": ["55 %", "55 %", "≤70 %"], "Base du ratio (onglet national)": ["onglet Serie A", "", ""], "Verdict UEFA (contrôle année civile 2025)": ["✓ settlement ATTEINT (sorti 2026)", "", ""], "ℹ Seuil 70 % (permanent dès 2025) · sinon amende + restrictions listes": ["70 %", "70 %", "70 %"] }, "milan": { "Ratio coûts d'effectif (Squad Cost Ratio)": ["55 %", "55 %", "≤70 %"], "Base du ratio (onglet national)": ["onglet Serie A", "", ""], "Verdict UEFA (contrôle année civile 2025)": ["✓ settlement ATTEINT (sorti 2026)", "", ""], "ℹ Seuil 70 % (permanent dès 2025) · sinon amende + restrictions listes": ["70 %", "70 %", "70 %"] }, "napoli": { "Ratio coûts d'effectif (Squad Cost Ratio)": ["87 %", "87 %", "≤70 %"], "Base du ratio (onglet national)": ["onglet Serie A", "", ""], "Verdict UEFA (contrôle année civile 2025)": ["SCR >70 mais OFFSET FE → PAS d'amende", "", ""], "ℹ Seuil 70 % (permanent dès 2025) · sinon amende + restrictions listes": ["70 %", "70 %", "70 %"] }, "roma": { "Ratio coûts d'effectif (Squad Cost Ratio)": ["71 %", "71 %", "≤70 %"], "Base du ratio (onglet national)": ["onglet Serie A", "", ""], "Verdict UEFA (contrôle année civile 2025)": ["sous settlement · 4 M€ SCR + 2 M€ FE 2026", "", ""], "ℹ Seuil 70 % (permanent dès 2025) · sinon amende + restrictions listes": ["70 %", "70 %", "70 %"] }, "atalanta": { "Ratio coûts d'effectif (Squad Cost Ratio)": ["62 %", "62 %", "≤70 %"], "Base du ratio (onglet national)": ["onglet Serie A", "", ""], "Verdict UEFA (contrôle année civile 2025)": ["✓ conforme", "", ""], "ℹ Seuil 70 % (permanent dès 2025) · sinon amende + restrictions listes": ["70 %", "70 %", "70 %"] }, "fiorentina": { "Ratio coûts d'effectif (Squad Cost Ratio)": ["67 % (24-25)", "67 % (24-25)", "≤70 %"], "Base du ratio (onglet national)": ["onglet Serie A", "", ""], "Verdict UEFA (contrôle année civile 2025)": ["SANCTIONNÉ 6 M€ (SCR >70)", "", ""], "ℹ Seuil 70 % (permanent dès 2025) · sinon amende + restrictions listes": ["70 %", "70 %", "70 %"] }, "bologna": { "Ratio coûts d'effectif (Squad Cost Ratio)": ["55 % (24-25)", "55 % (24-25)", "≤70 %"], "Base du ratio (onglet national)": ["onglet Serie A", "", ""], "Verdict UEFA (contrôle année civile 2025)": ["SCR >70 mais OFFSET FE → PAS d'amende", "", ""], "ℹ Seuil 70 % (permanent dès 2025) · sinon amende + restrictions listes": ["70 %", "70 %", "70 %"] }, "bayern": { "Ratio coûts d'effectif (Squad Cost Ratio)": ["55 %", "55 %", "≤70 %"], "Base du ratio (onglet national)": ["onglet Bundesliga", "", ""], "Verdict UEFA (contrôle année civile 2025)": ["✓ conforme", "", ""], "ℹ Seuil 70 % (permanent dès 2025) · sinon amende + restrictions listes": ["70 %", "70 %", "70 %"] }, "dortmund": { "Ratio coûts d'effectif (Squad Cost Ratio)": ["67 %", "67 %", "≤70 %"], "Base du ratio (onglet national)": ["onglet Bundesliga", "", ""], "Verdict UEFA (contrôle année civile 2025)": ["✓ conforme", "", ""], "ℹ Seuil 70 % (permanent dès 2025) · sinon amende + restrictions listes": ["70 %", "70 %", "70 %"] }, "leverkusen": { "Ratio coûts d'effectif (Squad Cost Ratio)": ["51 %", "51 %", "≤70 %"], "Base du ratio (onglet national)": ["onglet Bundesliga", "", ""], "Verdict UEFA (contrôle année civile 2025)": ["✓ conforme", "", ""], "ℹ Seuil 70 % (permanent dès 2025) · sinon amende + restrictions listes": ["70 %", "70 %", "70 %"] } };
@@ -12504,13 +12628,19 @@ const BACKOFFICE = (function () {
             var byNode = (LG && LG.crit[ci] ? LG.crit[ci].by : {});
             var _sanc = CRIT_SANCTION[cur + "/" + ci] || "";
             if (cur === "uefa" && ci === 0 && _liveVal && _liveVal.uNum) {
-                var _ur = (_liveVal.ratioUEFA != null) ? (Math.round(_liveVal.ratioUEFA) + " % " + (_liveVal.ratioUEFA <= (_liveVal.uefaLimit || 70) ? "✓" : "✗")) : "";
+                var _urF = function (v) { return (v != null) ? (Math.round(v) + " % " + (v <= (_liveVal.uefaLimit || 70) ? "✓" : "✗")) : ""; };
+                var _ur = _urF(_liveVal.ratioUEFA);
+                var _ur25 = (_liveVal.ratioUEFA25 != null ? _urF(_liveVal.ratioUEFA25) : _ur);
+                var _ur26 = (_liveVal.ratioUEFA26 != null ? _urF(_liveVal.ratioUEFA26) : _ur);
                 var _bn = Object.assign({}, byNode);
-                _bn[clubSel] = Object.assign({}, byNode[clubSel] || {}, { "Ratio des coûts d'effectif (Squad Cost Ratio)": [_ur, _ur, _ur], "NUMÉRATEUR — coût d'effectif (Annexe K.1)": [_liveVal.uNum, _liveVal.uNum, _liveVal.uNum], "↳ Normalisation charges sociales (× multiplicateur 2,16)": [_liveVal.uNorm, _liveVal.uNorm, _liveVal.uNorm], "DÉNOMINATEUR — revenus ajustés + transferts (Annexe K.2)": [_liveVal.uDen, _liveVal.uDen, _liveVal.uDen] });
+                _bn[clubSel] = Object.assign({}, byNode[clubSel] || {}, { "Ratio des coûts d'effectif (Squad Cost Ratio)": [_ur25, _ur26, _ur], "NUMÉRATEUR — coût d'effectif (Annexe K.1)": [_liveVal.uNum, _liveVal.uNum, _liveVal.uNum], "↳ Normalisation charges sociales (× multiplicateur 2,16)": [_liveVal.uNorm, _liveVal.uNorm, _liveVal.uNorm], "DÉNOMINATEUR — revenus ajustés + transferts (Annexe K.2)": [_liveVal.uDen, _liveVal.uDen, _liveVal.uDen] });
                 byNode = _bn;
             }
             if (cur === "uefa" && ci === 1 && _liveVal && _liveVal.cumulUEFA != null) {
-                var _fc = (_liveVal.cumulUEFA >= 0 ? "+" : "") + Math.round(_liveVal.cumulUEFA);
+                var _f2 = function (v) { return (v >= 0 ? "+" : "") + Math.round(v); };
+                var _fc = _f2(_liveVal.cumulUEFA);
+                var _fc25 = (_liveVal.cumulUEFA25 != null ? _f2(_liveVal.cumulUEFA25) : _fc);
+                var _fc26 = (_liveVal.cumulUEFA26 != null ? _f2(_liveVal.cumulUEFA26) : _fc);
                 var _cov;
                 if (_liveVal.feSettle) {
                     _cov = " · sous settlement UEFA";
@@ -12525,7 +12655,15 @@ const BACKOFFICE = (function () {
                     _cov = _liveVal.feCovered ? " · déficit couvert (equity/apport) ✓" : " · non couvert ✗ · ton apport peut le couvrir";
                 }
                 var _bf = Object.assign({}, byNode);
-                _bf[clubSel] = Object.assign({}, byNode[clubSel] || {}, { "Résultat football cumulé (3 ans)": [_fc, _fc, _fc + _cov] });
+                _bf[clubSel] = Object.assign({}, byNode[clubSel] || {}, { "Résultat football cumulé (3 ans)": [_fc25, _fc26, _fc + _cov] });
+                if (_liveVal.feDetail) {
+                    var fd = _liveVal.feDetail;
+                    var nf3 = function (v) { return (v >= 0 ? "+" : "−") + Math.round(Math.abs(v)); };
+                    var _P = function (a) { return a ? [String(Math.round(a[0])), String(Math.round(a[1])), String(Math.round(a[2]))] : ["", "", ""]; };
+                    var _S = function (a) { return a ? [nf3(a[0]), nf3(a[1]), nf3(a[2])] : ["", "", ""]; };
+                    var _K = function (v) { var s = String(Math.round(v)); return [s, s, s]; };
+                    Object.assign(_bf[clubSel], { "· Droits TV & audiovisuels": _P(fd.av), "· Sponsors & publicité": _P(fd.spo), "· Recettes de matches (billetterie)": _P(fd.match), "· Autres produits": _P(fd.autresP), "+ Produits d'exploitation": _P(fd.produits), "· Rémunération chargée (salaires)": _P(fd.remun), "· Amortissements des transferts": _P(fd.amort), "· Honoraires d'agents": _P(fd.agents), "· Autres charges": _P(fd.autresC), "− Charges d'exploitation": _P(fd.charges), "= Résultat d'exploitation": _S(fd.rhm), "+ Résultat des mutations": _S(fd.mut), "+ Résultat financier": _S(fd.fin), "+ Résultat exceptionnel": _S(fd.exc), "− Impôt": _S(fd.impot), "= Résultat net": _S(fd.net), "· Formation (centre)": _K(fd.feForm), "· Football féminin": _K(fd.feFem), "· Infrastructures": _K(fd.feInfra), "· Communautaire": _K(fd.feComm), "+ Retraitements UEFA (add-backs)": [nf3(fd.feRet), nf3(fd.feRet), nf3(fd.feRet)], "= Football earnings de la saison": _S(fd.fe) });
+                }
                 byNode = _bf;
             } // + verdict de couverture UEFA (football earnings) : conforme / couvert par l'apport / non couvert / au-delà du plafond −60/−90 → l'apport bouge ce verdict
             return `<div class="crit">
@@ -13353,6 +13491,15 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
         }
         return { title: (ROW_LBL[lkey] || "Ligne") + " — " + colTxt + " : " + valTxt, kind: k === 0 ? (isOff ? "official" : "estime") : "info", lines };
     };
+    // Clause de libération : info contractuelle pure (aucun effet sur le moteur financier).
+    const clauseExplain = (nom, val) => ({
+        title: "Clause de libération — " + nom + " : " + fmt(val),
+        kind: "official",
+        lines: [
+            { t: "Le montant qui permet à n'importe quel club d'acheter " + nom + " sans passer par la négociation : il dépose la somme, et son club ne peut pas s'y opposer. En Espagne la loi impose une clause dans chaque contrat, d'où des montants souvent dissuasifs (le club la fixe très haut pour protéger ses cadres) ; l'Italie ne l'impose pas, donc presque aucun joueur de Serie A n'en a." },
+            { h: "Fiabilité 95 %.", t: "Montant relevé sur Capology (colonne « clause libératoire »), qui publie les contrats club par club. Information indicative : elle ne change aucun de tes calculs, elle te dit à quel prix ce joueur peut partir ou être arraché." },
+        ],
+    });
     // === Trésorerie du mercato (cash) ===
     const cashMercato = proceeds + loanFeesOut - loanFeesIn - feeArr;
     // === Serie A (FIGC/Covisoc) : Indicatore di Liquidità (actif court / passif court ≥ 0,6) ===
@@ -14479,6 +14626,10 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
         .pname{font-size:14px;font-weight:600;flex:1;min-width:0;}
         .pmeta{font-family:'Raleway';font-size:11px;color:#8295b5;letter-spacing:.04em;line-height:1.45;}
         .tagnew{font-family:'Raleway';font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--new);border:1px solid var(--new);border-radius:20px;padding:1px 6px;margin-left:5px;white-space:nowrap;display:inline-block;}
+        /* Clause de libération — info contractuelle (violet FANCATO), jamais une alerte. */
+        .clause-tag{color:#b58cff;border-color:#b58cff;cursor:pointer;letter-spacing:.04em;}
+        .clause-tag:hover{background:rgba(181,140,255,.14);}
+        .clause-chip{font-size:9.5px;color:#b58cff;margin-top:3px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
         .psel{background:var(--navy2);border:1px solid var(--line);color:#cdd8ee;border-radius:6px;padding:6px 6px;font-family:'Raleway';font-size:12px;max-width:104px;flex:none;min-height:40px;box-sizing:border-box;}
         .ssel{background:var(--navy2);border:1px solid var(--line);border-radius:6px;padding:6px 6px;font-family:'Raleway';font-size:12px;flex:none;width:82px;letter-spacing:.04em;min-height:40px;box-sizing:border-box;}
         .pact{display:flex;gap:5px;flex:none;}
@@ -15306,7 +15457,7 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
                 const _uNum = U ? (Math.round(uefaNum) + " = sal. " + Math.round(U.b.wageUEFA + coachDeltaUEFA) + " + amort " + Math.round(U.b.amort) + " + agents " + Math.round(U.b.agents)) : null;
                 const _uNorm = U ? ("charges " + (club.meta.country || "") + " ÷ " + _multReal.toFixed(2) + " puis × 2,16 (réf. UEFA)") : null;
                 const _uDen = U ? (Math.round(uefaDen) + " = revenus " + Math.round(U.b.produits) + " + transferts nets " + Math.round(U.b.tradeLoan)) : null;
-                const liveObj = { dWage: Math.round(yourWage * 10) / 10, dAmort: Math.round(yourAmort * 10) / 10, dTrade: Math.round((plusValue + loanFeesOut) * 10) / 10, ratioUEFA: ratio2627, cumulUEFA: cumul2627, uefaLimit: limit, res: res2627, ssr: ssrRatio, eq: equityDyn, fp: dncgFP, fpRatio: dncgFPRatio, uNum: _uNum, uNorm: _uNorm, uDen: _uDen, dncgSal: dncgSalRatio, scr: (scr != null ? Math.round(scr) : null), scrGreen: scrGreen, liqAdj: (isSerieA ? liqAdj : null), liqThr: liqThreshold, serieAOk: serieAOk, capRoom: (isLiga ? capRoom : null), ligaCap: (isLiga ? salaryCap : null), dePers: (isBundesliga ? deQuoteLive : null), saIndeb: (isSerieA ? saIndebLive : null), feCovered: (playsUEFA ? rule3yCovered_p : null), feSettle: settlement3y, feCap: r3cap };
+                const liveObj = { dWage: Math.round(yourWage * 10) / 10, dAmort: Math.round(yourAmort * 10) / 10, dTrade: Math.round((plusValue + loanFeesOut) * 10) / 10, ratioUEFA: ratio2627, ratioUEFA25: ratio2425, ratioUEFA26: ratio2526, cumulUEFA: cumul2627, cumulUEFA25: cumul2425, cumulUEFA26: cumul2526, uefaLimit: limit, res: res2627, ssr: ssrRatio, eq: equityDyn, fp: dncgFP, fpRatio: dncgFPRatio, uNum: _uNum, uNorm: _uNorm, uDen: _uDen, dncgSal: dncgSalRatio, scr: (scr != null ? Math.round(scr) : null), scrGreen: scrGreen, liqAdj: (isSerieA ? liqAdj : null), liqThr: liqThreshold, serieAOk: serieAOk, capRoom: (isLiga ? capRoom : null), ligaCap: (isLiga ? salaryCap : null), dePers: (isBundesliga ? deQuoteLive : null), saIndeb: (isSerieA ? saIndebLive : null), feCovered: (playsUEFA ? rule3yCovered_p : null), feSettle: settlement3y, feCap: r3cap, feDetail: (cascade ? { av: [cascade.a.av, cascade.m.av, cascade.b.av], spo: [cascade.a.spo, cascade.m.spo, cascade.b.spo], match: [cascade.a.match, cascade.m.match, cascade.b.match], autresP: [cascade.a.autresP, cascade.m.autresP, cascade.b.autresP], produits: [cascade.a.produits, cascade.m.produits, cascade.b.produits], remun: [cascade.a.remun, cascade.m.remun, cascade.b.remun], amort: [cascade.a.amort, cascade.m.amort, cascade.b.amort], agents: [cascade.a.agents, cascade.m.agents, cascade.b.agents], autresC: [cascade.a.autresC, cascade.m.autresC, cascade.b.autresC], charges: [cascade.a.charges, cascade.m.charges, cascade.b.charges], rhm: [cascade.a.rhm, cascade.m.rhm, cascade.b.rhm], mut: [cascade.a.mut, cascade.m.mut, cascade.b.mut], fin: [cascade.a.fin, cascade.m.fin, cascade.b.fin], exc: [cascade.a.exc, cascade.m.exc, cascade.b.exc], impot: [cascade.a.impot, cascade.m.impot, cascade.b.impot], net: [cascade.a.net, cascade.m.net, cascade.b.net], feForm: (+feR.formation || 0), feFem: (+feR.feminines || 0), feInfra: (+feR.infra || 0), feComm: (+feR.community || 0), feRet: feRet, fe: [feFE[2], feFE[3], feFE[4]] } : null) };
                 const critShort = (c) => (c.title || "").replace(/\s*\([^)]*\)/g, "").trim();
                 const startInRed = (res2425 != null && res2425 < 0) || (dncgFP != null && dncgFP < 0) || (dncgSalRatio != null && dncgSalRatio > 70) || (playsUEFA && ratio2425 > limit);
                 // Règles domestiques branchées à l'apport du propriétaire (l'injection en capital y améliore la solvabilité) — France DNCG, Angleterre SSR, Allemagne Eigenkapital. (Espagne/Italie = plafond de coût / liquidité → pas encore branché.)
@@ -15743,7 +15894,11 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
                                                             isExpiring(p) && extended[p.id] ? React.createElement("span", { className: "tagnew", style: { color: "#00ff6a", borderColor: "#00ff6a" } }, "prolong\u00E9") : null,
                                                             p.end === EXP_YEAR + 1 ? React.createElement("span", { className: "tagnew", style: { color: "#e8c46a", borderColor: "#e8c46a" }, title: "Dernière année de contrat (expire en juin " + p.end + ")" },
                                                                 React.createElement(Icon, { name: "contrat", size: 11, style: { marginRight: 2, verticalAlign: "-0.1em" } }),
-                                                                "1 an") : null),
+                                                                "1 an") : null,
+                                                            CLAUSES[clubId + "|" + p.name] ? React.createElement("span", { className: "tagnew clause-tag", title: "Clause de libération : " + fmt(CLAUSES[clubId + "|" + p.name]) + ". Un club qui la paie te l'enlève sans que tu puisses refuser.", onClick: (e) => { e.stopPropagation(); setExplain(clauseExplain(p.name, CLAUSES[clubId + "|" + p.name])); } },
+                                                                React.createElement(Icon, { name: "lock", size: 10, style: { marginRight: 2, verticalAlign: "-0.1em" } }),
+                                                                "clause ",
+                                                                fmt(CLAUSES[clubId + "|" + p.name])) : null),
                                                         React.createElement("select", { className: "psel", title: "Poste : " + PLABEL[p.pos] + " — clique pour changer", value: p.pos, onChange: (e) => upP(p.id, "pos", e.target.value), style: { color: pcol, border: "1px solid " + pcol, background: pcol + "22" } }, POSITIONS.map(([k, lab]) => React.createElement("option", { key: k, value: k, title: lab, style: { background: "#0e1830", color: "#eaf0fb" } }, k)))),
                                                     React.createElement("span", { className: "pmeta" },
                                                         p.salNC ? React.createElement("span", { title: "Salaire non communiqu\u00E9 (jeune)", style: { color: "#7d8eae", fontStyle: "italic" } }, "NC") : React.createElement("span", { onClick: (e) => { e.stopPropagation(); setExplain({ title: "Salaire · " + p.name, kind: "info", lines: [{ t: p.sal + " M€/an (brut annuel, charges non comprises)." }, { h: "Source : ", t: CONF.sal.src + " · fiabilité " + CONF.sal.pct + " %.", link: "https://www.google.com/search?q=" + encodeURIComponent(p.name + " capology salary"), linkLabel: "chercher sur Capology ↗" }, { t: CONF.sal.why }] }); }, title: "Fiabilité " + CONF.sal.pct + " % · " + CONF.sal.src + " — touche pour la source", style: { cursor: "pointer", borderBottom: "1px dotted rgba(255,255,255,.35)" } },
@@ -16072,6 +16227,10 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
                                         p.age ? p.age + " ans · " : "",
                                         "contrat ",
                                         p.end || "?"),
+                                    p.clause ? React.createElement("div", { className: "clause-chip", title: "Clause de libération : " + fmt(p.clause) + ". Son club ne peut pas refuser une offre à ce montant." },
+                                        React.createElement(Icon, { name: "lock", size: 9, style: { marginRight: 3, verticalAlign: "-1px" } }),
+                                        "clause ",
+                                        fmt(p.clause)) : null,
                                     (() => { if (p.end && p.end <= 2027)
                                         return React.createElement("div", { style: { fontSize: 9, color: "#9ad0ff", marginTop: 3, fontWeight: 700 } },
                                             "\u23F3 fin de contrat ",
