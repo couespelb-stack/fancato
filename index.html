@@ -18172,9 +18172,9 @@ function Community({ onClose, onPlay, embedded, homeClub, active }) {
                 const qq = q.trim();
                 const results = qq ? allClubs.filter((c) => nrm(c.meta.name).includes(nrm(qq)) || nrm(c.meta.shortName).includes(nrm(qq)) || (CLUB_ALIAS[c.meta.id] || []).some((a) => nrm(a).includes(nrm(qq)))) : null;
                 const actLg = openLeague && leagues.indexOf(openLeague) >= 0 ? openLeague : leagues[0];
-                const ccard = (c) => React.createElement("button", { key: c.meta.id, onClick: () => { setMode(3); setClub(c.meta.id); }, style: { display: "flex", flexDirection: "column", alignItems: "center", gap: 8, background: "rgba(255,255,255,.03)", border: "1px solid rgba(255,255,255,.09)", borderRadius: 13, padding: "13px 6px 11px", cursor: "pointer", color: "#eaf0fb" } },
+                const ccard = (c) => React.createElement("button", { key: c.meta.id, onClick: () => { setMode(3); setClub(c.meta.id); }, style: { display: "flex", flexDirection: "column", alignItems: "center", gap: 8, background: "rgba(255,255,255,.03)", border: "1px solid rgba(255,255,255,.09)", borderRadius: 13, padding: "13px 6px 11px", cursor: "pointer", color: "#eaf0fb", minWidth: 0, boxSizing: "border-box" } },
                     React.createElement(ClubBadge, { club: c, size: 44 }),
-                    React.createElement("span", { style: { fontFamily: "Raleway,sans-serif", fontWeight: 700, fontSize: 11.5, textAlign: "center", lineHeight: 1.2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "100%" } }, c.meta.name));
+                    React.createElement("span", { style: { fontFamily: "Raleway,sans-serif", fontWeight: 700, fontSize: 11.5, textAlign: "center", lineHeight: 1.2 } }, c.meta.name));
                 const grid3 = { display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 9 };
                 return React.createElement(React.Fragment, null,
                     React.createElement("input", { value: q, onChange: (e) => setQ(e.target.value), placeholder: "Cherche un club\u2026", style: { width: "100%", boxSizing: "border-box", background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.15)", borderRadius: 10, padding: "11px 13px", color: "#e7edf8", fontSize: 14, marginBottom: 14, outline: "none" } }),
