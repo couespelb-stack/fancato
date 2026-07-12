@@ -1030,7 +1030,7 @@ function Term({ k, children }) {
             setExplain({ title: g.t, kind: "term", lines: [{ t: g.d }].concat(g.m ? [{ h: "🎯 Au mercato", t: g.m }] : []) }); }, title: "L'adjoint t'explique" }, children);
 }
 function drawBilanImg(canvas, d) {
-    const W = 1080, rows = Math.max(d.recruits.length, d.sold.length, 1), H = 430 + rows * 46 + 250;
+    const W = 1080, S = d.seasonSim ? 128 : 0, rows = Math.max(d.recruits.length, d.sold.length, 1), H = 430 + rows * 46 + 250 + S;
     canvas.width = W;
     canvas.height = H;
     const ctx = canvas.getContext("2d");
@@ -1047,6 +1047,36 @@ function drawBilanImg(canvas, d) {
     // Marque FANCATO (haut-droite). La NOTE DU BOARD n'est volontairement PAS gravée sur l'image partagée
     // (elle reste dans l'app) → l'image est propre pour publier sur les réseaux.
     drawBrand(ctx, d.logoImg || null, W - 50, 52, 36, "right");
+    // Bannière « Ta saison projetée » (B5) — le résultat sportif gravé sur la carte partagée
+    if (d.seasonSim) {
+        const sy = 116, sh = S - 14;
+        ctx.fillStyle = "rgba(0,255,106,.08)";
+        rr(ctx, 50, sy, W - 100, sh, 14);
+        ctx.fill();
+        ctx.strokeStyle = "rgba(0,255,106,.4)";
+        ctx.lineWidth = 2;
+        rr(ctx, 50, sy, W - 100, sh, 14);
+        ctx.stroke();
+        ctx.textAlign = "center";
+        ctx.fillStyle = "#8b9cbe";
+        ctx.font = "700 20px Raleway, Arial, sans-serif";
+        ctx.fillText("TA SAISON PROJETÉE", W / 2, sy + 32);
+        const htxt = d.seasonSim.emo + "  " + d.seasonSim.head;
+        let hf = 42;
+        ctx.font = "800 " + hf + "px Raleway, Arial, sans-serif";
+        while (ctx.measureText(htxt).width > W - 150 && hf > 24) {
+            hf -= 2;
+            ctx.font = "800 " + hf + "px Raleway, Arial, sans-serif";
+        }
+        ctx.fillStyle = "#fff";
+        ctx.fillText(htxt, W / 2, sy + 76);
+        if (d.seasonSim.target != null) {
+            ctx.fillStyle = d.seasonSim.met ? "#00ff6a" : "#ff96a6";
+            ctx.font = "700 22px Raleway, Arial, sans-serif";
+            ctx.fillText((d.seasonSim.met ? "Objectif atteint" : "Sous l'objectif") + " (" + d.seasonSim.target + "e vise)", W / 2, sy + 108);
+        }
+        ctx.textAlign = "left";
+    }
     // On n'affiche que les indicateurs des compétitions réellement disputées :
     // le national toujours ; UEFA seulement si le club joue une Coupe d'Europe ; pertes 3 ans seulement si la règle s'applique.
     const laws = [[d.domestic || "DNCG", d.dncgPass, d.dncgTxt]];
@@ -1057,7 +1087,7 @@ function drawBilanImg(canvas, d) {
     const nL = laws.length;
     const lw = (W - 100 - (nL - 1) * 20) / nL;
     laws.forEach((l, i) => {
-        const x = 50 + i * (lw + 20), y = 130, h = 96;
+        const x = 50 + i * (lw + 20), y = 130 + S, h = 96;
         ctx.fillStyle = "rgba(255,255,255,.05)";
         rr(ctx, x, y, lw, h, 12);
         ctx.fill();
@@ -1074,7 +1104,7 @@ function drawBilanImg(canvas, d) {
         ctx.fillText((l[1] ? "OK " : "X ") + l[2], x + lw / 2, y + 74);
         ctx.textAlign = "left";
     });
-    let y0 = 300;
+    let y0 = 300 + S;
     ctx.fillStyle = "#00ff6a";
     ctx.font = "600 28px Raleway, Arial, sans-serif";
     ctx.fillText("ACHATS (" + d.recruits.length + ")", 50, y0);
@@ -14502,7 +14532,7 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
             dncgPass, uefaOk, rule3yPass, limit, domestic: club.meta.domesticRule, dncgTxt: domesticTxt, uefaTxt: ratio2627.toFixed(0) + "%", r3Txt: sign(cumul2627),
             playsUEFA, rule3yApplies: r3Applies,
             dep: fmt(feeArr), rec: fmt(proceeds + loanFeesOut), solde: sign(cashMercato), soldeCol: cashMercato >= 0 ? "#00ff6a" : "#ffd76b", pvTxt: sign(plusValue),
-            line: boardLine, logoImg,
+            line: boardLine, logoImg, seasonSim,
         });
         var teamUrl;
         try {
