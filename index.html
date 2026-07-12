@@ -13369,6 +13369,8 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
     const confirmSell = () => { if (!sellModal)
         return; const id = sellModal.id, pr = Math.max(0, +sellPrice || 0); setPlayers((arr) => arr.map((x) => (x.id === id ? { ...x, price: pr, status: "sold" } : x))); setSellModal(null); };
     const [loanModal, setLoanModal] = useState(null); // écran intermédiaire de prêt sortant, ou null
+    const [cashFx, setCashFx] = useState(null); // feedback animé achat/vente (cash qui bouge + marge qui pulse)
+    const _fxPrev = useRef({ sold: 0, rec: 0, proc: 0, fee: 0, id: 0, init: false });
     const [loanDraft, setLoanDraft] = useState({ pct: 100, fee: "0", type: "sec", buyFee: "0" });
     const openLoan = (p) => { if (!p || p.locked)
         return; setLoanDraft({ pct: (+p.loanPct || 100), fee: p.loanFee != null && p.loanFee !== "" ? String(p.loanFee) : "0", type: p.loanType || "sec", buyFee: String(Math.round(+p.loanBuyFee || +p.mkt || 0)) }); setLoanModal(p); };
@@ -13500,6 +13502,32 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
     const salRecLoaded = salRec * load;
     const amortRec = recruits.reduce((s, r) => s + recAmort(r), 0) + arbAmort;
     const feeArr = feeArrBase + arbFee;
+    // Feedback animé quand une transaction est validée (détecté via le nb de ventes/recrues qui augmente).
+    useEffect(() => {
+        const pv = _fxPrev.current;
+        if (!pv.init) {
+            pv.sold = sold.length;
+            pv.rec = recruits.length;
+            pv.proc = proceeds;
+            pv.fee = feeArr;
+            pv.init = true;
+            return;
+        }
+        let fx = null;
+        if (sold.length > pv.sold)
+            fx = { amt: Math.max(0, Math.round(proceeds - pv.proc)), kind: "in", id: ++pv.id };
+        else if (recruits.length > pv.rec)
+            fx = { amt: Math.max(0, Math.round(feeArr - pv.fee)), kind: "out", id: ++pv.id };
+        pv.sold = sold.length;
+        pv.rec = recruits.length;
+        pv.proc = proceeds;
+        pv.fee = feeArr;
+        if (fx) {
+            setCashFx(fx);
+            const t = setTimeout(() => setCashFx(null), 1500);
+            return () => clearTimeout(t);
+        }
+    }, [sold.length, recruits.length]);
     const trading = plusValue + loanFeesOut; // profit total sur cessions (2026-27 = tes mouvements, base 0)
     // === Honoraires d'agents générés par TON mercato (% du volume achats + ventes, taux par club) ===
     const agentRate = (AGENT_RATE[clubId] != null ? AGENT_RATE[clubId] : 6.3) / 100;
@@ -14751,6 +14779,12 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
         React.createElement("div", { className: "wrap " + (expertMode ? "ui-exp" : "ui-simple"), style: { "--navy": club.meta.colors.primary, "--red": club.meta.colors.accent, "--gold": club.meta.colors.gold } },
             React.createElement("div", { style: { position: "fixed", top: 0, left: "50%", transform: "translateX(-50%)", width: 460, maxWidth: "100vw", height: 210, background: "radial-gradient(60% 100% at 50% 0%, var(--navy), transparent 72%)", opacity: .22, zIndex: 0, pointerEvents: "none" } }),
             React.createElement(Onboarding, { club: club, setTab: setTab }),
+            cashFx && React.createElement("div", { key: cashFx.id, className: "cash-fx " + (cashFx.kind === "in" ? "cin" : "cout") },
+                React.createElement("span", { className: "cash-fx-emo" }, cashFx.kind === "in" ? "💰" : "🛒"),
+                React.createElement("span", null,
+                    cashFx.kind === "in" ? "+" : "−",
+                    fmt(cashFx.amt)),
+                React.createElement("span", { className: "cash-fx-lab" }, cashFx.kind === "in" ? "encaissé" : "investi")),
             endOpen && React.createElement(SeasonEnd, { checks: seasonChecks, note: boardNote, grade: boardGrade, line: boardLine, bulletin: bulletin, badges: badges, recapStats: recapStats, newTrophies: newTrophies, clubName: club.meta.name, modeShort: START_MODES[startMode].short, seedKey: clubId + "|" + startMode, recruits: recruits, sold: sold, imgs: imgs, teamShareImg: teamShareImg, onGenerate: genImages, onClose: () => setEndOpen(false) }),
             React.createElement(Assistant, { tips: coachTips, tab: tab, explain: explain, onCloseExplain: () => setExplain(null) }),
             tourMain && React.createElement(Tour, { steps: TOUR_MAIN, tab: tab, setTab: setTab, onDone: () => { try {
@@ -14924,6 +14958,14 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
         .marge-bar-main{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;min-width:0;}
         .marge-bar-lab{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:#9fb0d0;}
         .marge-bar-val{font-family:'Raleway',sans-serif;font-weight:800;font-size:20px;}
+        .margePulse{display:inline-block;animation:margePulse .7s ease;}
+        @keyframes margePulse{0%{transform:scale(1)}30%{transform:scale(1.24);filter:brightness(1.6)}100%{transform:scale(1)}}
+        .cash-fx{position:fixed;left:50%;top:118px;transform:translateX(-50%);z-index:400;display:flex;align-items:center;gap:9px;padding:11px 17px;border-radius:14px;font-family:'Raleway',sans-serif;font-weight:800;font-size:19px;pointer-events:none;box-shadow:0 14px 36px rgba(0,0,0,.45);animation:cashPop 1.5s cubic-bezier(.2,.85,.3,1) forwards;}
+        .cash-fx.cin{background:linear-gradient(180deg,#0b3a22,#0a2618);color:#00ff6a;border:1px solid rgba(0,255,106,.5);}
+        .cash-fx.cout{background:linear-gradient(180deg,#3a2f0b,#281f08);color:#f4cf6e;border:1px solid rgba(244,207,110,.5);}
+        .cash-fx-emo{font-size:22px;line-height:1;}
+        .cash-fx-lab{font-size:10.5px;font-weight:700;opacity:.7;text-transform:uppercase;letter-spacing:.05em;}
+        @keyframes cashPop{0%{opacity:0;transform:translate(-50%,16px) scale(.7)}12%{opacity:1;transform:translate(-50%,0) scale(1.15)}26%{transform:translate(-50%,0) scale(1)}72%{opacity:1;transform:translate(-50%,-6px) scale(1)}100%{opacity:0;transform:translate(-50%,-54px) scale(.9)}}
         .marge-bar-delta{font-size:12.5px;font-weight:700;background:rgba(255,255,255,.06);border-radius:7px;padding:2px 8px;}
         .marge-bar-ind{font-family:'Raleway',sans-serif;font-size:11px;letter-spacing:.03em;text-transform:uppercase;color:#9fb0d0;padding-left:9px;border-left:1px solid rgba(255,255,255,.16);}
         .marge-grp{display:inline-flex;align-items:center;flex-wrap:wrap;gap:8px;padding:4px 9px;border:1px solid rgba(255,255,255,.1);border-radius:10px;background:rgba(255,255,255,.025);}
@@ -15936,7 +15978,7 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
                         React.createElement("span", { className: "marge-bar-lab" },
                             "Marge d'invest.",
                             React.createElement(InfoDot, { title: "Marge d'investissement", what: "Ce que tu peux ENCORE investir (indemnit\u00E9s + salaires) avant de d\u00E9passer la contrainte financi\u00E8re de ton club. Ce n'est PAS ta tr\u00E9sorerie.", why: "Elle te dit d'un coup d'\u0153il si tu as les moyens de recruter \u2014 l'outil de d\u00E9cision n\u00B01 du directeur sportif au mercato.", how: "C'est ta distance à la règle qui te LIMITE en ce moment (ici : " + bindingRule + "). Vendre l'augmente ; acheter ou monter les salaires la réduit. Données : dérivée EN DIRECT de ton mercato et des contraintes calibrées de ton club. Décomposition : tes ventes " + (levVentes >= 0 ? "+" : "") + fmt(levVentes) + ", tes achats −" + fmt(levAchats) + ", masse salariale " + (levMasse >= 0 ? "−" : "+") + fmt(Math.abs(levMasse)) + ".", impact: "Positive \u2192 tu peux recruter ou monter un salaire. N\u00E9gative \u2192 vends, d\u00E9graisse, ou fais apporter le propri\u00E9taire." })),
-                        React.createElement("span", { className: "marge-bar-val", style: { color: investRoom >= 0 ? "#00ff6a" : "#ff96a6" } },
+                        React.createElement("span", { className: "marge-bar-val" + (cashFx ? " margePulse" : ""), style: { color: investRoom >= 0 ? "#00ff6a" : "#ff96a6" } },
                             investRoom >= 0 ? "+" : "",
                             fmt(investRoom)),
                         investRoom !== investBase && React.createElement("span", { className: "marge-bar-delta", style: { color: investRoom - investBase >= 0 ? "#00ff6a" : "#ff96a6" } },
