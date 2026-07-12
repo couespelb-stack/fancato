@@ -16169,7 +16169,7 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
                                                             p.mkt,
                                                             " M\u20AC"),
                                                         (() => { const mk = +p.mkt || 0, bk = +p.book || 0; if (p.created || mk <= 0)
-                                                            return null; const pv = +(mk - bk).toFixed(1); const hot = pv >= 20; const col = pv <= 0 ? "#ff96a6" : hot ? "#00ff6a" : "#9be3c2"; return React.createElement("span", { title: "À la vente : reste à amortir (valeur comptable nette) = " + bk.toFixed(1) + " M€. Plus-value comptable si tu le vends à sa valeur = valeur − VCN = " + (pv >= 0 ? "+" : "") + pv + " M€. Plus cette plus-value est haute (VCN basse), plus vendre CE joueur rapporte aux comptes — c'est le meilleur levier pour équilibrer." + (hot ? " 💎 Excellent candidat à la vente." : pv <= 0 ? " ⚠️ Vendre à cette valeur ne dégage pas de plus-value (VCN ≥ valeur)." : "") },
+                                                            return null; const pv = +(mk - bk).toFixed(1); const hot = pv >= 20; const col = pv <= 0 ? "#ff96a6" : hot ? "#00ff6a" : "#9be3c2"; return React.createElement("span", { onClick: (e) => { e.stopPropagation(); setExplain({ title: "Plus-value à la vente · " + p.name, kind: "info", lines: [{ t: "Reste à amortir (valeur comptable nette) = " + bk.toFixed(1) + " M€. Si tu le vends à sa valeur de marché (" + mk + " M€), tu dégages " + (pv >= 0 ? "+" : "") + pv + " M€ de plus-value comptable — de l'argent qui compte pour tes règles financières (DNCG/UEFA)." }, { t: "Règle simple : plus un joueur est amorti (valeur comptable basse), plus le vendre rapporte aux comptes. Un joueur formé au club vaut 0 en comptable → 100 % de plus-value." }] }); }, style: { cursor: "pointer" }, title: "À la vente : reste à amortir (valeur comptable nette) = " + bk.toFixed(1) + " M€. Plus-value comptable si tu le vends à sa valeur = valeur − VCN = " + (pv >= 0 ? "+" : "") + pv + " M€. Plus cette plus-value est haute (VCN basse), plus vendre CE joueur rapporte aux comptes — c'est le meilleur levier pour équilibrer." + (hot ? " 💎 Excellent candidat à la vente." : pv <= 0 ? " ⚠️ Vendre à cette valeur ne dégage pas de plus-value (VCN ≥ valeur)." : "") },
                                                             " \u00B7 ",
                                                             React.createElement("span", { className: "l3" },
                                                                 "reste \u00E0 amortir ",
@@ -16609,7 +16609,20 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
                             const posOrder = (k) => POSITIONS.findIndex((x) => x[0] === k);
                             const clubRes = searchClub ? pool.filter((p) => p.clubId === searchClub).sort((a, b) => (posOrder(a.pos) - posOrder(b.pos)) || (b.mkt - a.mkt)) : [];
                             const clubLabel = searchClub ? (searchClub.slice(0, 2) === "x_" ? ((EXTRA_PLAYERS.find((p) => "x_" + p.clubId === searchClub) || {}).club || "") : (CLUBS[searchClub] && CLUBS[searchClub].meta.name) || "") : "";
+                            const _weakPos = POSITIONS.map((x) => x[0]).filter((k) => k !== "GK" && (cntByPos[k] || 0) <= 2).sort((a, b) => (cntByPos[a] || 0) - (cntByPos[b] || 0))[0];
                             return (React.createElement("div", { className: "finder", style: { borderColor: "rgba(110,168,255,.4)", background: "rgba(110,168,255,.05)" } },
+                                _weakPos && finder.pos !== _weakPos ? React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 12, padding: "9px 11px", background: "rgba(255,180,80,.09)", border: "1px solid rgba(255,180,80,.3)", borderRadius: 10 } },
+                                    React.createElement("span", { style: { fontSize: 12.5, color: "#f3e2c4", flex: 1, minWidth: 150 } },
+                                        "\u26A0\uFE0F Ton point faible : ",
+                                        React.createElement("b", null, PLABEL[_weakPos]),
+                                        " (",
+                                        cntByPos[_weakPos] || 0,
+                                        " joueur",
+                                        (cntByPos[_weakPos] || 0) > 1 ? "s" : "",
+                                        ")."),
+                                    React.createElement("button", { type: "button", onClick: () => setFinder({ ...finder, pos: _weakPos }), style: { background: "rgba(255,180,80,.16)", border: "1px solid rgba(255,180,80,.45)", color: "#ffcf87", borderRadius: 8, padding: "6px 11px", fontSize: 11.5, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap" } },
+                                        "Voir des ",
+                                        _weakPos)) : null,
                                 React.createElement("div", { className: "rsec-title" },
                                     React.createElement(Icon, { name: "search", size: 14, style: { marginRight: 6, verticalAlign: "-2px" } }),
                                     "Recherche cibl\u00E9e"),
