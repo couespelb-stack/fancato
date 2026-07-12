@@ -13189,6 +13189,7 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
     const [dataEdit, setDataEdit] = useState(null); // éditeur de données ouvert : null | "joueurs" | "fin"
     const [microTipOpen, setMicroTipOpen] = useState(true); // Mercato : carte micro-leçon « Le sais-tu ? » (fermable)
     const [posOpen, setPosOpen] = useState(() => POSITIONS.slice(0, 3).reduce((o, p) => (o[p[0]] = true, o), {})); // accordéon effectif — 3 premiers groupes ouverts (aperçu direct sans scroll interminable ; « Tout déplier » pour le reste)
+    const [effSort, setEffSort] = useState("mkt"); // tri des joueurs DANS chaque groupe de poste : valeur / salaire / plus-value
     const [depthOpen, setDepthOpen] = useState({}); // accordéon Profondeur d'effectif (Terrain) — tous les postes fermés par défaut
     const [recruitOpen, setRecruitOpen] = useState(false); // panneau glissant « Ajouter une recrue »
     const [terrainView, setTerrainView] = useState("profondeur"); // (héritage — la vue secondaire Terrain a été retirée au profit du terrain interactif)
@@ -14592,11 +14593,11 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
         if (!mercatoValid)
             T.push({ sev: "ko", txt: " Là tu ne passes pas devant les instances. Un voyant rouge à régler avant de pouvoir valider ton mercato." });
         if (msCol === "ko")
-            T.push({ sev: "ko", txt: " Ta masse salariale fait tousser la DNCG (" + Math.round(msRatio) + " %). Faut dégraisser avant de rêver de recrues." });
+            T.push({ sev: "ko", txt: " Ta masse salariale fait tousser la DNCG (" + Math.round(msRatio) + " %). Faut dégraisser." + (best && pvf(best) > 3 ? " Commence par vendre " + best.name + " (~" + fmt(pvf(best)) + " de plus-value), ou baisse tes 2 plus gros salaires." : " Vends un joueur bien valorisé ou fais apporter le proprio.") });
         else if (msCol === "warn")
             T.push({ sev: "warn", txt: "Masse salariale un peu lourde (" + Math.round(msRatio) + " %). Ça passe… mais garde un œil dessus." });
         if (isPSR && scr != null && scr > scrRed)
-            T.push({ sev: "ko", txt: " SCR dans le rouge (" + Math.round(scr) + " %). Tu ne recrutes plus rien tant que t'as pas vendu." });
+            T.push({ sev: "ko", txt: " SCR dans le rouge (" + Math.round(scr) + " %). Tu ne recrutes plus rien tant que t'as pas vendu." + (best && pvf(best) > 3 ? " Piste concrète : céder " + best.name + " (~" + fmt(pvf(best)) + " de plus-value)." : "") });
         if (res2627 != null && res2627 < -1)
             T.push({ sev: besoin2627 > ownerMax * 1.15 ? "ko" : "warn", txt: (best && pvf(best) > 3) ? "Ça saigne (" + fmt(res2627) + "). Vends " + best.name + " (plus-value ~" + fmt(pvf(best)) + ") et le président respire direct. 💰" : "Résultat projeté à " + fmt(res2627) + " — soit le proprio raque, soit tu vends." });
         // — Encouragements (le board content) —
@@ -16112,9 +16113,12 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
                                 const anyOpen = POSITIONS.some(([pk]) => posOpen[pk]);
                                 return (React.createElement("button", { type: "button", className: "accalltog", onClick: () => setPosOpen(anyOpen ? {} : POSITIONS.reduce((o, [pk]) => (o[pk] = true, o), {})) }, anyOpen ? "▸ Tout replier" : "▾ Tout déplier"));
                             })()),
+                        club.squad.length > 0 ? React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 6, margin: "2px 0 8px", flexWrap: "wrap" } },
+                            React.createElement("span", { style: { fontSize: 11, color: "#7d8eae", textTransform: "uppercase", letterSpacing: ".04em" } }, "Trier :"),
+                            [["mkt", "Valeur"], ["sal", "Salaire"], ["pv", "Plus-value"]].map(([k, lab]) => React.createElement("button", { key: k, type: "button", onClick: () => setEffSort(k), style: { background: effSort === k ? "rgba(0,255,106,.16)" : "rgba(255,255,255,.04)", border: "1px solid " + (effSort === k ? "rgba(0,255,106,.45)" : "rgba(255,255,255,.1)"), color: effSort === k ? "#00ff6a" : "#9fb0d0", borderRadius: 8, padding: "5px 10px", fontSize: 11.5, fontWeight: 700, cursor: "pointer" } }, lab))) : null,
                         club.squad.length === 0 ? React.createElement("div", { className: "mini", style: { textTransform: "none", color: "#e8c46a", lineHeight: 1.5 } }, "\u2139\uFE0F Donn\u00E9es d'effectif non disponibles pour ce club (joueurs non fournis). Les finances et l'entra\u00EEneur restent utilisables.") : null,
                         POSITIONS.map(([pk, , pcol]) => {
-                            const ps = players.filter((p) => p.pos === pk && p.status === "keep" && !isLeaver(p));
+                            const ps = players.filter((p) => p.pos === pk && p.status === "keep" && !isLeaver(p)).sort((a, b) => effSort === "sal" ? ((+b.sal || 0) - (+a.sal || 0)) : effSort === "pv" ? (((+b.mkt || 0) - (+b.book || 0)) - ((+a.mkt || 0) - (+a.book || 0))) : ((+b.mkt || 0) - (+a.mkt || 0)));
                             const rs = recruits.filter((r) => r.pos === pk);
                             if (ps.length === 0 && rs.length === 0)
                                 return null;
