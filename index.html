@@ -14133,6 +14133,45 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
         badges.push({ emo: "❤️", lab: "Chouchou des tribunes", desc: "les fans t'adorent" });
     const recapStats = { spent: feeArr, earned: proceeds + loanFeesOut, pv: _pvSales, age: _recAges.length ? Math.round(_avgAge) : 0,
         obj: (projPos ? projPos + "ᵉ visé" : "") + (euroComp !== "none" ? " · " + (euroComp === "c1" ? "Ligue des Champions" : euroComp === "c3" ? "Ligue Europa" : "Conference League") : "") };
+    // === B4 · SAISON PROJETÉE : fin de championnat plausible selon la force de l'effectif construit (somme des 16 meilleures valeurs marchandes) classée contre les rivaux de la même ligue. Déterministe (= reflète TON mercato) ; verdict vs objectif (projPos).
+    const seasonSim = (() => {
+        const _str = (sq) => (sq || []).map((p) => +p.mkt || 0).sort((a, b) => b - a).slice(0, 16).reduce((s, v) => s + v, 0);
+        const myStr = _str([...keepers, ...recruits]);
+        const rivals = Object.entries(CLUBS).filter(([id, c]) => c.meta.league === club.meta.league && id !== clubId).map(([id, c]) => ({ id, str: _str(c.squad) }));
+        if (rivals.length < 3)
+            return null;
+        const all = [...rivals.map((r) => ({ ...r, me: false })), { id: clubId, str: myStr, me: true }].sort((a, b) => b.str - a.str);
+        const finish = all.findIndex((x) => x.me) + 1, N = all.length;
+        const target = +projPos || null;
+        const met = target ? finish <= target : null;
+        const c1 = Math.max(2, Math.round(N * 0.2)), c3 = Math.max(c1 + 1, Math.round(N * 0.35));
+        let head, emo;
+        if (finish === 1) {
+            head = "Champion de " + club.meta.league + " !";
+            emo = "🏆";
+        }
+        else if (finish === 2) {
+            head = "Vice-champion — tout près du titre";
+            emo = "🥈";
+        }
+        else if (finish <= c1) {
+            head = finish + "ᵉ" + " — qualifié en Ligue des Champions";
+            emo = "🇪🇺";
+        }
+        else if (finish <= c3) {
+            head = finish + "ᵉ" + " — une Coupe d'Europe au bout";
+            emo = "🇪🇺";
+        }
+        else if (finish >= N - 2) {
+            head = finish + "ᵉ" + " — la zone rouge, ça a tremblé";
+            emo = "🔥";
+        }
+        else {
+            head = finish + "ᵉ" + " — un ventre mou tranquille";
+            emo = "⚽";
+        }
+        return { finish, N, target, met, head, emo };
+    })();
     // Fixe/efface l'override manuel du statut UEFA d'un joueur (suit le joueur par son nom)
     const setUefa = (name, v) => setUefaOv((o) => { const n = { ...o }; if (v === "" || v == null)
         delete n[name];
@@ -14657,7 +14696,7 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
         React.createElement("div", { className: "wrap " + (expertMode ? "ui-exp" : "ui-simple"), style: { "--navy": club.meta.colors.primary, "--red": club.meta.colors.accent, "--gold": club.meta.colors.gold } },
             React.createElement("div", { style: { position: "fixed", top: 0, left: "50%", transform: "translateX(-50%)", width: 460, maxWidth: "100vw", height: 210, background: "radial-gradient(60% 100% at 50% 0%, var(--navy), transparent 72%)", opacity: .22, zIndex: 0, pointerEvents: "none" } }),
             React.createElement(Onboarding, { club: club, setTab: setTab }),
-            endOpen && React.createElement(SeasonEnd, { checks: seasonChecks, note: boardNote, grade: boardGrade, line: boardLine, bulletin: bulletin, badges: badges, recapStats: recapStats, clubName: club.meta.name, modeShort: START_MODES[startMode].short, seedKey: clubId + "|" + startMode, recruits: recruits, sold: sold, imgs: imgs, teamShareImg: teamShareImg, onGenerate: genImages, onClose: () => setEndOpen(false) }),
+            endOpen && React.createElement(SeasonEnd, { checks: seasonChecks, note: boardNote, grade: boardGrade, line: boardLine, bulletin: bulletin, badges: badges, recapStats: recapStats, seasonSim: seasonSim, clubName: club.meta.name, modeShort: START_MODES[startMode].short, seedKey: clubId + "|" + startMode, recruits: recruits, sold: sold, imgs: imgs, teamShareImg: teamShareImg, onGenerate: genImages, onClose: () => setEndOpen(false) }),
             React.createElement(Assistant, { tips: coachTips, tab: tab, explain: explain, onCloseExplain: () => setExplain(null) }),
             tourMain && React.createElement(Tour, { steps: TOUR_MAIN, tab: tab, setTab: setTab, onDone: () => { try {
                     localStorage.setItem("sm_onboarded", "1");
@@ -17460,7 +17499,7 @@ function lbBoard(seedKey, myNote) {
     return rows;
 }
 // « BOUTON FIN » : overlay de fin de mercato — déroule les règles une par une (animé), révèle la note du board, puis la carte à partager.
-function SeasonEnd({ checks, note, grade, line, bulletin, badges, recapStats, clubName, modeShort, seedKey, recruits, sold, imgs, teamShareImg, onGenerate, onClose }) {
+function SeasonEnd({ checks, note, grade, line, bulletin, badges, recapStats, seasonSim, clubName, modeShort, seedKey, recruits, sold, imgs, teamShareImg, onGenerate, onClose }) {
     const [step, setStep] = useState(0); // 0..checks.length = révélation des règles ; > checks.length = note + carte
     const [gen, setGen] = useState(false);
     const [showLb, setShowLb] = useState(false);
@@ -17518,6 +17557,17 @@ function SeasonEnd({ checks, note, grade, line, bulletin, badges, recapStats, cl
                 React.createElement("b", { style: { color: "#cdd8ee" } }, nSold),
                 " d\u00E9part",
                 nSold > 1 ? "s" : ""),
+            seasonSim ? React.createElement("div", { style: { marginBottom: 16, padding: "15px 15px", borderRadius: 14, background: "linear-gradient(180deg,rgba(0,255,106,.09),rgba(123,61,255,.06))", border: "1px solid rgba(0,255,106,.32)", textAlign: "center", animation: "seSlideIn .5s var(--ease) both" } },
+                React.createElement("div", { style: { fontSize: 11, textTransform: "uppercase", letterSpacing: ".12em", color: "#8b9cbe", marginBottom: 6 } }, "Ta saison projet\u00E9e"),
+                React.createElement("div", { style: { fontSize: 36, lineHeight: 1, marginBottom: 6 } }, seasonSim.emo),
+                React.createElement("div", { style: { fontFamily: "Raleway,sans-serif", fontWeight: 800, fontSize: 18, color: "#eaf0fb", lineHeight: 1.2 } }, seasonSim.head),
+                seasonSim.target ? React.createElement("div", { style: { marginTop: 8, fontSize: 12.5, fontWeight: 700, color: seasonSim.met ? "#00ff6a" : "#ff96a6" } }, seasonSim.met ? "✅ Objectif atteint (" + seasonSim.target + "ᵉ visé)" : "⚠️ Sous l'objectif (" + seasonSim.target + "ᵉ visé)") : null,
+                React.createElement("div", { style: { marginTop: 7, fontSize: 10.5, color: "#7d8eae", lineHeight: 1.4 } },
+                    "estimation d'apr\u00E8s la force de ton effectif \u00B7 ",
+                    seasonSim.finish,
+                    "\u1D49 sur ",
+                    seasonSim.N,
+                    " clubs mod\u00E9lis\u00E9s")) : null,
             React.createElement("div", { style: { marginBottom: 16 } },
                 React.createElement("div", { className: "se-lbl" }, "Ta fen\u00EAtre de transferts"),
                 (recruits.length > 0 || sold.length > 0) ? React.createElement(React.Fragment, null,
