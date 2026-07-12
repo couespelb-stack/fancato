@@ -1030,7 +1030,7 @@ function Term({ k, children }) {
             setExplain({ title: g.t, kind: "term", lines: [{ t: g.d }].concat(g.m ? [{ h: "🎯 Au mercato", t: g.m }] : []) }); }, title: "L'adjoint t'explique" }, children);
 }
 function drawBilanImg(canvas, d) {
-    const W = 1080, S = d.seasonSim ? 128 : 0, rows = Math.max(d.recruits.length, d.sold.length, 1), H = 430 + rows * 46 + 250 + S;
+    const W = 1080, rows = Math.max(d.recruits.length, d.sold.length, 1), H = 430 + rows * 46 + 250;
     canvas.width = W;
     canvas.height = H;
     const ctx = canvas.getContext("2d");
@@ -1047,36 +1047,6 @@ function drawBilanImg(canvas, d) {
     // Marque FANCATO (haut-droite). La NOTE DU BOARD n'est volontairement PAS gravée sur l'image partagée
     // (elle reste dans l'app) → l'image est propre pour publier sur les réseaux.
     drawBrand(ctx, d.logoImg || null, W - 50, 52, 36, "right");
-    // Bannière « Ta saison projetée » (B5) — le résultat sportif gravé sur la carte partagée
-    if (d.seasonSim) {
-        const sy = 116, sh = S - 14;
-        ctx.fillStyle = "rgba(0,255,106,.08)";
-        rr(ctx, 50, sy, W - 100, sh, 14);
-        ctx.fill();
-        ctx.strokeStyle = "rgba(0,255,106,.4)";
-        ctx.lineWidth = 2;
-        rr(ctx, 50, sy, W - 100, sh, 14);
-        ctx.stroke();
-        ctx.textAlign = "center";
-        ctx.fillStyle = "#8b9cbe";
-        ctx.font = "700 20px Raleway, Arial, sans-serif";
-        ctx.fillText("TA SAISON PROJETÉE", W / 2, sy + 32);
-        const htxt = d.seasonSim.emo + "  " + d.seasonSim.head;
-        let hf = 42;
-        ctx.font = "800 " + hf + "px Raleway, Arial, sans-serif";
-        while (ctx.measureText(htxt).width > W - 150 && hf > 24) {
-            hf -= 2;
-            ctx.font = "800 " + hf + "px Raleway, Arial, sans-serif";
-        }
-        ctx.fillStyle = "#fff";
-        ctx.fillText(htxt, W / 2, sy + 76);
-        if (d.seasonSim.target != null) {
-            ctx.fillStyle = d.seasonSim.met ? "#00ff6a" : "#ff96a6";
-            ctx.font = "700 22px Raleway, Arial, sans-serif";
-            ctx.fillText((d.seasonSim.met ? "Objectif atteint" : "Sous l'objectif") + " (" + d.seasonSim.target + "e vise)", W / 2, sy + 108);
-        }
-        ctx.textAlign = "left";
-    }
     // On n'affiche que les indicateurs des compétitions réellement disputées :
     // le national toujours ; UEFA seulement si le club joue une Coupe d'Europe ; pertes 3 ans seulement si la règle s'applique.
     const laws = [[d.domestic || "DNCG", d.dncgPass, d.dncgTxt]];
@@ -1087,7 +1057,7 @@ function drawBilanImg(canvas, d) {
     const nL = laws.length;
     const lw = (W - 100 - (nL - 1) * 20) / nL;
     laws.forEach((l, i) => {
-        const x = 50 + i * (lw + 20), y = 130 + S, h = 96;
+        const x = 50 + i * (lw + 20), y = 130, h = 96;
         ctx.fillStyle = "rgba(255,255,255,.05)";
         rr(ctx, x, y, lw, h, 12);
         ctx.fill();
@@ -1104,7 +1074,7 @@ function drawBilanImg(canvas, d) {
         ctx.fillText((l[1] ? "OK " : "X ") + l[2], x + lw / 2, y + 74);
         ctx.textAlign = "left";
     });
-    let y0 = 300 + S;
+    let y0 = 300;
     ctx.fillStyle = "#00ff6a";
     ctx.font = "600 28px Raleway, Arial, sans-serif";
     ctx.fillText("ACHATS (" + d.recruits.length + ")", 50, y0);
@@ -13081,8 +13051,55 @@ function logDataOv(clubId, scope, field, playerName, oldV, newV) {
     }
     catch (e) { }
 }
+// === TROPHÉES · catalogue (débloqués par les mercatos ; persistés dans localStorage 'fancato_trophies'). f = faits du mercato courant ; log = historique de tous les mercatos ('fancato_slog') ; prev = nb de trophées déjà débloqués. ===
+function _distinct(log, key) { return new Set((log || []).map((e) => e[key])).size; }
+function _distinctWhere(log, key, pred) { return new Set((log || []).filter(pred).map((e) => e[key])).size; }
+const TROPHIES = [
+    { id: "premier", fam: "Découverte", emo: "🎬", name: "Premier mercato", desc: "Boucle ton tout premier mercato.", hint: "Termine un mercato.", test: (f, log) => log.length >= 1 },
+    { id: "note_a", fam: "Maîtrise", emo: "🅰️", name: "Note A", desc: "Décroche un A du board sur un mercato.", hint: "Vise un mercato noté A.", test: (f) => f.grade === "A" },
+    { id: "sans_faute", fam: "Maîtrise", emo: "💎", name: "Sans faute", desc: "Note A ET tous les voyants au vert.", hint: "A du board + zéro règle enfreinte.", test: (f) => f.grade === "A" && f.valid && f.green },
+    { id: "equilibriste", fam: "Gestion", emo: "⚖️", name: "Équilibriste", desc: "Tous les voyants au vert sans apport du proprio.", hint: "Finis dans les clous sans injection du propriétaire.", test: (f) => f.valid && f.green && f.apport <= 0 },
+    { id: "sauveur", fam: "Gestion", emo: "🛟", name: "Sauveur", desc: "Un club parti dans le rouge, remis dans les clous.", hint: "Redresse un club dont la situation héritée était rouge.", test: (f) => f.savedRed },
+    { id: "solde", fam: "Gestion", emo: "💶", name: "À l'équilibre", desc: "Mercato bouclé avec un solde cash positif.", hint: "Encaisse plus que tu ne dépenses (avec au moins un mouvement).", test: (f) => f.soldePos && (f.nRec + f.nSold) > 0 },
+    { id: "degraisseur", fam: "Gestion", emo: "✂️", name: "Grand ménage", desc: "Vends 4 joueurs ou plus sur un mercato.", hint: "Dégraisse : 4 départs.", test: (f) => f.nSold >= 4 },
+    { id: "denicheur", fam: "Malin", emo: "🔍", name: "Dénicheur", desc: "3 recrues à moins de 5 M€.", hint: "Trouve 3 bonnes affaires.", test: (f) => f.bargains >= 3 },
+    { id: "vendeur_or", fam: "Malin", emo: "💰", name: "Vendeur en or", desc: "+50 M€ de plus-values sur un mercato.", hint: "Vends des joueurs très amortis.", test: (f) => f.pv >= 50 },
+    { id: "formateur", fam: "Malin", emo: "🌱", name: "Formateur", desc: "Fais monter 3 jeunes de ton centre.", hint: "Crée et intègre 3 jeunes du centre.", test: (f) => f.youth >= 3 },
+    { id: "libre", fam: "Malin", emo: "🆓", name: "Malin du marché", desc: "2 recrues arrivées libres (sans indemnité).", hint: "Recrute 2 joueurs en fin de contrat.", test: (f) => f.free >= 2 },
+    { id: "batisseur", fam: "Style", emo: "👶", name: "Bâtisseur d'avenir", desc: "5 recrues de 21 ans ou moins.", hint: "Mise sur la jeunesse : 5 jeunes recrues.", test: (f) => f.young >= 5 },
+    { id: "coup_genie", fam: "Style", emo: "🌟", name: "Coup de génie", desc: "Recrute une star à plus de 80 M€.", hint: "Signe un joueur à +80 M€.", test: (f) => f.star >= 1 },
+    { id: "marchand", fam: "Style", emo: "⭐", name: "Marchand d'étoiles", desc: "Vends un joueur à plus de 50 M€.", hint: "Cède une vedette à +50 M€.", test: (f) => f.sellStar >= 1 },
+    { id: "fidele", fam: "Style", emo: "🤝", name: "Le Fidèle", desc: "Aucun départ : effectif conservé.", hint: "Ne vends ni ne prête personne.", test: (f) => f.nSold === 0 },
+    { id: "ascete", fam: "Style", emo: "🧘", name: "L'ascète", desc: "Finis tous voyants verts sans aucune recrue.", hint: "Zéro recrue et pourtant dans les clous.", test: (f) => f.valid && f.green && f.nRec === 0 },
+    { id: "europe", fam: "Style", emo: "🇪🇺", name: "Ambition européenne", desc: "Mercato valide avec un club qualifié en Coupe d'Europe.", hint: "Réussis le mercato d'un club européen.", test: (f) => f.valid && f.euro },
+    { id: "petit_poucet", fam: "Exploration", emo: "🐜", name: "Petit Poucet", desc: "Sauve un petit club du rouge.", hint: "Redresse un club modeste parti dans le rouge.", test: (f) => f.savedRed && f.small },
+    { id: "hipster", fam: "Exploration", emo: "🎩", name: "Hipster", desc: "Réussis le mercato d'un club hors des cadors.", hint: "Fais un mercato valide avec un petit club.", test: (f) => f.valid && f.small },
+    { id: "decouvreur", fam: "Exploration", emo: "🧭", name: "Découvreur", desc: "Essaie le mercato de 10 clubs différents.", hint: "Joue 10 clubs différents.", test: (f, log) => _distinct(log, "club") >= 10 },
+    { id: "tour_france", fam: "Exploration", emo: "🇫🇷", name: "Tour de France", desc: "Le mercato des 18 clubs de Ligue 1.", hint: "Joue les 18 clubs de Ligue 1.", test: (f, log) => _distinctWhere(log, "club", (e) => e.league === "Ligue 1") >= 18 },
+    { id: "globe", fam: "Exploration", emo: "🌍", name: "Globe-trotter", desc: "Un mercato dans les 5 grands championnats.", hint: "Joue au moins un club de chaque championnat.", test: (f, log) => _distinct(log, "league") >= 5 },
+    { id: "perfectionniste", fam: "Maîtrise", emo: "🏅", name: "Perfectionniste", desc: "La note A avec 5 clubs différents.", hint: "Décroche un A avec 5 clubs différents.", test: (f, log) => _distinctWhere(log, "club", (e) => e.grade === "A") >= 5 },
+    { id: "collectionneur", fam: "Maîtrise", emo: "🗃️", name: "Collectionneur", desc: "Débloque 15 trophées.", hint: "Continue à jouer, ils viendront.", test: (f, log, prev) => prev >= 15 },
+    { id: "veteran", fam: "Découverte", emo: "🎖️", name: "Vétéran", desc: "Boucle 20 mercatos.", hint: "Joue 20 mercatos.", test: (f, log) => log.length >= 20 },
+];
+function evalTrophies(facts, log, store) {
+    const prev = Object.keys(store || {}).length, got = [];
+    TROPHIES.forEach((t) => {
+        if (store && store[t.id])
+            return;
+        let ok = false;
+        try {
+            ok = !!t.test(facts, log || [], prev);
+        }
+        catch (e) {
+            ok = false;
+        }
+        if (ok)
+            got.push(t);
+    });
+    return got;
+}
 function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
-    var _a, _b, _d, _e, _g, _h, _j, _k;
+    var _a, _b, _e, _g, _h, _j, _k, _l;
     CUR = club.meta.currency || "M€";
     const CUP_SCN = CUP_SCN_BY[club.meta.country] || CUP_SCN_BY.France; // barème coupe nationale selon le pays
     // === Sauvegarde locale du scénario (par club) : on recharge l'état sauvegardé s'il existe ===
@@ -13114,7 +13131,7 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
         return _scn.captain; const nm = CAPTAINS[clubId]; const pl = club.squad.find((p) => p.name === nm); return pl ? pl.id : null; });
     const [players, setPlayers] = useState(() => {
         const _base = club.squad.map((p) => {
-            var _a, _b, _d;
+            var _a, _b, _e;
             const dir = p.loanDir || "out";
             let status = p.status || "keep";
             if (status === "loaned")
@@ -13125,7 +13142,7 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
             return {
                 ...p, status, price: lk && lk.price != null ? lk.price : Math.round((_a = p.mkt) !== null && _a !== void 0 ? _a : p.book),
                 loanPct: lk && lk.loanPct != null ? lk.loanPct : ((_b = p.loanPct) !== null && _b !== void 0 ? _b : 80), loanFee: lk && lk.loanFee != null ? lk.loanFee : 0,
-                loanType: p.loanType || "sec", loanBuyFee: (_d = p.loanBuyFee) !== null && _d !== void 0 ? _d : 0, loanDir: dir,
+                loanType: p.loanType || "sec", loanBuyFee: (_e = p.loanBuyFee) !== null && _e !== void 0 ? _e : 0, loanDir: dir,
                 locked: lk ? true : (p.locked || false), moveDate: lk ? lk.date : p.moveDate,
             };
         });
@@ -13555,7 +13572,7 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
     const wMerc2526 = arrSal - depSal, aMerc2526 = arrAmort - depAmort; // Δ mercato été 2025 (arrivées − départs)
     const yourWage = (salBorneLoaded - baseSalLoaded) + salRecLoaded, yourAmort = (amortStay - baseAmort) + amortRec; // Δ TON mercato
     // 🇩🇪 Personalaufwandsquote (repère indicatif) rendu RÉACTIF au mercato : personnel de base (% officiel × revenus de base) + Δ salaire du mercato, ÷ revenus live.
-    const _deQuoteBase = (_d = club.accounting.dePersQuote) !== null && _d !== void 0 ? _d : null;
+    const _deQuoteBase = (_e = club.accounting.dePersQuote) !== null && _e !== void 0 ? _e : null;
     const deQuoteLive = (_deQuoteBase != null && revenue > 0) ? Math.round((_deQuoteBase / 100 * baseRevenue + yourWage) / revenue * 100) : null;
     // Impôt = plug calé sur le résultat net OFFICIEL → la colonne 2024-25 retombe EXACTEMENT sur le net publié (calibration).
     const impotL = CO ? (CO.net - ((CO.produits - CO.charges) + CO.mut + (+CO.fin || 0) + (+CO.exc || 0))) : 0;
@@ -13623,7 +13640,7 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
     // 🇪🇸 LCPD : on ANCRE sur le Saldo réel connu (presse/LaLiga, `lcpdSaldo`) car le coût d'effectif live sous-estime la masse officielle LaLiga (Barça live −28 vs −149 réel).
     // Baseline = lcpdSaldo (position réelle de départ) ; on applique ensuite le DELTA de mercato (fiable) + l'apport encaissé (qui relève le límite, réforme déc. 2025).
     const _baseSquadCostLiga = baseSalLoaded + (+uefaCharges || 0) + baseAmort + (+agentFees || 0);
-    const lcpdSaldo = (_e = club.accounting.lcpdSaldo) !== null && _e !== void 0 ? _e : null;
+    const lcpdSaldo = (_g = club.accounting.lcpdSaldo) !== null && _g !== void 0 ? _g : null;
     const capRoom = salaryCap == null ? null : (lcpdSaldo != null ? (lcpdSaldo + apportRaw - (squadCost - _baseSquadCostLiga)) : (salaryCap + apportRaw - squadCost));
     const ligaOk = salaryCap == null || capRoom >= 0;
     // === CAPITAUX PROPRES dynamiques : CP après les 2 saisons projetées + APPORT BRUT du propriétaire ; SSR (Angleterre) & Eigenkapital (Allemagne) recalculés sur ce bilan reconstruit ===
@@ -13752,9 +13769,9 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
     const cashMercato = proceeds + loanFeesOut - loanFeesIn - feeArr;
     // === Serie A (FIGC/Covisoc) : Indicatore di Liquidità (actif court / passif court ≥ 0,6) ===
     const isSerieA = club.meta.domesticRule === "Serie A";
-    const liqThreshold = (_g = club.accounting.liqThreshold) !== null && _g !== void 0 ? _g : 0.8; // seuil FIGC Indicatore di Liquidità (relevé à 0,8) — sous ce niveau, mercato bloqué (vendre avant d'acheter)
-    const curLiab = (_h = club.accounting.curLiab) !== null && _h !== void 0 ? _h : 500;
-    const liqAdj = ((_j = club.accounting.liquidity) !== null && _j !== void 0 ? _j : 1) + (cashMercato + apportRaw) / curLiab; // ventes (cash) ↑ indicateur, achats ↓ ; 🇮🇹 l'apport du propriétaire (cash injecté) ↑ les actifs courants → ↑ la liquidité
+    const liqThreshold = (_h = club.accounting.liqThreshold) !== null && _h !== void 0 ? _h : 0.8; // seuil FIGC Indicatore di Liquidità (relevé à 0,8) — sous ce niveau, mercato bloqué (vendre avant d'acheter)
+    const curLiab = (_j = club.accounting.curLiab) !== null && _j !== void 0 ? _j : 500;
+    const liqAdj = ((_k = club.accounting.liquidity) !== null && _k !== void 0 ? _k : 1) + (cashMercato + apportRaw) / curLiab; // ventes (cash) ↑ indicateur, achats ↓ ; 🇮🇹 l'apport du propriétaire (cash injecté) ↑ les actifs courants → ↑ la liquidité
     // 🇮🇹 Indicatore di Indebitamento (dette ÷ valore produzione) rendu RÉACTIF : acheter (net cash out, souvent à crédit) ↑ la dette ; vendre (plus-value) ↑ la production → ↓ le ratio.
     const saIndebLive = (club.accounting.saDebt != null && club.accounting.saVdP != null) ? ((club.accounting.saDebt - cashMercato) / Math.max(1, club.accounting.saVdP + plusValue)) : null;
     const serieAOk = liqAdj >= liqThreshold;
@@ -13866,7 +13883,7 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
         investBase = 0.85 * den - num;
     }
     else if (isSerieA) {
-        investBase = (((_k = club.accounting.liquidity) !== null && _k !== void 0 ? _k : 1) - liqThreshold) * curLiab;
+        investBase = (((_l = club.accounting.liquidity) !== null && _l !== void 0 ? _l : 1) - liqThreshold) * curLiab;
     }
     else if (isBundesliga) {
         investBase = cascade ? (cascade.a.net + cascade.a.amort) : (baseDncgRes + 20);
@@ -14163,45 +14180,53 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
         badges.push({ emo: "❤️", lab: "Chouchou des tribunes", desc: "les fans t'adorent" });
     const recapStats = { spent: feeArr, earned: proceeds + loanFeesOut, pv: _pvSales, age: _recAges.length ? Math.round(_avgAge) : 0,
         obj: (projPos ? projPos + "ᵉ visé" : "") + (euroComp !== "none" ? " · " + (euroComp === "c1" ? "Ligue des Champions" : euroComp === "c3" ? "Ligue Europa" : "Conference League") : "") };
-    // === B4 · SAISON PROJETÉE : fin de championnat plausible selon la force de l'effectif construit (somme des 16 meilleures valeurs marchandes) classée contre les rivaux de la même ligue. Déterministe (= reflète TON mercato) ; verdict vs objectif (projPos).
-    const seasonSim = (() => {
-        const _str = (sq) => (sq || []).map((p) => +p.mkt || 0).sort((a, b) => b - a).slice(0, 16).reduce((s, v) => s + v, 0);
-        const myStr = _str([...keepers, ...recruits]);
-        const rivals = Object.entries(CLUBS).filter(([id, c]) => c.meta.league === club.meta.league && id !== clubId).map(([id, c]) => ({ id, str: _str(c.squad) }));
-        if (rivals.length < 3)
-            return null;
-        const all = [...rivals.map((r) => ({ ...r, me: false })), { id: clubId, str: myStr, me: true }].sort((a, b) => b.str - a.str);
-        const finish = all.findIndex((x) => x.me) + 1, N = all.length;
-        const target = +projPos || null;
-        const met = target ? finish <= target : null;
-        const c1 = Math.max(2, Math.round(N * 0.2)), c3 = Math.max(c1 + 1, Math.round(N * 0.35));
-        let head, emo;
-        if (finish === 1) {
-            head = "Champion de " + club.meta.league + " !";
-            emo = "🏆";
+    // === TROPHÉES · faits du mercato courant (servent à débloquer les trophées à la fin) ===
+    const [newTrophies, setNewTrophies] = useState([]);
+    const _greenNow = (typeof nBreach !== "undefined") ? (nBreach === 0) : (simpleState === "ok");
+    const _squadValT = keepers.reduce((s, p) => s + (+p.mkt || 0), 0);
+    const finishFacts = {
+        club: clubId, league: club.meta.league,
+        valid: !!mercatoValid, green: _greenNow, savedRed: !!(startInRed && _greenNow),
+        soldePos: cashMercato >= 0, pv: _pvSales || 0,
+        young: recruits.filter((r) => { const a = uefaStatOf(r.name).age; return a > 0 && a <= 21; }).length,
+        youth: (createdPlayers || []).length,
+        star: recruits.filter((r) => (+r.mkt || +r.fee || 0) >= 80).length,
+        sellStar: sold.filter((p) => (+p.price || 0) >= 50).length,
+        free: recruits.filter((r) => (+r.fee || 0) === 0).length,
+        bargains: recruits.filter((r) => { const v = (+r.mkt || +r.fee || 0); return v > 0 && v < 5; }).length,
+        nRec: recruits.length, nSold: sold.length, grade: boardGrade, apport: +apport || 0,
+        small: _squadValT < 220, euro: !!playsUEFA,
+    };
+    const finishMercato = () => {
+        if (endOpen) {
+            setEndOpen(true);
+            return;
         }
-        else if (finish === 2) {
-            head = "Vice-champion — tout près du titre";
-            emo = "🥈";
+        var store = {}, slog = [];
+        try {
+            store = JSON.parse(localStorage.getItem("fancato_trophies") || "{}");
         }
-        else if (finish <= c1) {
-            head = finish + "ᵉ" + " — qualifié en Ligue des Champions";
-            emo = "🇪🇺";
+        catch (e) { }
+        try {
+            slog = JSON.parse(localStorage.getItem("fancato_slog") || "[]");
         }
-        else if (finish <= c3) {
-            head = finish + "ᵉ" + " — une Coupe d'Europe au bout";
-            emo = "🇪🇺";
+        catch (e) { }
+        var _d = "";
+        try {
+            _d = new Date().toLocaleDateString("fr-FR");
         }
-        else if (finish >= N - 2) {
-            head = finish + "ᵉ" + " — la zone rouge, ça a tremblé";
-            emo = "🔥";
+        catch (e) { }
+        slog.push({ club: clubId, league: club.meta.league, grade: boardGrade, green: finishFacts.green, savedRed: finishFacts.savedRed, small: finishFacts.small, euro: finishFacts.euro, date: _d });
+        const got = evalTrophies(finishFacts, slog, store);
+        got.forEach((t) => { store[t.id] = { club: clubId, clubName: club.meta.shortName || club.meta.name, date: _d }; });
+        try {
+            localStorage.setItem("fancato_trophies", JSON.stringify(store));
+            localStorage.setItem("fancato_slog", JSON.stringify(slog));
         }
-        else {
-            head = finish + "ᵉ" + " — un ventre mou tranquille";
-            emo = "⚽";
-        }
-        return { finish, N, target, met, head, emo };
-    })();
+        catch (e) { }
+        setNewTrophies(got);
+        setEndOpen(true);
+    };
     // Fixe/efface l'override manuel du statut UEFA d'un joueur (suit le joueur par son nom)
     const setUefa = (name, v) => setUefaOv((o) => { const n = { ...o }; if (v === "" || v == null)
         delete n[name];
@@ -14532,7 +14557,7 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
             dncgPass, uefaOk, rule3yPass, limit, domestic: club.meta.domesticRule, dncgTxt: domesticTxt, uefaTxt: ratio2627.toFixed(0) + "%", r3Txt: sign(cumul2627),
             playsUEFA, rule3yApplies: r3Applies,
             dep: fmt(feeArr), rec: fmt(proceeds + loanFeesOut), solde: sign(cashMercato), soldeCol: cashMercato >= 0 ? "#00ff6a" : "#ffd76b", pvTxt: sign(plusValue),
-            line: boardLine, logoImg, seasonSim,
+            line: boardLine, logoImg,
         });
         var teamUrl;
         try {
@@ -14726,7 +14751,7 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
         React.createElement("div", { className: "wrap " + (expertMode ? "ui-exp" : "ui-simple"), style: { "--navy": club.meta.colors.primary, "--red": club.meta.colors.accent, "--gold": club.meta.colors.gold } },
             React.createElement("div", { style: { position: "fixed", top: 0, left: "50%", transform: "translateX(-50%)", width: 460, maxWidth: "100vw", height: 210, background: "radial-gradient(60% 100% at 50% 0%, var(--navy), transparent 72%)", opacity: .22, zIndex: 0, pointerEvents: "none" } }),
             React.createElement(Onboarding, { club: club, setTab: setTab }),
-            endOpen && React.createElement(SeasonEnd, { checks: seasonChecks, note: boardNote, grade: boardGrade, line: boardLine, bulletin: bulletin, badges: badges, recapStats: recapStats, seasonSim: seasonSim, clubName: club.meta.name, modeShort: START_MODES[startMode].short, seedKey: clubId + "|" + startMode, recruits: recruits, sold: sold, imgs: imgs, teamShareImg: teamShareImg, onGenerate: genImages, onClose: () => setEndOpen(false) }),
+            endOpen && React.createElement(SeasonEnd, { checks: seasonChecks, note: boardNote, grade: boardGrade, line: boardLine, bulletin: bulletin, badges: badges, recapStats: recapStats, newTrophies: newTrophies, clubName: club.meta.name, modeShort: START_MODES[startMode].short, seedKey: clubId + "|" + startMode, recruits: recruits, sold: sold, imgs: imgs, teamShareImg: teamShareImg, onGenerate: genImages, onClose: () => setEndOpen(false) }),
             React.createElement(Assistant, { tips: coachTips, tab: tab, explain: explain, onCloseExplain: () => setExplain(null) }),
             tourMain && React.createElement(Tour, { steps: TOUR_MAIN, tab: tab, setTab: setTab, onDone: () => { try {
                     localStorage.setItem("sm_onboarded", "1");
@@ -15661,7 +15686,7 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
                         React.createElement("option", { value: "" }, "\u2014 aucun \u2014"),
                         capPool.map((p) => React.createElement("option", { key: p.id, value: String(p.id) }, p.name)))));
             })(),
-            tab === "terrain" && React.createElement("button", { type: "button", onClick: () => setEndOpen(true), "data-tour": "fin", style: { display: "block", width: "100%", margin: "16px 0 6px", background: "linear-gradient(180deg,#f4cf6e,#00c452)", color: "#14213c", border: "none", borderRadius: 13, padding: "15px", fontFamily: "Raleway, sans-serif", fontWeight: 800, fontSize: 16.5, letterSpacing: ".02em", cursor: "pointer", boxShadow: "0 8px 22px rgba(224,169,58,.3)" } },
+            tab === "terrain" && React.createElement("button", { type: "button", onClick: finishMercato, "data-tour": "fin", style: { display: "block", width: "100%", margin: "16px 0 6px", background: "linear-gradient(180deg,#f4cf6e,#00c452)", color: "#14213c", border: "none", borderRadius: 13, padding: "15px", fontFamily: "Raleway, sans-serif", fontWeight: 800, fontSize: 16.5, letterSpacing: ".02em", cursor: "pointer", boxShadow: "0 8px 22px rgba(224,169,58,.3)" } },
                 React.createElement(Icon, { name: "fin", size: 16, style: { marginRight: 7, verticalAlign: "-3px" } }),
                 "Terminer le mercato \u2014 valider mon effectif & voir ma note"),
             drag && React.createElement("div", { style: { position: "fixed", left: drag.cx, top: drag.cy, transform: "translate(-50%,-150%)", zIndex: 5000, pointerEvents: "none", background: "linear-gradient(180deg,#00ff6a,#00c452)", color: "#14213c", borderRadius: 9, padding: "6px 12px", fontFamily: "Raleway, sans-serif", fontWeight: 700, fontSize: 13, boxShadow: "0 10px 26px rgba(0,0,0,.55)", whiteSpace: "nowrap" } },
@@ -17129,6 +17154,44 @@ class ErrorBoundary extends Component {
         return this.props.children;
     }
 }
+// === SALLE DES TROPHÉES : tous les trophées, débloqués (doré + club/date) vs verrouillés (grisé + indice). ===
+function TrophyRoom({ onClose }) {
+    var store = {};
+    try {
+        store = JSON.parse(localStorage.getItem("fancato_trophies") || "{}");
+    }
+    catch (e) { }
+    const total = TROPHIES.length, got = Object.keys(store).length;
+    const fams = [...new Set(TROPHIES.map((t) => t.fam))];
+    useEffect(() => { const onKey = (e) => { if (e.key === "Escape")
+        onClose(); }; document.addEventListener("keydown", onKey); return () => document.removeEventListener("keydown", onKey); }, []);
+    return (React.createElement("div", { style: { position: "fixed", inset: 0, zIndex: 950, background: "rgba(6,10,20,.93)", overflowY: "auto", overflowX: "hidden", padding: "max(3vh, env(safe-area-inset-top)) 14px max(4vh, env(safe-area-inset-bottom))" }, onClick: onClose },
+        React.createElement("div", { style: { width: 620, maxWidth: "96vw", margin: "0 auto", background: "linear-gradient(160deg,#161d27,#0f151d)", border: "1px solid rgba(232,196,106,.35)", borderRadius: 18, padding: "18px 16px 20px", boxShadow: "0 24px 70px rgba(0,0,0,.6)" }, onClick: (e) => e.stopPropagation() },
+            React.createElement("div", { style: { display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 } },
+                React.createElement("div", { style: { fontFamily: "Raleway,sans-serif", fontWeight: 800, fontSize: 20, color: "#f2d891" } }, "\uD83C\uDFC6 Salle des troph\u00E9es"),
+                React.createElement("button", { onClick: onClose, title: "Fermer (\u00C9chap)", style: { background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.14)", color: "#cdd8ee", width: 32, height: 32, borderRadius: 9, fontSize: 18, cursor: "pointer", lineHeight: 1 } }, "\u2715")),
+            React.createElement("div", { style: { color: "#9fb0d0", fontSize: 13, marginBottom: 6 } },
+                React.createElement("b", { style: { color: "#f2d891" } }, got),
+                " / ",
+                total,
+                " d\u00E9bloqu\u00E9s"),
+            React.createElement("div", { style: { height: 8, borderRadius: 5, background: "rgba(255,255,255,.08)", overflow: "hidden", marginBottom: 16 } },
+                React.createElement("div", { style: { width: (total ? (got / total * 100) : 0) + "%", height: "100%", background: "linear-gradient(90deg,#e8c46a,#00ff6a)" } })),
+            fams.map((fam) => React.createElement("div", { key: fam, style: { marginBottom: 15 } },
+                React.createElement("div", { style: { fontSize: 11, textTransform: "uppercase", letterSpacing: ".1em", color: "#8b9cbe", marginBottom: 8, fontWeight: 700 } }, fam),
+                React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8 } }, TROPHIES.filter((t) => t.fam === fam).map((t) => {
+                    const u = store[t.id];
+                    return (React.createElement("div", { key: t.id, style: { display: "flex", alignItems: "center", gap: 11, padding: "10px 12px", borderRadius: 12, background: u ? "rgba(232,196,106,.09)" : "rgba(255,255,255,.03)", border: "1px solid " + (u ? "rgba(232,196,106,.32)" : "rgba(255,255,255,.07)") } },
+                        React.createElement("span", { style: { fontSize: 29, lineHeight: 1, flex: "0 0 auto", filter: u ? "none" : "grayscale(1)", opacity: u ? 1 : .45 } }, t.emo),
+                        React.createElement("div", { style: { minWidth: 0, flex: 1 } },
+                            React.createElement("div", { style: { fontFamily: "Raleway,sans-serif", fontWeight: 800, fontSize: 14.5, color: u ? "#f2d891" : "#aeb9cc" } }, u ? t.name : "🔒 " + t.name),
+                            React.createElement("div", { style: { fontSize: 12, color: "#9fb0d0", lineHeight: 1.4 } }, u ? t.desc : t.hint),
+                            u && u.clubName ? React.createElement("div", { style: { fontSize: 10.5, color: "#7d8eae", marginTop: 2 } },
+                                "D\u00E9bloqu\u00E9 avec ",
+                                u.clubName,
+                                u.date ? " · " + u.date : "") : null)));
+                })))))));
+}
 function Home({ slots, onResume, onEnter, onRemove, onCommunity }) {
     const [pick, setPick] = useState(null); // null = fermé, "" = choix championnat, "<league>" = choix club
     const [q, setQ] = useState(""); // recherche de club (toutes ligues)
@@ -17136,6 +17199,7 @@ function Home({ slots, onResume, onEnter, onRemove, onCommunity }) {
     const [confirmDel, setConfirmDel] = useState(null); // id du club en attente de confirmation de retrait (anti-suppression accidentelle)
     const _pickSw = useRef(null); // swipe entre ligues dans le sélecteur de club
     const [paramsOpen, setParamsOpen] = useState(false); // panneau Paramètres (tuile accueil)
+    const [trophyOpen, setTrophyOpen] = useState(false); // salle des trophées (tuile accueil)
     useEffect(() => { if (confirmDel == null)
         return; const t = setTimeout(() => setConfirmDel(null), 4500); return () => clearTimeout(t); }, [confirmDel]);
     const [introOpen, setIntroOpen] = useState(() => { try {
@@ -17175,6 +17239,13 @@ function Home({ slots, onResume, onEnter, onRemove, onCommunity }) {
         labelByUid[s.uid] = base + " (" + _run[s.clubId] + ")";
     } });
     const modeShort = (m) => (START_MODES[m] ? START_MODES[m].short : "");
+    var trStore = {};
+    try {
+        trStore = JSON.parse(localStorage.getItem("fancato_trophies") || "{}");
+    }
+    catch (e) { }
+    const trCount = Object.keys(trStore).length, trTotal = TROPHIES.length;
+    const trNext = TROPHIES.filter((t) => !trStore[t.id] && (t.fam === "Exploration" || t.fam === "Gestion" || t.fam === "Malin"))[0];
     const page = { minHeight: "100dvh", background: STADIUM_BG, color: "#e7edf8", fontFamily: "Raleway, system-ui, sans-serif", padding: "max(22px, env(safe-area-inset-top)) 16px max(34px, env(safe-area-inset-bottom))", boxSizing: "border-box", display: "flex", flexDirection: "column", justifyContent: "safe center", overflowY: "auto", overscrollBehavior: "none" };
     const badge = (c) => ({ width: 40, height: 40, flex: "0 0 40px", borderRadius: 9, background: (c.meta.colors && c.meta.colors.primary) || "#26324d", color: badgeTextColor(c.meta.colors), border: "1px solid " + ((c.meta.colors && c.meta.colors.accent) || "rgba(255,255,255,.2)"), display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "Raleway, sans-serif", fontWeight: 700, fontSize: 12.5 });
     return (React.createElement("div", { style: page },
@@ -17228,7 +17299,23 @@ function Home({ slots, onResume, onEnter, onRemove, onCommunity }) {
                     React.createElement("span", { style: { fontSize: 24, lineHeight: 1 } }, "\uFF0B"),
                     React.createElement("span", { style: { fontFamily: "Raleway,sans-serif", fontWeight: 700, fontSize: 10.5, letterSpacing: ".03em", textAlign: "center" } }, "Ajouter"))),
             React.createElement("button", { className: "sm-cta", onClick: () => setPick(""), style: { width: "100%", marginTop: 12, border: "none", background: "linear-gradient(180deg,#00ff6a,#00c452)", color: "#04120a", borderRadius: 13, padding: "15px", cursor: "pointer", fontFamily: "Raleway,sans-serif", fontWeight: 800, fontSize: 15, letterSpacing: ".04em", textTransform: "uppercase" } }, "Voir tous les clubs \u203A"),
-            React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 14 } },
+            React.createElement("button", { onClick: () => setTrophyOpen(true), style: { width: "100%", marginTop: 10, display: "flex", alignItems: "center", gap: 11, background: "rgba(232,196,106,.1)", border: "1px solid rgba(232,196,106,.38)", borderRadius: 13, padding: "12px 14px", cursor: "pointer", color: "#f2d891", fontFamily: "Raleway,sans-serif", textAlign: "left" } },
+                React.createElement("span", { style: { fontSize: 24, lineHeight: 1 } }, "\uD83C\uDFC6"),
+                React.createElement("span", { style: { flex: 1, minWidth: 0 } },
+                    React.createElement("span", { style: { display: "block", fontWeight: 800, fontSize: 13.5, letterSpacing: ".02em" } },
+                        "Troph\u00E9es ",
+                        React.createElement("span", { style: { color: "#c8b06a", fontWeight: 700 } },
+                            "\u00B7 ",
+                            trCount,
+                            "/",
+                            trTotal)),
+                    trNext ? React.createElement("span", { style: { display: "block", fontSize: 11, color: "#b7a76a", marginTop: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" } },
+                        "\u00C0 port\u00E9e : ",
+                        trNext.name,
+                        " \u2014 ",
+                        trNext.hint) : React.createElement("span", { style: { display: "block", fontSize: 11, color: "#b7a76a", marginTop: 1 } }, "Change de club pour en d\u00E9bloquer d'autres !")),
+                React.createElement("span", { style: { fontSize: 18, color: "#c8b06a" } }, "\u203A")),
+            React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 12 } },
                 React.createElement("button", { onClick: onCommunity, style: { display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 6, background: "rgba(123,61,255,.12)", border: "1px solid rgba(123,61,255,.4)", color: "#b79bff", borderRadius: 14, padding: "16px 10px", cursor: "pointer", fontFamily: "Raleway,sans-serif" } },
                     React.createElement(Icon, { name: "douze", size: 28 }),
                     React.createElement("span", { style: { fontWeight: 800, fontSize: 12.5, letterSpacing: ".04em", textTransform: "uppercase" } }, "12\u1D49 Homme")),
@@ -17247,6 +17334,7 @@ function Home({ slots, onResume, onEnter, onRemove, onCommunity }) {
                         React.createElement("span", { style: { color: "#8a94a6", fontSize: 11 } }, "\u00B7 bient\u00F4t")),
                     React.createElement("span", { style: { width: 34, height: 20, borderRadius: 12, background: "rgba(255,255,255,.1)", opacity: .5 } })),
                 React.createElement("p", { style: { fontSize: 11.5, color: "#8a94a6", lineHeight: 1.5, margin: "6px 2px 10px" } }, "R\u00E9glages de confort/affichage. Les r\u00E8gles du jeu se pilotent dans chaque club.")))),
+        trophyOpen && React.createElement(TrophyRoom, { onClose: () => setTrophyOpen(false) }),
         pick !== null && (() => {
             const nrm = (s) => (s || "").normalize("NFKD").replace(/[̀-ͯ]/g, "").toLowerCase();
             const qq = q.trim();
@@ -17529,7 +17617,7 @@ function lbBoard(seedKey, myNote) {
     return rows;
 }
 // « BOUTON FIN » : overlay de fin de mercato — déroule les règles une par une (animé), révèle la note du board, puis la carte à partager.
-function SeasonEnd({ checks, note, grade, line, bulletin, badges, recapStats, seasonSim, clubName, modeShort, seedKey, recruits, sold, imgs, teamShareImg, onGenerate, onClose }) {
+function SeasonEnd({ checks, note, grade, line, bulletin, badges, recapStats, newTrophies, clubName, modeShort, seedKey, recruits, sold, imgs, teamShareImg, onGenerate, onClose }) {
     const [step, setStep] = useState(0); // 0..checks.length = révélation des règles ; > checks.length = note + carte
     const [gen, setGen] = useState(false);
     const [showLb, setShowLb] = useState(false);
@@ -17587,17 +17675,13 @@ function SeasonEnd({ checks, note, grade, line, bulletin, badges, recapStats, se
                 React.createElement("b", { style: { color: "#cdd8ee" } }, nSold),
                 " d\u00E9part",
                 nSold > 1 ? "s" : ""),
-            seasonSim ? React.createElement("div", { style: { marginBottom: 16, padding: "15px 15px", borderRadius: 14, background: "linear-gradient(180deg,rgba(0,255,106,.09),rgba(123,61,255,.06))", border: "1px solid rgba(0,255,106,.32)", textAlign: "center", animation: "seSlideIn .5s var(--ease) both" } },
-                React.createElement("div", { style: { fontSize: 11, textTransform: "uppercase", letterSpacing: ".12em", color: "#8b9cbe", marginBottom: 6 } }, "Ta saison projet\u00E9e"),
-                React.createElement("div", { style: { fontSize: 36, lineHeight: 1, marginBottom: 6 } }, seasonSim.emo),
-                React.createElement("div", { style: { fontFamily: "Raleway,sans-serif", fontWeight: 800, fontSize: 18, color: "#eaf0fb", lineHeight: 1.2 } }, seasonSim.head),
-                seasonSim.target ? React.createElement("div", { style: { marginTop: 8, fontSize: 12.5, fontWeight: 700, color: seasonSim.met ? "#00ff6a" : "#ff96a6" } }, seasonSim.met ? "✅ Objectif atteint (" + seasonSim.target + "ᵉ visé)" : "⚠️ Sous l'objectif (" + seasonSim.target + "ᵉ visé)") : null,
-                React.createElement("div", { style: { marginTop: 7, fontSize: 10.5, color: "#7d8eae", lineHeight: 1.4 } },
-                    "estimation d'apr\u00E8s la force de ton effectif \u00B7 ",
-                    seasonSim.finish,
-                    "\u1D49 sur ",
-                    seasonSim.N,
-                    " clubs mod\u00E9lis\u00E9s")) : null,
+            newTrophies && newTrophies.length > 0 ? React.createElement("div", { style: { marginBottom: 16, padding: "15px", borderRadius: 14, background: "linear-gradient(180deg,rgba(232,196,106,.12),rgba(123,61,255,.06))", border: "1px solid rgba(232,196,106,.4)", textAlign: "center", animation: "seSlideIn .5s var(--ease) both" } },
+                React.createElement("div", { style: { fontSize: 11, textTransform: "uppercase", letterSpacing: ".12em", color: "#e8c46a", marginBottom: 10 } }, newTrophies.length > 1 ? newTrophies.length + " nouveaux trophées !" : "Nouveau trophée !"),
+                newTrophies.map((t, i) => React.createElement("div", { key: t.id, style: { display: "flex", alignItems: "center", gap: 11, textAlign: "left", padding: "8px 4px", animation: "seSlideIn .45s var(--ease) both " + (0.15 + i * 0.18) + "s" } },
+                    React.createElement("span", { style: { fontSize: 34, lineHeight: 1, flex: "0 0 auto" } }, t.emo),
+                    React.createElement("div", { style: { minWidth: 0 } },
+                        React.createElement("div", { style: { fontFamily: "Raleway,sans-serif", fontWeight: 800, fontSize: 15.5, color: "#f2d891" } }, t.name),
+                        React.createElement("div", { style: { fontSize: 12, color: "#c8d3e8", lineHeight: 1.4 } }, t.desc))))) : null,
             React.createElement("div", { style: { marginBottom: 16 } },
                 React.createElement("div", { className: "se-lbl" }, "Ta fen\u00EAtre de transferts"),
                 (recruits.length > 0 || sold.length > 0) ? React.createElement(React.Fragment, null,
