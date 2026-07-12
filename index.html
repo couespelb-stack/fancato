@@ -12797,7 +12797,7 @@ const BACKOFFICE = (function () {
         (openArr || []).forEach(function (p) { openSet.add(p); });
         const b = BODIES[cur];
         var _nat = REG_NATURE[cur];
-        var _natHTML = _nat ? (function () { _niMap["nature"] = { label: "Ex-ante ou ex-post ?", src: REG_NATURE_HELP }; return `<details class="reg-fold"><summary>📋 Comment tes comptes sont contrôlés — ${_nat.cls === "exante" ? "blocage AVANT le mercato" : "jugé en fin de saison"}</summary><div class="reg-nature ${_nat.cls}"><span class="reg-nat-ic">${SVG_ICONS[_nat.icon]}</span><div class="reg-nat-tx"><b>${_nat.title}</b><span>${_nat.sub}</span></div><button class="tni reg-nat-i" data-ni="nature" title="L'adjoint t'explique la différence">i</button></div></details>`; })() : "";
+        var _natHTML = _nat ? (function () { _niMap["nature"] = { label: "Ex-ante ou ex-post ?", src: REG_NATURE_HELP }; return `<details class="reg-fold"><summary>${_icHTML("doc")} Comment tes comptes sont contrôlés — ${_nat.cls === "exante" ? "blocage AVANT le mercato" : "jugé en fin de saison"}</summary><div class="reg-nature ${_nat.cls}"><span class="reg-nat-ic">${SVG_ICONS[_nat.icon]}</span><div class="reg-nat-tx"><b>${_nat.title}</b><span>${_nat.sub}</span></div><button class="tni reg-nat-i" data-ni="nature" title="L'adjoint t'explique la différence">i</button></div></details>`; })() : "";
         return `<div class="bo-league"><div class="bo-lh"><span class="bo-ic">${TOUR_EMO[b.ic] ? _icHTML(TOUR_EMO[b.ic]) : b.ic}</span> <b>${b.name}</b> <span class="bo-org">${b.org}</span></div>${_natHTML}
     ${'' /* intro + note « base 2026-27 » retirées du rendu JEU ; l'essentiel (base avant mercato + cascade des années) est déplacé dans l'aide « Pour info » du détail */}
     ${'' /* 🔎 Vérification documentaire : retirée du rendu JEU (le joueur s'en fiche) ; reste dans le back-office calcul-criteres.html */}
@@ -12924,7 +12924,7 @@ const BACKOFFICE = (function () {
                 var st = cr && cr.stat ? cr.stat[i] : yr.r;
                 var badge = cr ? (cr.own ? `<span class="rl own">Estim. maison</span>` : `<span class="rl ${st}">${RL[st]}</span>`) : `<span class="rl ${yr.r}">${RL[yr.r]}</span>`;
                 var valCls = (cr && cr.own) ? 'ownval' : ((/à (définir|affiner|préciser|confirmer|évaluer)|projeter|abrogé/i.test(cellVal)) ? 'todo' : (/✓/.test(cellVal) ? 'ok' : (/✗/.test(cellVal) ? 'ko' : '')));
-                return `<div class="yr"><div class="yr-h"><span>${YLAB[i]}</span>${badge}</div><div class="val ${valCls}">${cellVal}</div>${(i === 2 && /✓|✗|excedido|excédé|échec|conforme/i.test(cellVal)) ? `<div class="now-mini">${(function () { var _ok = /✓|conforme/i.test(cellVal) && !/✗|excedido|excédé|échec/i.test(cellVal); var _ex = _nat && _nat.cls === "exante"; return '<b>Pour toi maintenant&nbsp;:</b> ' + (_ok ? (_ex ? '✅ Tu peux inscrire tes recrues normalement.' : '✅ Tu es dans les clous — recrute librement.') : (_ex ? '⛔ Tu ne peux pas inscrire de nouvelle recrue tant que tu n\'es pas repassé sous le seuil : finance-la d\'abord par une vente.' : '⏳ Rien d\'immédiat : c\'est jugé en fin de saison. Si tu ne couvres pas (apport du proprio ou ventes), tu t\'exposes à une sanction au bilan.')); })()}</div>` : ''}${c.sub ? `<div class="yr-sub">${c.sub}</div>` : ''}${(c.plain && i === 2) ? `<details class="fold-mini"><summary>💡 En clair — comprendre cette règle</summary><div class="plain-mini">${c.plain}</div></details>` : ''}${(_sanc && i === 2 && /✗|excedido|excédé|échec/i.test(cellVal)) ? `<div class="sanction-mini"><span style="color:#ffb450;display:inline-block;width:13px;height:13px;vertical-align:-2px;margin-right:3px">${SVG_ICONS.warn}</span><b>Ce que tu risques&nbsp;:</b> ${_sancShort}${(function () { _niMap["risk" + ci] = { label: "Ce que tu risques", src: _sanc }; return ''; })()}${_sancShort !== _sanc ? ` <button class="tni" data-ni="risk${ci}" title="Le détail complet">i</button>` : ''}</div>` : ''}${c.tree ? `<button class="drillbtn l3 ${(drill && drill.ci === ci && drill.yi === i) ? 'on' : ''}" data-drill="${ci}" data-yi="${i}">${(drill && drill.ci === ci && drill.yi === i) ? '▾ masquer le calcul' : '▸ voir le calcul en détail'}</button><div class="simplenote">🔎 Envie du calcul complet, avec les sources&nbsp;? Passe en <b>mode Pro</b> (en haut).</div>` : ''}</div>`;
+                return `<div class="yr"><div class="yr-h"><span>${YLAB[i]}</span>${badge}</div><div class="val ${valCls}">${cellVal}</div>${(i === 2 && /✓|✗|excedido|excédé|échec|conforme/i.test(cellVal)) ? `<div class="now-mini">${(function () { var _ok = /✓|conforme/i.test(cellVal) && !/✗|excedido|excédé|échec/i.test(cellVal); var _ex = _nat && _nat.cls === "exante"; return '<b>Pour toi maintenant&nbsp;:</b> ' + (_ok ? (_ex ? 'Tu peux inscrire tes recrues normalement.' : 'Tu es dans les clous — recrute librement.') : (_ex ? 'Tu ne peux pas inscrire de nouvelle recrue tant que tu n\'es pas repassé sous le seuil : finance-la d\'abord par une vente.' : 'Rien d\'immédiat : c\'est jugé en fin de saison. Si tu ne couvres pas (apport du proprio ou ventes), tu t\'exposes à une sanction au bilan.')); })()}</div>` : ''}${c.sub ? `<div class="yr-sub">${c.sub}</div>` : ''}${(c.plain && i === 2) ? `<details class="fold-mini"><summary>${_icHTML("sparkle")} En clair — comprendre cette règle</summary><div class="plain-mini">${c.plain}</div></details>` : ''}${(_sanc && i === 2 && /✗|excedido|excédé|échec/i.test(cellVal)) ? `<div class="sanction-mini"><span style="color:#ffb450;display:inline-block;width:13px;height:13px;vertical-align:-2px;margin-right:3px">${SVG_ICONS.warn}</span><b>Ce que tu risques&nbsp;:</b> ${_sancShort}${(function () { _niMap["risk" + ci] = { label: "Ce que tu risques", src: _sanc }; return ''; })()}${_sancShort !== _sanc ? ` <button class="tni" data-ni="risk${ci}" title="Le détail complet">i</button>` : ''}</div>` : ''}${c.tree ? `<button class="drillbtn l3 ${(drill && drill.ci === ci && drill.yi === i) ? 'on' : ''}" data-drill="${ci}" data-yi="${i}">${(drill && drill.ci === ci && drill.yi === i) ? '▾ masquer le calcul' : '▸ voir le calcul en détail'}</button><div class="simplenote">🔎 Envie du calcul complet, avec les sources&nbsp;? Passe en <b>mode Pro</b> (en haut).</div>` : ''}</div>`;
             }).join("")}
         </div>
         ${(c.tree && drill && drill.ci === ci) ? `<div class="drill l3"><div class="drill-h">Calcul détaillé · 2026-2027 <span class="drill-hint">touche un <b>ⓘ</b> pour l'explication</span></div>${renderNode(c.tree, "n", 2, byNode)}
@@ -13055,31 +13055,31 @@ function logDataOv(clubId, scope, field, playerName, oldV, newV) {
 function _distinct(log, key) { return new Set((log || []).map((e) => e[key])).size; }
 function _distinctWhere(log, key, pred) { return new Set((log || []).filter(pred).map((e) => e[key])).size; }
 const TROPHIES = [
-    { id: "premier", fam: "Découverte", emo: "🎬", name: "Premier mercato", desc: "Boucle ton tout premier mercato.", hint: "Termine un mercato.", test: (f, log) => log.length >= 1 },
-    { id: "note_a", fam: "Maîtrise", emo: "🅰️", name: "Note A", desc: "Décroche un A du board sur un mercato.", hint: "Vise un mercato noté A.", test: (f) => f.grade === "A" },
-    { id: "sans_faute", fam: "Maîtrise", emo: "💎", name: "Sans faute", desc: "Note A ET tous les voyants au vert.", hint: "A du board + zéro règle enfreinte.", test: (f) => f.grade === "A" && f.valid && f.green },
-    { id: "equilibriste", fam: "Gestion", emo: "⚖️", name: "Équilibriste", desc: "Tous les voyants au vert sans apport du proprio.", hint: "Finis dans les clous sans injection du propriétaire.", test: (f) => f.valid && f.green && f.apport <= 0 },
-    { id: "sauveur", fam: "Gestion", emo: "🛟", name: "Sauveur", desc: "Un club parti dans le rouge, remis dans les clous.", hint: "Redresse un club dont la situation héritée était rouge.", test: (f) => f.savedRed },
-    { id: "solde", fam: "Gestion", emo: "💶", name: "À l'équilibre", desc: "Mercato bouclé avec un solde cash positif.", hint: "Encaisse plus que tu ne dépenses (avec au moins un mouvement).", test: (f) => f.soldePos && (f.nRec + f.nSold) > 0 },
-    { id: "degraisseur", fam: "Gestion", emo: "✂️", name: "Grand ménage", desc: "Vends 4 joueurs ou plus sur un mercato.", hint: "Dégraisse : 4 départs.", test: (f) => f.nSold >= 4 },
-    { id: "denicheur", fam: "Malin", emo: "🔍", name: "Dénicheur", desc: "3 recrues à moins de 5 M€.", hint: "Trouve 3 bonnes affaires.", test: (f) => f.bargains >= 3 },
-    { id: "vendeur_or", fam: "Malin", emo: "💰", name: "Vendeur en or", desc: "+50 M€ de plus-values sur un mercato.", hint: "Vends des joueurs très amortis.", test: (f) => f.pv >= 50 },
-    { id: "formateur", fam: "Malin", emo: "🌱", name: "Formateur", desc: "Fais monter 3 jeunes de ton centre.", hint: "Crée et intègre 3 jeunes du centre.", test: (f) => f.youth >= 3 },
-    { id: "libre", fam: "Malin", emo: "🆓", name: "Malin du marché", desc: "2 recrues arrivées libres (sans indemnité).", hint: "Recrute 2 joueurs en fin de contrat.", test: (f) => f.free >= 2 },
-    { id: "batisseur", fam: "Style", emo: "👶", name: "Bâtisseur d'avenir", desc: "5 recrues de 21 ans ou moins.", hint: "Mise sur la jeunesse : 5 jeunes recrues.", test: (f) => f.young >= 5 },
-    { id: "coup_genie", fam: "Style", emo: "🌟", name: "Coup de génie", desc: "Recrute une star à plus de 80 M€.", hint: "Signe un joueur à +80 M€.", test: (f) => f.star >= 1 },
-    { id: "marchand", fam: "Style", emo: "⭐", name: "Marchand d'étoiles", desc: "Vends un joueur à plus de 50 M€.", hint: "Cède une vedette à +50 M€.", test: (f) => f.sellStar >= 1 },
-    { id: "fidele", fam: "Style", emo: "🤝", name: "Le Fidèle", desc: "Aucun départ : effectif conservé.", hint: "Ne vends ni ne prête personne.", test: (f) => f.nSold === 0 },
-    { id: "ascete", fam: "Style", emo: "🧘", name: "L'ascète", desc: "Finis tous voyants verts sans aucune recrue.", hint: "Zéro recrue et pourtant dans les clous.", test: (f) => f.valid && f.green && f.nRec === 0 },
-    { id: "europe", fam: "Style", emo: "🇪🇺", name: "Ambition européenne", desc: "Mercato valide avec un club qualifié en Coupe d'Europe.", hint: "Réussis le mercato d'un club européen.", test: (f) => f.valid && f.euro },
-    { id: "petit_poucet", fam: "Exploration", emo: "🐜", name: "Petit Poucet", desc: "Sauve un petit club du rouge.", hint: "Redresse un club modeste parti dans le rouge.", test: (f) => f.savedRed && f.small },
-    { id: "hipster", fam: "Exploration", emo: "🎩", name: "Hipster", desc: "Réussis le mercato d'un club hors des cadors.", hint: "Fais un mercato valide avec un petit club.", test: (f) => f.valid && f.small },
-    { id: "decouvreur", fam: "Exploration", emo: "🧭", name: "Découvreur", desc: "Essaie le mercato de 10 clubs différents.", hint: "Joue 10 clubs différents.", test: (f, log) => _distinct(log, "club") >= 10 },
-    { id: "tour_france", fam: "Exploration", emo: "🇫🇷", name: "Tour de France", desc: "Le mercato des 18 clubs de Ligue 1.", hint: "Joue les 18 clubs de Ligue 1.", test: (f, log) => _distinctWhere(log, "club", (e) => e.league === "Ligue 1") >= 18 },
-    { id: "globe", fam: "Exploration", emo: "🌍", name: "Globe-trotter", desc: "Un mercato dans les 5 grands championnats.", hint: "Joue au moins un club de chaque championnat.", test: (f, log) => _distinct(log, "league") >= 5 },
-    { id: "perfectionniste", fam: "Maîtrise", emo: "🏅", name: "Perfectionniste", desc: "La note A avec 5 clubs différents.", hint: "Décroche un A avec 5 clubs différents.", test: (f, log) => _distinctWhere(log, "club", (e) => e.grade === "A") >= 5 },
-    { id: "collectionneur", fam: "Maîtrise", emo: "🗃️", name: "Collectionneur", desc: "Débloque 15 trophées.", hint: "Continue à jouer, ils viendront.", test: (f, log, prev) => prev >= 15 },
-    { id: "veteran", fam: "Découverte", emo: "🎖️", name: "Vétéran", desc: "Boucle 20 mercatos.", hint: "Joue 20 mercatos.", test: (f, log) => log.length >= 20 },
+    { id: "premier", fam: "Découverte", emo: "sparkle", name: "Premier mercato", desc: "Boucle ton tout premier mercato.", hint: "Termine un mercato.", test: (f, log) => log.length >= 1 },
+    { id: "note_a", fam: "Maîtrise", emo: "valide", name: "Note A", desc: "Décroche un A du board sur un mercato.", hint: "Vise un mercato noté A.", test: (f) => f.grade === "A" },
+    { id: "sans_faute", fam: "Maîtrise", emo: "diamond", name: "Sans faute", desc: "Note A ET tous les voyants au vert.", hint: "A du board + zéro règle enfreinte.", test: (f) => f.grade === "A" && f.valid && f.green },
+    { id: "equilibriste", fam: "Gestion", emo: "shield", name: "Équilibriste", desc: "Tous les voyants au vert sans apport du proprio.", hint: "Finis dans les clous sans injection du propriétaire.", test: (f) => f.valid && f.green && f.apport <= 0 },
+    { id: "sauveur", fam: "Gestion", emo: "heart", name: "Sauveur", desc: "Un club parti dans le rouge, remis dans les clous.", hint: "Redresse un club dont la situation héritée était rouge.", test: (f) => f.savedRed },
+    { id: "solde", fam: "Gestion", emo: "money", name: "À l'équilibre", desc: "Mercato bouclé avec un solde cash positif.", hint: "Encaisse plus que tu ne dépenses (avec au moins un mouvement).", test: (f) => f.soldePos && (f.nRec + f.nSold) > 0 },
+    { id: "degraisseur", fam: "Gestion", emo: "minus", name: "Grand ménage", desc: "Vends 4 joueurs ou plus sur un mercato.", hint: "Dégraisse : 4 départs.", test: (f) => f.nSold >= 4 },
+    { id: "denicheur", fam: "Malin", emo: "search", name: "Dénicheur", desc: "3 recrues à moins de 5 M€.", hint: "Trouve 3 bonnes affaires.", test: (f) => f.bargains >= 3 },
+    { id: "vendeur_or", fam: "Malin", emo: "up", name: "Vendeur en or", desc: "+50 M€ de plus-values sur un mercato.", hint: "Vends des joueurs très amortis.", test: (f) => f.pv >= 50 },
+    { id: "formateur", fam: "Malin", emo: "jeune", name: "Formateur", desc: "Fais monter 3 jeunes de ton centre.", hint: "Crée et intègre 3 jeunes du centre.", test: (f) => f.youth >= 3 },
+    { id: "libre", fam: "Malin", emo: "freetag", name: "Malin du marché", desc: "2 recrues arrivées libres (sans indemnité).", hint: "Recrute 2 joueurs en fin de contrat.", test: (f) => f.free >= 2 },
+    { id: "batisseur", fam: "Style", emo: "baby", name: "Bâtisseur d'avenir", desc: "5 recrues de 21 ans ou moins.", hint: "Mise sur la jeunesse : 5 jeunes recrues.", test: (f) => f.young >= 5 },
+    { id: "coup_genie", fam: "Style", emo: "star", name: "Coup de génie", desc: "Recrute une star à plus de 80 M€.", hint: "Signe un joueur à +80 M€.", test: (f) => f.star >= 1 },
+    { id: "marchand", fam: "Style", emo: "star", name: "Marchand d'étoiles", desc: "Vends un joueur à plus de 50 M€.", hint: "Cède une vedette à +50 M€.", test: (f) => f.sellStar >= 1 },
+    { id: "fidele", fam: "Style", emo: "key", name: "Le Fidèle", desc: "Aucun départ : effectif conservé.", hint: "Ne vends ni ne prête personne.", test: (f) => f.nSold === 0 },
+    { id: "ascete", fam: "Style", emo: "person", name: "L'ascète", desc: "Finis tous voyants verts sans aucune recrue.", hint: "Zéro recrue et pourtant dans les clous.", test: (f) => f.valid && f.green && f.nRec === 0 },
+    { id: "europe", fam: "Style", emo: "uefa", name: "Ambition européenne", desc: "Mercato valide avec un club qualifié en Coupe d'Europe.", hint: "Réussis le mercato d'un club européen.", test: (f) => f.valid && f.euro },
+    { id: "petit_poucet", fam: "Exploration", emo: "shield", name: "Petit Poucet", desc: "Sauve un petit club du rouge.", hint: "Redresse un club modeste parti dans le rouge.", test: (f) => f.savedRed && f.small },
+    { id: "hipster", fam: "Exploration", emo: "sparkle", name: "Hipster", desc: "Réussis le mercato d'un club hors des cadors.", hint: "Fais un mercato valide avec un petit club.", test: (f) => f.valid && f.small },
+    { id: "decouvreur", fam: "Exploration", emo: "globe", name: "Découvreur", desc: "Essaie le mercato de 10 clubs différents.", hint: "Joue 10 clubs différents.", test: (f, log) => _distinct(log, "club") >= 10 },
+    { id: "tour_france", fam: "Exploration", emo: "stadium", name: "Tour de France", desc: "Le mercato des 18 clubs de Ligue 1.", hint: "Joue les 18 clubs de Ligue 1.", test: (f, log) => _distinctWhere(log, "club", (e) => e.league === "Ligue 1") >= 18 },
+    { id: "globe", fam: "Exploration", emo: "globe", name: "Globe-trotter", desc: "Un mercato dans les 5 grands championnats.", hint: "Joue au moins un club de chaque championnat.", test: (f, log) => _distinct(log, "league") >= 5 },
+    { id: "perfectionniste", fam: "Maîtrise", emo: "medal", name: "Perfectionniste", desc: "La note A avec 5 clubs différents.", hint: "Décroche un A avec 5 clubs différents.", test: (f, log) => _distinctWhere(log, "club", (e) => e.grade === "A") >= 5 },
+    { id: "collectionneur", fam: "Maîtrise", emo: "bookmark", name: "Collectionneur", desc: "Débloque 15 trophées.", hint: "Continue à jouer, ils viendront.", test: (f, log, prev) => prev >= 15 },
+    { id: "veteran", fam: "Découverte", emo: "medal", name: "Vétéran", desc: "Boucle 20 mercatos.", hint: "Joue 20 mercatos.", test: (f, log) => log.length >= 20 },
 ];
 function evalTrophies(facts, log, store) {
     const prev = Object.keys(store || {}).length, got = [];
@@ -13997,7 +13997,7 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
         && ((!isPSR && r3Applies) ? (rule3yCovered_p || settlement3y) : true); // Angleterre : la règle LIANTE 2026-27 = SCR + SSR (le PSR 3 ans ne sanctionne plus qu'en 2025-26, affiché à part)
     // === Niveau 1 : feu tricolore unique + phrase d'adjoint (mode Simple) — résume les 5 ratios en 1 état actionnable ===
     const simpleState = !mercatoValid ? "ko" : (investRoom < 0 ? "warn" : "ok");
-    const simpleDot = simpleState === "ok" ? "🟢" : simpleState === "warn" ? "🟠" : "🔴";
+    const simpleDot = simpleState === "ok" ? "dotgreen" : simpleState === "warn" ? "dotorange" : "dotred";
     const simpleLabel = simpleState === "ok" ? "Ton club tient" : simpleState === "warn" ? "Limite atteinte" : "Règle à corriger";
     const simpleColor = simpleState === "ok" ? "#00ff6a" : simpleState === "warn" ? "#ffb020" : "#ff6b81";
     const simpleShort = simpleState === "ok" ? "Tenu" : simpleState === "warn" ? "Limite" : "Alerte";
@@ -14780,7 +14780,8 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
             React.createElement("div", { style: { position: "fixed", top: 0, left: "50%", transform: "translateX(-50%)", width: 460, maxWidth: "100vw", height: 210, background: "radial-gradient(60% 100% at 50% 0%, var(--navy), transparent 72%)", opacity: .22, zIndex: 0, pointerEvents: "none" } }),
             React.createElement(Onboarding, { club: club, setTab: setTab }),
             cashFx && React.createElement("div", { key: cashFx.id, className: "cash-fx " + (cashFx.kind === "in" ? "cin" : "cout") },
-                React.createElement("span", { className: "cash-fx-emo" }, cashFx.kind === "in" ? "💰" : "🛒"),
+                React.createElement("span", { className: "cash-fx-emo" },
+                    React.createElement(Icon, { name: cashFx.kind === "in" ? "money" : "mercato", size: 20 })),
                 React.createElement("span", null,
                     cashFx.kind === "in" ? "+" : "−",
                     fmt(cashFx.amt)),
@@ -15863,7 +15864,8 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
                 return (React.createElement(React.Fragment, null,
                     React.createElement("div", { className: "card", style: { padding: "13px 15px", marginBottom: 12, background: "linear-gradient(180deg,rgba(26,33,43,.92),rgba(15,21,29,.92))", border: "1px solid " + simpleColor + "55", borderLeft: "4px solid " + simpleColor, borderRadius: 14 } },
                         React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 10 } },
-                            React.createElement("span", { style: { fontSize: 26, lineHeight: 1 } }, simpleDot),
+                            React.createElement("span", { style: { lineHeight: 1 } },
+                                React.createElement(Icon, { name: simpleDot, size: 22 })),
                             React.createElement("div", { style: { flex: 1, minWidth: 0 } },
                                 React.createElement("div", { style: { fontFamily: "Raleway,sans-serif", fontWeight: 800, fontSize: 15, color: simpleColor } }, simpleLabel),
                                 React.createElement("div", { style: { fontSize: 12, color: "#aebbd4", lineHeight: 1.4, marginTop: 2 } }, simpleAdvice))),
@@ -15989,8 +15991,7 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
                             React.createElement(InfoDot, { title: "Effet de ton mercato sur ta marge", what: "La variation de ta marge d'investissement due \u00C0 TON MERCATO, par rapport \u00E0 ta marge de d\u00E9part (avant tout mouvement).", why: "Elle isole l'effet net de tes ventes et achats sur ta capacit\u00E9 \u00E0 recruter \u2014 \u00E0 c\u00F4t\u00E9 de la marge totale, elle te dit combien TES d\u00E9cisions ont boug\u00E9 les choses.", how: "Marge actuelle \u2212 marge de d\u00E9part. Une vente l'augmente ; un achat ou une hausse de salaire la r\u00E9duit.", impact: "Positif = tes mouvements t'ont lib\u00E9r\u00E9 de la marge \u00E0 r\u00E9investir. N\u00E9gatif = tu as d\u00E9j\u00E0 consomm\u00E9 de la marge." })),
                         !(expertMode) && (React.createElement("span", { className: "marge-bar-ind", "data-tour": "indicators", style: { textTransform: "none", letterSpacing: 0 } },
                             React.createElement("b", { style: { color: simpleColor, fontSize: 12.5 } },
-                                simpleDot,
-                                " ",
+                                React.createElement(Icon, { name: simpleDot, size: 11, style: { marginRight: 4, verticalAlign: "-1px" } }),
                                 simpleLabel),
                             React.createElement("span", { style: { color: "#9fb0d0", fontSize: 11, fontWeight: 400, marginLeft: 6 } },
                                 "\u00B7 ",
@@ -16753,7 +16754,8 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
                             return (React.createElement("div", { className: "finder", style: { borderColor: "rgba(110,168,255,.4)", background: "rgba(110,168,255,.05)" } },
                                 _weakPos && finder.pos !== _weakPos ? React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 12, padding: "9px 11px", background: "rgba(255,180,80,.09)", border: "1px solid rgba(255,180,80,.3)", borderRadius: 10 } },
                                     React.createElement("span", { style: { fontSize: 12.5, color: "#f3e2c4", flex: 1, minWidth: 150 } },
-                                        "\u26A0\uFE0F Ton point faible : ",
+                                        React.createElement(Icon, { name: "warn", size: 13, style: { marginRight: 4, verticalAlign: "-2px" } }),
+                                        "Ton point faible : ",
                                         React.createElement("b", null, PLABEL[_weakPos]),
                                         " (",
                                         cntByPos[_weakPos] || 0,
@@ -17210,7 +17212,9 @@ function TrophyRoom({ onClose }) {
     return (React.createElement("div", { style: { position: "fixed", inset: 0, zIndex: 950, background: "rgba(6,10,20,.93)", overflowY: "auto", overflowX: "hidden", padding: "max(3vh, env(safe-area-inset-top)) 14px max(4vh, env(safe-area-inset-bottom))" }, onClick: onClose },
         React.createElement("div", { style: { width: 620, maxWidth: "96vw", margin: "0 auto", background: "linear-gradient(160deg,#161d27,#0f151d)", border: "1px solid rgba(232,196,106,.35)", borderRadius: 18, padding: "18px 16px 20px", boxShadow: "0 24px 70px rgba(0,0,0,.6)" }, onClick: (e) => e.stopPropagation() },
             React.createElement("div", { style: { display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 } },
-                React.createElement("div", { style: { fontFamily: "Raleway,sans-serif", fontWeight: 800, fontSize: 20, color: "#f2d891" } }, "\uD83C\uDFC6 Salle des troph\u00E9es"),
+                React.createElement("div", { style: { fontFamily: "Raleway,sans-serif", fontWeight: 800, fontSize: 20, color: "#f2d891" } },
+                    React.createElement(Icon, { name: "trophy", size: 19, style: { marginRight: 7, verticalAlign: "-3px" } }),
+                    "Salle des troph\u00E9es"),
                 React.createElement("button", { onClick: onClose, title: "Fermer (\u00C9chap)", style: { background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.14)", color: "#cdd8ee", width: 32, height: 32, borderRadius: 9, fontSize: 18, cursor: "pointer", lineHeight: 1 } }, "\u2715")),
             React.createElement("div", { style: { color: "#9fb0d0", fontSize: 13, marginBottom: 6 } },
                 React.createElement("b", { style: { color: "#f2d891" } }, got),
@@ -17224,9 +17228,12 @@ function TrophyRoom({ onClose }) {
                 React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8 } }, TROPHIES.filter((t) => t.fam === fam).map((t) => {
                     const u = store[t.id];
                     return (React.createElement("div", { key: t.id, style: { display: "flex", alignItems: "center", gap: 11, padding: "10px 12px", borderRadius: 12, background: u ? "rgba(232,196,106,.09)" : "rgba(255,255,255,.03)", border: "1px solid " + (u ? "rgba(232,196,106,.32)" : "rgba(255,255,255,.07)") } },
-                        React.createElement("span", { style: { fontSize: 29, lineHeight: 1, flex: "0 0 auto", filter: u ? "none" : "grayscale(1)", opacity: u ? 1 : .45 } }, t.emo),
+                        React.createElement("span", { style: { flex: "0 0 auto", color: u ? "#f2d891" : "#8b9cbe", opacity: u ? 1 : .55 } },
+                            React.createElement(Icon, { name: t.emo, size: 26 })),
                         React.createElement("div", { style: { minWidth: 0, flex: 1 } },
-                            React.createElement("div", { style: { fontFamily: "Raleway,sans-serif", fontWeight: 800, fontSize: 14.5, color: u ? "#f2d891" : "#aeb9cc" } }, u ? t.name : "🔒 " + t.name),
+                            React.createElement("div", { style: { fontFamily: "Raleway,sans-serif", fontWeight: 800, fontSize: 14.5, color: u ? "#f2d891" : "#aeb9cc" } },
+                                u ? null : React.createElement(Icon, { name: "lock", size: 12, style: { marginRight: 5, verticalAlign: "-1px", opacity: .7 } }),
+                                t.name),
                             React.createElement("div", { style: { fontSize: 12, color: "#9fb0d0", lineHeight: 1.4 } }, u ? t.desc : t.hint),
                             u && u.clubName ? React.createElement("div", { style: { fontSize: 10.5, color: "#7d8eae", marginTop: 2 } },
                                 "D\u00E9bloqu\u00E9 avec ",
@@ -17342,7 +17349,8 @@ function Home({ slots, onResume, onEnter, onRemove, onCommunity }) {
                     React.createElement("span", { style: { fontFamily: "Raleway,sans-serif", fontWeight: 700, fontSize: 10.5, letterSpacing: ".03em", textAlign: "center" } }, "Ajouter"))),
             React.createElement("button", { className: "sm-cta", onClick: () => setPick(""), style: { width: "100%", marginTop: 12, border: "none", background: "linear-gradient(180deg,#00ff6a,#00c452)", color: "#04120a", borderRadius: 13, padding: "15px", cursor: "pointer", fontFamily: "Raleway,sans-serif", fontWeight: 800, fontSize: 15, letterSpacing: ".04em", textTransform: "uppercase" } }, "Voir tous les clubs \u203A"),
             React.createElement("button", { onClick: () => setTrophyOpen(true), style: { width: "100%", marginTop: 10, display: "flex", alignItems: "center", gap: 11, background: "rgba(232,196,106,.1)", border: "1px solid rgba(232,196,106,.38)", borderRadius: 13, padding: "12px 14px", cursor: "pointer", color: "#f2d891", fontFamily: "Raleway,sans-serif", textAlign: "left" } },
-                React.createElement("span", { style: { fontSize: 24, lineHeight: 1 } }, "\uD83C\uDFC6"),
+                React.createElement("span", { style: { lineHeight: 1, color: "#f2d891" } },
+                    React.createElement(Icon, { name: "trophy", size: 22 })),
                 React.createElement("span", { style: { flex: 1, minWidth: 0 } },
                     React.createElement("span", { style: { display: "block", fontWeight: 800, fontSize: 13.5, letterSpacing: ".02em" } },
                         "Troph\u00E9es ",
@@ -17517,13 +17525,13 @@ function Onboarding({ club, setTab }) {
         { hero: "crest", goTab: "terrain", tag: "Passation", punch: "Le fauteuil est à toi.", sig: true,
             txt: (sd ? "Moi c'est " + sd + ", je quitte mon poste de directeur sportif du " + nm + ". " : "Je quitte mon poste de directeur sportif du " + nm + ". ") + "À partir de maintenant, c'est toi le patron du sportif au " + sh + " (" + lg + "). Ta mission : l'effectif le plus fort possible, sans faire exploser les comptes. Je te montre le bureau en 30 secondes." },
         { hero: "wallet", goTab: "compta", tag: "① Budget", punch: "Tiens les comptes.",
-            txt: ruleTxt + euTxt + " Touche une icône ⓘ pour comprendre chaque chiffre ; en haut, bascule 🔰 Débutant / 🎓 Pro selon ton niveau." },
+            txt: ruleTxt + euTxt + " Touche une icône ⓘ pour comprendre chaque chiffre ; en haut, bascule Débutant / Pro selon ton niveau." },
         { hero: "mercato", goTab: "mercato", tag: "② Mercato", punch: "Fais ton marché.",
             txt: "Achète, vends, prête ou prolonge : chaque mouvement recalcule tes comptes EN DIRECT." + (eu ? " Tu y pilotes aussi ta Liste UEFA (joueurs formés au club / au pays)." : "") + " Tu peux même faire monter un jeune de ton centre de formation." },
         { hero: "terrain", goTab: "terrain", tag: "③ Terrain", punch: "Pose ton onze.",
             txt: "Place tes joueurs, choisis ton dispositif et ton capitaine. Ton entraîneur (en bas à gauche du terrain) et la profondeur de ton effectif s'affichent ici." },
         { hero: "crest", goTab: "terrain", tag: "À toi de jouer", punch: "Bonne saison au " + sh + " !", sig: true,
-            txt: "Tu sais l'essentiel. Reste dans les clous de " + natLabel + (eu ? " ET de l'UEFA" : "") + ", vise le haut du tableau — ta progression se sauvegarde toute seule (⌂ = accueil, jusqu'à 4 clubs). Je m'en vais, mais tu n'es pas seul : mon adjoint reste et te glissera un conseil quand il faut." },
+            txt: "Tu sais l'essentiel. Reste dans les clous de " + natLabel + (eu ? " ET de l'UEFA" : "") + ", vise le haut du tableau — ta progression se sauvegarde toute seule (retour à l'accueil en haut, jusqu'à 4 clubs). Je m'en vais, mais tu n'es pas seul : mon adjoint reste et te glissera un conseil quand il faut." },
     ] : [];
     const last = step === steps.length - 1;
     const done = () => { try {
@@ -17587,7 +17595,7 @@ function Onboarding({ club, setTab }) {
             React.createElement("div", { className: "ob-dots" }, steps.map((_, i) => React.createElement("button", { key: i, onClick: () => setStep(i), className: "ob-dot" + (i === step ? " on" : "") + (i < step ? " past" : ""), "aria-label": "étape " + (i + 1) }))),
             React.createElement("div", { className: "ob-actions" },
                 React.createElement("button", { onClick: done, className: "ob-skip" }, "Passer"),
-                React.createElement("button", { onClick: next, className: "ob-next" }, last ? "Prends les clés 🔑" : "Suivant →")))));
+                React.createElement("button", { onClick: next, className: "ob-next" }, last ? "Prends les clés" : "Suivant →")))));
 }
 const OB_CSS = `
 .ob-ov{ position:fixed; inset:0; z-index:1000; display:flex; align-items:center; justify-content:center; padding:20px; background:rgba(5,9,16,.62); animation:obFade .3s ease both; }
@@ -17720,7 +17728,8 @@ function SeasonEnd({ checks, note, grade, line, bulletin, badges, recapStats, ne
             newTrophies && newTrophies.length > 0 ? React.createElement("div", { style: { marginBottom: 16, padding: "15px", borderRadius: 14, background: "linear-gradient(180deg,rgba(232,196,106,.12),rgba(123,61,255,.06))", border: "1px solid rgba(232,196,106,.4)", textAlign: "center", animation: "seSlideIn .5s var(--ease) both" } },
                 React.createElement("div", { style: { fontSize: 11, textTransform: "uppercase", letterSpacing: ".12em", color: "#e8c46a", marginBottom: 10 } }, newTrophies.length > 1 ? newTrophies.length + " nouveaux trophées !" : "Nouveau trophée !"),
                 newTrophies.map((t, i) => React.createElement("div", { key: t.id, style: { display: "flex", alignItems: "center", gap: 11, textAlign: "left", padding: "8px 4px", animation: "seSlideIn .45s var(--ease) both " + (0.15 + i * 0.18) + "s" } },
-                    React.createElement("span", { style: { fontSize: 34, lineHeight: 1, flex: "0 0 auto" } }, t.emo),
+                    React.createElement("span", { style: { flex: "0 0 auto", color: "#f2d891" } },
+                        React.createElement(Icon, { name: t.emo, size: 30 })),
                     React.createElement("div", { style: { minWidth: 0 } },
                         React.createElement("div", { style: { fontFamily: "Raleway,sans-serif", fontWeight: 800, fontSize: 15.5, color: "#f2d891" } }, t.name),
                         React.createElement("div", { style: { fontSize: 12, color: "#c8d3e8", lineHeight: 1.4 } }, t.desc))))) : null,
