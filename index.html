@@ -349,6 +349,72 @@ const POSITIONS = [
 const PLABEL = Object.fromEntries(POSITIONS.map((p) => [p[0], p[1]]));
 const NEW = "#7b3dff";
 const surname = (n) => n.split(" ").slice(-1)[0];
+// === Sons du jeu (Web Audio, synthétisés · aucun fichier ni clé externe · pas de souci CSP · coupables dans Paramètres). ===
+// Remplaçables plus tard par des sons ElevenLabs (MP3 base64) sans changer les points d'appel.
+const SFX = (function () {
+    var ctx = null, on = true;
+    try {
+        on = localStorage.getItem("fancato_sound") !== "0";
+    }
+    catch (e) { } // défaut : activé
+    function ac() { if (!ctx) {
+        try {
+            ctx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        catch (e) {
+            ctx = null;
+        }
+    } if (ctx && ctx.state === "suspended") {
+        try {
+            ctx.resume();
+        }
+        catch (e) { }
+    } return ctx; }
+    function tone(freq, t0, dur, type, gain) {
+        var c = ac();
+        if (!c)
+            return;
+        var o = c.createOscillator(), g = c.createGain(), t = c.currentTime + t0;
+        o.type = type || "sine";
+        o.frequency.setValueAtTime(freq, t);
+        g.gain.setValueAtTime(0.0001, t);
+        g.gain.exponentialRampToValueAtTime(gain || 0.14, t + 0.012);
+        g.gain.exponentialRampToValueAtTime(0.0006, t + dur);
+        o.connect(g);
+        g.connect(c.destination);
+        o.start(t);
+        o.stop(t + dur + 0.03);
+    }
+    var lib = {
+        tap: function () { tone(330, 0, 0.05, "triangle", 0.05); },
+        swoosh: function () { tone(520, 0, 0.09, "sine", 0.04); tone(680, 0.03, 0.08, "sine", 0.03); },
+        sign: function () { tone(523, 0, 0.10, "triangle", 0.12); tone(784, 0.08, 0.16, "triangle", 0.12); },
+        sell: function () { tone(880, 0, 0.06, "square", 0.05); tone(1245, 0.05, 0.12, "triangle", 0.11); },
+        error: function () { tone(196, 0, 0.16, "sawtooth", 0.08); tone(147, 0.07, 0.20, "sawtooth", 0.07); },
+        trophy: function () { [523, 659, 784, 1047].forEach(function (f, i) { tone(f, i * 0.085, 0.22, "triangle", 0.12); }); },
+        finish: function () { [392, 523, 659, 784].forEach(function (f, i) { tone(f, i * 0.1, 0.28, "sine", 0.12); }); }
+    };
+    return {
+        play: function (n) { if (!on)
+            return; var f = lib[n]; if (f) {
+            try {
+                f();
+            }
+            catch (e) { }
+        } },
+        set: function (v) { on = !!v; try {
+            localStorage.setItem("fancato_sound", v ? "1" : "0");
+        }
+        catch (e) { } if (v) {
+            ac();
+            try {
+                lib.tap();
+            }
+            catch (e) { }
+        } },
+        on: function () { return on; }
+    };
+})();
 function rr(ctx, x, y, w, h, r) {
     ctx.beginPath();
     ctx.moveTo(x + r, y);
@@ -13618,6 +13684,7 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
         pv.proc = proceeds;
         pv.fee = feeArr;
         if (fx) {
+            SFX.play(fx.kind === "in" ? "sell" : "sign");
             setCashFx(fx);
             const t = setTimeout(() => setCashFx(null), 1500);
             return () => clearTimeout(t);
@@ -14321,6 +14388,7 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
         small: _squadValT < 220, euro: !!playsUEFA,
     };
     const finishMercato = () => {
+        SFX.play("finish");
         if (endOpen) {
             setEndOpen(true);
             return;
@@ -14705,8 +14773,10 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
         setImgs([{ label: "Équipe", url: teamUrl }, { label: "Bilan", url: c2.toDataURL("image/png") }]);
     };
     const valider = () => {
-        if (esitBlocked)
-            return; // 🔒 verrou ex-ante Espagne/Italie : inscription refusée tant que le club est au-delà de son plafond
+        if (esitBlocked) {
+            SFX.play("error");
+            return;
+        } // 🔒 verrou ex-ante Espagne/Italie : inscription refusée tant que le club est au-delà de son plafond
         const loan = draft.kind === "loan";
         setRecruits((r) => [...r, { id: Date.now(), name: draft.name.trim() || "Recrue", pos: draft.pos === "any" ? "MC" : draft.pos, kind: draft.kind, fee: loan ? 0 : (+draft.fee || 0), yrs: +draft.yrs || 5, sal: +draft.sal || 0, loanFee: loan ? (+draft.lfee || 0) : 0, buyFee: loan ? (+draft.buy || 0) : 0, from: draft.from || "" }]);
         setDraft({ name: "", pos: "any", fee: "", yrs: 5, sal: "", kind: "transfer", lfee: 0, buy: 0 });
@@ -17368,6 +17438,8 @@ function SettingsPage({ onClose, onCommunity, slotCount }) {
     }
     catch (e) { }
     const trGot = Object.keys(trStore).length, trTotal = TROPHIES.length;
+    const [soundOn, setSoundOn] = useState(SFX.on());
+    const toggleSound = () => { const v = !soundOn; SFX.set(v); setSoundOn(v); }; // SFX.set joue un petit son de confirmation si on active
     useEffect(() => { const onKey = (e) => { if (e.key === "Escape")
         onClose(); }; document.addEventListener("keydown", onKey); return () => document.removeEventListener("keydown", onKey); }, []);
     const wipeParties = () => {
@@ -17455,7 +17527,12 @@ function SettingsPage({ onClose, onCommunity, slotCount }) {
                     React.createElement("span", { style: { fontSize: 18, color: "#8a94a6" } }, "\u203A"))),
             React.createElement("div", { style: secTitle }, "Confort"),
             React.createElement("div", { style: card },
-                soon("Son"),
+                React.createElement("div", { style: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "13px 2px" } },
+                    React.createElement("span", { style: { fontSize: 14, color: "#cdd8ee" } },
+                        "Son ",
+                        React.createElement("span", { style: { color: "#8a94a6", fontSize: 11.5 } }, "\u00B7 effets du jeu")),
+                    React.createElement("button", { onClick: toggleSound, "aria-label": "Activer ou couper le son", style: { width: 46, height: 26, borderRadius: 14, border: "none", cursor: "pointer", background: soundOn ? "#00ff6a" : "rgba(255,255,255,.14)", position: "relative", transition: "background .2s", flex: "0 0 auto", padding: 0 } },
+                        React.createElement("span", { style: { position: "absolute", top: 3, left: soundOn ? 23 : 3, width: 20, height: 20, borderRadius: "50%", background: "#fff", transition: "left .2s", boxShadow: "0 1px 3px rgba(0,0,0,.4)" } }))),
                 React.createElement("div", { style: { height: 1, background: "rgba(255,255,255,.06)" } }),
                 soon("Vibrations")),
             React.createElement("div", { style: secTitle }, "\u00C0 propos"),
@@ -17934,6 +18011,8 @@ function SeasonEnd({ checks, note, grade, line, bulletin, badges, recapStats, ne
         }
         catch (e) { }
     } }, [phase]);
+    useEffect(() => { if (phase === 4 && newTrophies && newTrophies.length > 0)
+        SFX.play("trophy"); }, [phase]); // fanfare quand la salle des trophées s'ouvre
     const next = () => setPhase((p) => Math.min(PHASES.length - 1, p + 1));
     const gcol = note >= 8 ? "#00ff6a" : note >= 6 ? "#9ad0ff" : note >= 5 ? "#ffd76b" : "#ff96a6";
     const teamImg = (imgs.find((im) => im.label === "Équipe") || {}).url;
