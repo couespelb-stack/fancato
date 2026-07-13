@@ -15041,7 +15041,7 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
     }
     const _hardest = _hard.length ? _hard.reduce((a, b) => (b.t > a.t ? b : a)) : null;
     const hardestKey = (_hardest && _hardest.t >= 0.9) ? _hardest.k : null; // marqué seulement si genuinement tendu (≥ 90 % de la limite)
-    const hardBadge = React.createElement("span", { className: "hard-badge", title: "C'est ta r\u00E8gle la plus contraignante \u00B7 celle \u00E0 surveiller en priorit\u00E9." }, " la + dure");
+    const hardBadge = null; // badge « la + dure » retiré (demande user) · la variable reste pour ne pas toucher aux ~10 points d'appel
     return (React.createElement(ExplainCtx.Provider, { value: setExplain },
         React.createElement("div", { className: "wrap " + (expertMode ? "ui-exp" : "ui-simple"), style: { "--navy": club.meta.colors.primary, "--red": club.meta.colors.accent, "--gold": club.meta.colors.gold } },
             React.createElement("div", { style: { position: "fixed", top: 0, left: "50%", transform: "translateX(-50%)", width: 460, maxWidth: "100vw", height: 210, background: "radial-gradient(60% 100% at 50% 0%, var(--navy), transparent 72%)", opacity: .22, zIndex: 0, pointerEvents: "none" } }),
