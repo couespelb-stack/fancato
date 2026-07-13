@@ -14548,17 +14548,41 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
         _ov = Math.min(_ov, 6.5 - breachSev * 3.5 - (nBreach - 1) * 0.8);
     const boardNote = Math.round(_cl(_ov, 0, 10) * 10) / 10;
     const boardGrade = gradeA(boardNote);
-    // === COULEUR DES INDICATEURS DOMESTIQUES · nuancée (demande user) ===
-    // Dépasser un peu (PSG : 77 % au lieu de 70) n'est PAS grave si l'autre indicateur tient → ORANGE.
-    // On ne passe au ROUGE que si (a) les DEUX indicateurs sont hors des clous, ou (b) l'un explose vraiment.
-    const _msOver = (dncgSalRatio != null && dncgSalRatio > 70);
-    const _fpNeg = (dncgFP != null && dncgFP < 0); // fonds propres négatifs = grave par nature
-    const _fpOver = _fpNeg || (dncgFPRatio != null && dncgFPRatio < 100);
-    const _msSev = _msOver ? (dncgSalRatio - 70) / 70 : 0; // 0,10 = 77 % · 0,30 = 91 %
-    const _bothOver = _msOver && _fpOver;
+    // === COULEUR DES INDICATEURS · logique PAR PAYS et PAR NATURE DE LA RÈGLE (demande user) ===
+    // Deux régimes, parce que les règles ne se valent pas :
+    //  · EX-ANTE (LaLiga LCPD, Serie A liquidité, licence DFL) = VERROU À L'INSCRIPTION. Dépasser, même d'un
+    //    cheveu, t'empêche RÉELLEMENT d'enregistrer une recrue → ROUGE dès le dépassement, aucune nuance.
+    //  · EX-POST (DNCG, SCR/SSR anglais, UEFA) = JUGÉ EN FIN DE SAISON, avec des marges (apport du proprio,
+    //    ventes, accord de règlement) → ORANGE si tu frôles, ROUGE seulement si tu exploses la limite
+    //    OU si l'autre voyant du même organe tombe aussi (deux rouges = vrai danger).
     const OKC = "#00ff6a", WARNC = "#ffb020", KOC = "#ff96a6";
-    const _msColor = !_msOver ? OKC : (_bothOver || _msSev > 0.30) ? KOC : WARNC; // >91 % → rouge, sinon orange
-    const _fpColor = !_fpOver ? OKC : (_bothOver || _fpNeg) ? KOC : WARNC; // fonds propres négatifs → rouge
+    const _rel = (v, lim) => (v == null || !lim) ? 0 : Math.max(0, (v - lim) / Math.abs(lim)); // 0,10 = 10 % au-delà
+    const _post = (over, sev, alsoBad) => !over ? OKC : (alsoBad || sev > 0.30) ? KOC : WARNC; // ex-post : nuancé
+    const _ante = (ok) => ok ? OKC : KOC; // ex-ante : verrou, rouge net
+    // 🇫🇷 FRANCE · DNCG (ex-post) : masse salariale ≤ 70 % + fonds propres ≥ passif
+    const _msOver = (dncgSalRatio != null && dncgSalRatio > 70);
+    const _fpNeg = (dncgFP != null && dncgFP < 0); // fonds propres NÉGATIFS = grave par nature
+    const _fpOver = _fpNeg || (dncgFPRatio != null && dncgFPRatio < 100);
+    const _msColor = _post(_msOver, _rel(dncgSalRatio, 70), _fpOver);
+    const _fpColor = !_fpOver ? OKC : (_fpNeg || _msOver) ? KOC : WARNC;
+    // 🏴 ANGLETERRE · SCR + SSR (ex-post : jugés en fin de saison, sanction = points)
+    const _scrOver = (scr != null && scrGreen != null && scr > scrGreen);
+    const _ssrOver = (ssrRatio != null && ssrRatio > 90);
+    const _scrColor = _post(_scrOver, _rel(scr, scrGreen), _ssrOver);
+    const _ssrColor = _post(_ssrOver, _rel(ssrRatio, 90), _scrOver);
+    // 🇩🇪 ALLEMAGNE · licence DFL (ex-ante : pas de licence = pas de saison) + Eigenkapital (ex-post, plan de réduction)
+    const _licColor = _ante(bundesOk);
+    const _eqNeg = (equityDyn != null && equityDyn < 0);
+    const _eqColor = !_eqNeg ? OKC : (!bundesOk ? KOC : WARNC); // fonds propres négatifs SEULS = tolérés (plan) → orange
+    // 🇪🇸 ESPAGNE (LCPD) et 🇮🇹 ITALIE (liquidité) · EX-ANTE : verrou d'inscription, pas de nuance
+    const _ligaColor = _ante(ligaOk);
+    const _serieAColor = _ante(serieAOk);
+    // 🇪🇺 UEFA (ex-post : amende progressive + Liste A réduite, settlement possible)
+    const _uefaOver = (ratio2627 != null && ratio2627 > limit);
+    const _r3Over = !(rule3yCovered_p || settlement3y);
+    const _uefaColor = _post(_uefaOver, _rel(ratio2627, limit), _r3Over);
+    const _r3Sev = (r3cap && cumul2627 != null) ? Math.max(0, (Math.abs(cumul2627) - Math.abs(r3cap)) / Math.abs(r3cap)) : 0;
+    const _r3Color = !_r3Over ? OKC : (_uefaOver || _r3Sev > 0.30) ? KOC : WARNC;
     // === SANCTIONS RÉELLEMENT PRONONCÉES EN FIN DE SAISON ===
     // Avant, dépasser une règle ne coûtait qu'une mauvaise note : la menace n'était JAMAIS exécutée.
     // Désormais chaque infraction déclenche la vraie sanction de ta règle, dans ton championnat, dosée selon la gravité.
@@ -16409,30 +16433,6 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
                                     o.cap,
                                     ")"),
                                 +apport > 0 && React.createElement("button", { type: "button", onClick: () => setApport(0), style: { background: "none", border: "none", color: "#ff96a6", cursor: "pointer", fontSize: 11.5, textDecoration: "underline" } }, "remettre \u00E0 0")),
-                            hasUefa && (React.createElement("div", { style: { fontSize: 11.5, color: "#c8d3e8", marginTop: 8, lineHeight: 1.45, background: "rgba(123,61,255,.08)", border: "1px solid rgba(123,61,255,.28)", borderRadius: 8, padding: "7px 10px" } },
-                                React.createElement("b", { style: { color: "#b79bff" } }, "C\u00F4t\u00E9 UEFA\u00A0:"),
-                                " apport propri\u00E9taire ",
-                                React.createElement("b", null,
-                                    Math.round(apportUefaTotal),
-                                    " ",
-                                    CUR),
-                                " \u00B7 ",
-                                React.createElement("b", null,
-                                    "retenu pour le calcul UEFA\u00A0: ",
-                                    Math.round(apportUefaRetained),
-                                    " ",
-                                    CUR),
-                                " ",
-                                React.createElement("span", { style: { color: "#93a4c4" } },
-                                    "(plafond ",
-                                    uefaApportCap,
-                                    " ",
-                                    CUR,
-                                    " \u00B7 \u00E9cart admissible UEFA",
-                                    healthy3y ? ", relevé à 90 car club sain" : "",
-                                    ")"),
-                                ".",
-                                apportUefaTotal > uefaApportCap + 0.5 ? " Au-delà, l'apport compte côté " + club.meta.domesticRule + " mais pas côté UEFA." : "")),
                             React.createElement("div", { style: { fontSize: 11, color: "#7d8eae", marginTop: 8, lineHeight: 1.4 } },
                                 linked
                                     ? React.createElement(React.Fragment, null,
@@ -16510,33 +16510,33 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
                                 isPSR ? React.createElement(React.Fragment, null,
                                     React.createElement("span", { className: "marge-bar-ind", "data-tour": "indicators", title: "Squad Cost Ratio \u00B7 co\u00FBts d'effectif \u00F7 revenus, calcul anglais (charges locales)." },
                                         "SCR ",
-                                        React.createElement("b", { style: { color: scrPass ? "#00ff6a" : "#ff96a6" } }, scr != null ? Math.round(scr) + "%" : "n.d."),
+                                        React.createElement("b", { style: { color: _scrColor } }, scr != null ? Math.round(scr) + "%" : "n.d."),
                                         " /",
                                         scrGreen,
                                         hardestKey === "scr" && hardBadge),
                                     ssrRatio != null && React.createElement("span", { className: "marge-bar-ind" },
                                         "SSR ",
-                                        React.createElement("b", { style: { color: ssrRatio <= 90 ? "#00ff6a" : "#ff96a6" } },
+                                        React.createElement("b", { style: { color: _ssrColor } },
                                             Math.round(ssrRatio),
                                             "%"),
                                         " /90",
                                         hardestKey === "ssr" && hardBadge)) : isBundesliga ? React.createElement(React.Fragment, null,
                                     React.createElement("span", { className: "marge-bar-ind", "data-tour": "indicators", title: "Licence DFL : tr\u00E9sorerie pr\u00E9visionnelle \u2212 engagements de la saison (doit rester couverte)." },
                                         "Liq. ",
-                                        React.createElement("b", { style: { color: bundesOk ? "#00ff6a" : "#ff96a6" } }, sign(liqSeason)),
+                                        React.createElement("b", { style: { color: _licColor } }, sign(liqSeason)),
                                         hardestKey === "liq" && hardBadge),
                                     equityDyn != null && React.createElement("span", { className: "marge-bar-ind", title: "Eigenkapital projet\u00E9 \u00B7 les capitaux propres doivent rester positifs (r\u00E8gle DFL)." },
                                         "Fonds propres ",
-                                        React.createElement("b", { style: { color: equityDyn >= 0 ? "#00ff6a" : "#ff96a6" } }, sign(equityDyn)),
+                                        React.createElement("b", { style: { color: _eqColor } }, sign(equityDyn)),
                                         hardestKey === "eigen" && hardBadge)) : React.createElement("span", { className: "marge-bar-ind", "data-tour": "indicators" },
                                     isSerieA
-                                        ? React.createElement("b", { style: { color: serieAOk ? "#00ff6a" : "#ff96a6" } },
+                                        ? React.createElement("b", { style: { color: _serieAColor } },
                                             "liq. ",
                                             liqAdj.toFixed(2),
                                             "/",
                                             liqThreshold)
                                         : isLiga
-                                            ? React.createElement("b", { style: { color: ligaOk ? "#00ff6a" : "#ff96a6" } },
+                                            ? React.createElement("b", { style: { color: _ligaColor } },
                                                 fmt(squadCost),
                                                 "/",
                                                 fmt(salaryCap))
@@ -16545,7 +16545,7 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
                                     hardestKey === "dom" && hardBadge),
                                 isPSR && !playsUEFA && React.createElement("span", { className: "marge-bar-ind", title: settlement3y ? "Sous accord de règlement." : (cumul2627 < r3cap ? "Pertes cumulées sur 3 ans " + sign(cumul2627) + " / plafond −" + Math.abs(r3cap) + "." : "Dans les clous.") },
                                     "Pertes 3 ans ",
-                                    React.createElement("b", { style: { color: rule3yCovered_p || settlement3y ? "#00ff6a" : "#ff96a6" } },
+                                    React.createElement("b", { style: { color: _r3Color } },
                                         React.createElement(Flash, { v: cumul2627 }, sign(cumul2627))),
                                     " /\u2212",
                                     Math.abs(r3cap)))),
@@ -16553,7 +16553,7 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
                             React.createElement("span", { className: "marge-grp-lab", title: "Contr\u00F4le europ\u00E9en (Coupes d'Europe)" }, "UEFA"),
                             React.createElement("span", { className: "marge-bar-ind" },
                                 "Co\u00FBts ",
-                                React.createElement("b", { style: { color: uefaOk ? "#00ff6a" : "#ff96a6" } },
+                                React.createElement("b", { style: { color: _uefaColor } },
                                     React.createElement(Flash, { v: Math.round(uefaRatio) },
                                         uefaRatio.toFixed(0),
                                         "%")),
@@ -16562,7 +16562,7 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
                                 hardestKey === "uefa" && hardBadge),
                             React.createElement("span", { className: "marge-bar-ind", title: settlement3y ? "Sous accord de règlement avec l'UEFA : dépassement encadré, pas de nouvelle sanction." : (cumul2627 < r3cap ? "Pertes cumulées sur 3 ans " + sign(cumul2627) + " pour un plafond de −" + Math.abs(r3cap) + " : au-delà, l'apport du propriétaire ne suffit plus." : "Dans les clous du plafond 3 ans.") },
                                 "Pertes 3 ans ",
-                                React.createElement("b", { style: { color: rule3yCovered_p || settlement3y ? "#00ff6a" : "#ff96a6" } },
+                                React.createElement("b", { style: { color: _r3Color } },
                                     React.createElement(Flash, { v: cumul2627 }, sign(cumul2627))),
                                 " /\u2212",
                                 Math.abs(r3cap),
