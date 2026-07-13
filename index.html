@@ -18906,6 +18906,12 @@ function SeasonEnd({ sanctions, checks, note, grade, line, bulletin, badges, rec
         { key: "final", label: "Ta saison" },
     ];
     const [phase, setPhase] = useState(0);
+    // PUB · TÉLÉCHARGER sa carte pour soi = 1 vidéo récompensée. PUBLIER au 12ᵉ Homme reste GRATUIT
+    // (c'est ce qui fait vivre la commu, on ne le taxe pas). Si la pub est éteinte (pas de SDK),
+    // rewardReady() est faux → le téléchargement redevient libre, exactement comme aujourd'hui.
+    const [dlOk, setDlOk] = useState(false);
+    const [dlWait, setDlWait] = useState(false);
+    const dlLocked = ADS.rewardReady() && !dlOk;
     const [revealed, setRevealed] = useState(0);
     const [chk, setChk] = useState(0);
     const [gen, setGen] = useState(false);
@@ -19059,14 +19065,26 @@ function SeasonEnd({ sanctions, checks, note, grade, line, bulletin, badges, rec
                             React.createElement("div", { style: { fontFamily: "Raleway,sans-serif", fontWeight: 800, fontSize: 15.5, color: "#f2d891" } }, t.name),
                             React.createElement("div", { style: { fontSize: 12, color: "#c8d3e8", lineHeight: 1.4 } }, t.desc))))) : React.createElement("div", { style: { marginBottom: 14, fontSize: 12.5, color: "#9fb0d0", textAlign: "center", fontStyle: "italic" } }, "Aucun nouveau troph\u00E9e cette fois \u00B7 tente un autre club ou un mercato plus tranch\u00E9 pour en d\u00E9bloquer."),
                 React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8 } },
-                    imgs.length > 0 ? imgs.map((im, i) => {
+                    imgs.length > 0 ? (dlLocked ? (React.createElement(React.Fragment, null,
+                        React.createElement("button", { onClick: () => {
+                                if (dlWait)
+                                    return;
+                                setDlWait(true);
+                                ADS.reward("telecharger_carte", function () { setDlWait(false); setDlOk(true); SFX.play("trophy"); }, function () { setDlWait(false); });
+                            }, style: { display: "block", width: "100%", textAlign: "center", background: "#00ff6a", color: "#04120a", border: "none", borderRadius: 11, padding: "11px", fontFamily: "Raleway, sans-serif", fontWeight: 800, fontSize: 14, cursor: dlWait ? "default" : "pointer", opacity: dlWait ? .6 : 1 } },
+                            React.createElement(Icon, { name: "save", size: 15, style: { filter: "brightness(0)", marginRight: 7, verticalAlign: "-2px" } }),
+                            dlWait ? "Chargement de la pub…" : "Regarde une pub → télécharger ta carte"),
+                        React.createElement("div", { style: { fontSize: 11.5, color: "#8a94a6", textAlign: "center", lineHeight: 1.4 } },
+                            "Publier au 12\u1D49 Homme reste ",
+                            React.createElement("b", { style: { color: "#9be3c2" } }, "gratuit"),
+                            " \u00B7 la pub ne concerne que le t\u00E9l\u00E9chargement pour toi."))) : imgs.map((im, i) => {
                         const fn = "Fancato" + (im.label === "Bilan" ? "-Bilan" : "") + ".png";
                         return (React.createElement("a", { key: i, href: im.url, download: fn, style: { display: "block", textAlign: "center", background: "#00ff6a", color: "#04120a", borderRadius: 11, padding: "11px", fontFamily: "Raleway, sans-serif", fontWeight: 800, fontSize: 14, textDecoration: "none" } },
                             React.createElement(Icon, { name: "save", size: 15, style: { filter: "brightness(0)", marginRight: 7, verticalAlign: "-2px" } }),
                             "T\u00E9l\u00E9charger la carte \u00AB ",
                             im.label,
                             " \u00BB"));
-                    }) : React.createElement("button", { onClick: () => { setGen(true); onGenerate(); }, style: { background: "#00ff6a", color: "#14213c", border: "none", borderRadius: 11, padding: "12px", fontFamily: "Raleway,sans-serif", fontWeight: 700, fontSize: 15, cursor: "pointer" } },
+                    })) : React.createElement("button", { onClick: () => { setGen(true); onGenerate(); }, style: { background: "#00ff6a", color: "#14213c", border: "none", borderRadius: 11, padding: "12px", fontFamily: "Raleway,sans-serif", fontWeight: 700, fontSize: 15, cursor: "pointer" } },
                         React.createElement(Icon, { name: "generer", size: 16, style: { filter: "brightness(0)", marginRight: 7, verticalAlign: "-3px" } }),
                         "G\u00E9n\u00E9rer ma carte \u00E0 partager"),
                     React.createElement("button", { onClick: publish, disabled: pub, style: { background: pub ? "rgba(127,227,184,.14)" : "rgba(0,255,106,.12)", color: "#00ff6a", border: "1px solid " + (pub ? "rgba(127,227,184,.4)" : "rgba(0,255,106,.4)"), borderRadius: 11, padding: "11px", fontFamily: "Raleway, sans-serif", fontWeight: 700, fontSize: 14, cursor: pub ? "default" : "pointer" } }, pub ? React.createElement(React.Fragment, null,
