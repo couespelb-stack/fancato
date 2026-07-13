@@ -13761,6 +13761,16 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
     // === Honoraires d'agents générés par TON mercato (% du volume achats + ventes, taux par club) ===
     const agentRate = (AGENT_RATE[clubId] != null ? AGENT_RATE[clubId] : 6.3) / 100;
     const agentMercato = agentRate * feeArr; // honoraires d'agents sur les ACHATS (indemnités entrantes) uniquement · pas sur les ventes (corrigé 2026-07-09)
+    // === Transferts DÉJÀ ACTÉS (verrouillés) vs mouvements DU JOUEUR · pour n'attribuer au joueur QUE son propre mercato et ne pas le démarrer en rouge sur une situation héritée ===
+    const _lk = (arr) => arr.filter((x) => x.locked);
+    const lockedPV = _lk(sold).reduce((s, p) => s + ((+p.price || 0) - (+p.book || 0)), 0);
+    const lockedSaleRelief = _lk(sold).reduce((s, p) => s + (+p.sal || 0) * load + (+p.amort || 0), 0); // salaire chargé + amort libérés par une vente actée
+    const lockedLoanFee = _lk(loanOut).reduce((s, p) => s + (+p.loanFee || 0), 0);
+    const lockedRecCost = _lk(recruits).reduce((s, r) => s + (+r.sal || 0) * load + recAmort(r) + agentRate * (+r.fee || 0), 0);
+    const lockedEffect = lockedPV + lockedSaleRelief + lockedLoanFee - lockedRecCost; // + = les mouvements déjà actés améliorent la marge de DÉPART (à ne pas mettre sur le dos du joueur)
+    const userBuys = recruits.filter((r) => !r.locked).reduce((s, r) => s + (+r.fee || 0), 0);
+    const userSellsPV = sold.filter((p) => !p.locked).reduce((s, p) => s + ((+p.price || 0) - (+p.book || 0)), 0);
+    const userNetSpend = userBuys - userSellsPV; // > 0 = le joueur a dépensé net (ses propres achats − ses propres ventes)
     // === DNCG : résultat net (plus-value en produit) ===
     const dncgRes = revenue + plusValue + loanFeesOut
         - (salBorneLoaded + amortStay + (+dncgOther || 0) + salRecLoaded + amortRec + (+agentFees || 0) + agentMercato + loanFeesIn);
@@ -14154,6 +14164,7 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
             investBase = uefaBase;
     }
     investBase = Math.round(investBase);
+    const investStart = Math.round(investBase + lockedEffect); // référence « marge de départ » incluant les transferts DÉJÀ ACTÉS → l'écart affiché n'isole plus QUE le mercato du joueur
     const BACKED = { leverkusen: 1, hoffenheim: 1, leipzig: 1 }; // adossé à un mécène qui GARANTIT la liquidité (Bayer AG / Hopp associé tacite / Red Bull via prêts). Stuttgart & Elversberg : investisseurs minoritaires seulement → couverts par la formule (capitaux propres), pas une garantie illimitée.
     const backed = isBundesliga && !!BACKED[clubId];
     const liqCover = backed ? Infinity : Math.round(0.15 * (cascade ? cascade.b.produits : 0) + 0.25 * Math.max(0, equity || 0)); // auto-couverture plausible : 15% des produits (préventes/garanties sponsor/crédit court terme) + 25% des capitaux propres positifs (matelas mobilisable)
@@ -14167,7 +14178,10 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
     // (uefaRoom_p est désormais déclaré plus haut, avant le bloc investRoom)
     // Plafond UEFA : 5M de base (sans condition) → jusqu'à 60M si l'excédent au-delà de 5M est couvert par des APPORTS EN CAPITAL → 90M si club « sain » (+30M).
     const excess3y = Math.max(0, -cumul2627 - 5); // déficit football-earnings au-delà des 5M de base
-    const equityCovers3y = ((+apport3y || 0) + apportEff) >= excess3y; // apports en equity (historique 3 ans + TON apport 2026-27) suffisants pour couvrir l'excédent · l'apport du proprio compte AUSSI côté UEFA
+    const uefaApportCap = healthy3y ? 90 : 60; // écart admissible UEFA : l'apport n'est retenu que jusqu'à 60 M€ (90 pour un club sain) · au-delà, il compte en DNCG mais PAS côté UEFA
+    const apportUefaTotal = (+apport3y || 0) + apportEff; // apport propriétaire vu par l'UEFA (historique 3 ans + TON apport 2026-27)
+    const apportUefaRetained = Math.min(apportUefaTotal, uefaApportCap); // montant RÉELLEMENT retenu par l'UEFA (plafonné)
+    const equityCovers3y = apportUefaRetained >= excess3y; // l'excédent football-earnings n'est couvert QUE par l'apport retenu (plafonné) · au-delà du plafond, l'apport ne contourne pas la règle
     const rule3yOk_p = isPSR ? (cumul2627 >= r3lim) : (cumul2627 >= -5);
     const rule3yCovered_p = isPSR ? (cumul2627 + (+apport3y || 0) >= r3lim) : (cumul2627 >= r3cap && (rule3yOk_p || equityCovers3y));
     const dncgCovered_p = isBundesliga ? bundesOk : isSerieA ? serieAOk : isLiga ? ligaOk : isPSR ? rule3yCovered_p : (res2627 + tresorPos + apportEff >= 0);
@@ -14225,16 +14239,21 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
         && (playsUEFA ? uefaOk_p : true)
         && ((!isPSR && r3Applies) ? (rule3yCovered_p || settlement3y) : true); // Angleterre : la règle LIANTE 2026-27 = SCR + SSR (le PSR 3 ans ne sanctionne plus qu'en 2025-26, affiché à part)
     // === Niveau 1 : feu tricolore unique + phrase d'adjoint (mode Simple) · résume les 5 ratios en 1 état actionnable ===
-    const simpleState = !mercatoValid ? "ko" : (investRoom < 0 ? "warn" : "ok");
-    const simpleDot = simpleState === "ok" ? "dotgreen" : simpleState === "warn" ? "dotorange" : "dotred";
-    const simpleLabel = simpleState === "ok" ? "Ton club tient" : simpleState === "warn" ? "Limite atteinte" : "Règle à corriger";
-    const simpleColor = simpleState === "ok" ? "#00ff6a" : simpleState === "warn" ? "#ffb020" : "#ff6b81";
-    const simpleShort = simpleState === "ok" ? "Tenu" : simpleState === "warn" ? "Limite" : "Alerte";
     const startInRed = (res2425 != null && res2425 < 0) || (dncgFP != null && dncgFP < 0) || (dncgSalRatio != null && dncgSalRatio > 70) || (playsUEFA && ratio2425 > (typeof limit !== "undefined" ? limit : 70));
-    const simpleAdvice = (investRoom >= 0
-        ? "Tu peux encore investir ~" + fmt(investRoom) + " (indemnités + salaires)."
-        : "Tu dépasses de ~" + fmt(-investRoom) + " · vends, prête, ou fais apporter le propriétaire.")
-        + ((startInRed && simpleState !== "ok") ? " (situation héritée du club · pas ta faute)" : "");
+    // Clubs EX-POST (France DNCG, Angleterre PSR) : les comptes sont JUGÉS EN FIN DE SAISON, pas à l'inscription. Une marge négative HÉRITÉE (avant que le joueur ne dépense) ne doit pas s'afficher « Limite atteinte » en rouge tant que le joueur ne CREUSE pas lui-même le déficit.
+    const exPost = isDNCG || isPSR;
+    const inheritedRed = exPost && startInRed && investRoom < 0 && userNetSpend <= 0.5 && mercatoValid;
+    const simpleState = !mercatoValid ? "ko" : ((investRoom < 0 && !inheritedRed) ? "warn" : "ok");
+    const simpleDot = simpleState === "ok" ? "dotgreen" : simpleState === "warn" ? "dotorange" : "dotred";
+    const simpleLabel = inheritedRed ? "Sous surveillance" : (simpleState === "ok" ? "Ton club tient" : simpleState === "warn" ? "Limite atteinte" : "Règle à corriger");
+    const simpleColor = simpleState === "ok" ? "#00ff6a" : simpleState === "warn" ? "#ffb020" : "#ff6b81";
+    const simpleShort = inheritedRed ? "Surveillé" : (simpleState === "ok" ? "Tenu" : simpleState === "warn" ? "Limite" : "Alerte");
+    const simpleAdvice = inheritedRed
+        ? "Marge négative HÉRITÉE (le club dépensait déjà plus qu'il ne gagne). En France comme en Angleterre, c'est jugé EN FIN DE SAISON, pas à l'inscription : tu peux jouer ton mercato normalement. Évite juste de creuser · une vente ou un apport du propriétaire te remet à l'aise."
+        : ((investRoom >= 0
+            ? "Tu peux encore investir ~" + fmt(investRoom) + " (indemnités + salaires)."
+            : "Tu dépasses de ~" + fmt(-investRoom) + " · vends, prête, ou fais apporter le propriétaire.")
+            + ((startInRed && simpleState !== "ok") ? " (situation héritée du club · pas ta faute)" : ""));
     // === 2.4 : micro-leçon contextuelle (apprendre en jouant) · s'adapte à la situation du club ===
     const microTip = (() => {
         if (isDNCG && dncgSalRatio != null && dncgSalRatio > 70)
@@ -16201,6 +16220,30 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
                                     o.cap,
                                     ")"),
                                 +apport > 0 && React.createElement("button", { type: "button", onClick: () => setApport(0), style: { background: "none", border: "none", color: "#ff96a6", cursor: "pointer", fontSize: 11.5, textDecoration: "underline" } }, "remettre \u00E0 0")),
+                            hasUefa && (React.createElement("div", { style: { fontSize: 11.5, color: "#c8d3e8", marginTop: 8, lineHeight: 1.45, background: "rgba(123,61,255,.08)", border: "1px solid rgba(123,61,255,.28)", borderRadius: 8, padding: "7px 10px" } },
+                                React.createElement("b", { style: { color: "#b79bff" } }, "C\u00F4t\u00E9 UEFA\u00A0:"),
+                                " apport propri\u00E9taire ",
+                                React.createElement("b", null,
+                                    Math.round(apportUefaTotal),
+                                    " ",
+                                    CUR),
+                                " \u00B7 ",
+                                React.createElement("b", null,
+                                    "retenu pour le calcul UEFA\u00A0: ",
+                                    Math.round(apportUefaRetained),
+                                    " ",
+                                    CUR),
+                                " ",
+                                React.createElement("span", { style: { color: "#93a4c4" } },
+                                    "(plafond ",
+                                    uefaApportCap,
+                                    " ",
+                                    CUR,
+                                    " \u00B7 \u00E9cart admissible UEFA",
+                                    healthy3y ? ", relevé à 90 car club sain" : "",
+                                    ")"),
+                                ".",
+                                apportUefaTotal > uefaApportCap + 0.5 ? " Au-delà, l'apport compte côté " + club.meta.domesticRule + " mais pas côté UEFA." : "")),
                             React.createElement("div", { style: { fontSize: 11, color: "#7d8eae", marginTop: 8, lineHeight: 1.4 } },
                                 linked
                                     ? React.createElement(React.Fragment, null,
@@ -16247,10 +16290,10 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
                         React.createElement("span", { className: "marge-bar-val" + (cashFx ? " margePulse" : ""), style: { color: investRoom >= 0 ? "#00ff6a" : "#ff96a6" } },
                             investRoom >= 0 ? "+" : "",
                             fmt(investRoom)),
-                        investRoom !== investBase && React.createElement("span", { className: "marge-bar-delta", style: { color: investRoom - investBase >= 0 ? "#00ff6a" : "#ff96a6" } },
-                            investRoom - investBase >= 0 ? "▲" : "▼",
+                        investRoom !== investStart && React.createElement("span", { className: "marge-bar-delta", style: { color: investRoom - investStart >= 0 ? "#00ff6a" : "#ff96a6" } },
+                            investRoom - investStart >= 0 ? "▲" : "▼",
                             " ",
-                            fmt(investRoom - investBase),
+                            fmt(investRoom - investStart),
                             React.createElement("span", { style: { color: "#7d8eae", fontWeight: 400 } }, " mercato"),
                             React.createElement(InfoDot, { title: "Effet de ton mercato sur ta marge", what: "La variation de ta marge d'investissement due \u00C0 TON MERCATO, par rapport \u00E0 ta marge de d\u00E9part (avant tout mouvement).", why: "Elle isole l'effet net de tes ventes et achats sur ta capacit\u00E9 \u00E0 recruter \u00B7 \u00E0 c\u00F4t\u00E9 de la marge totale, elle te dit combien TES d\u00E9cisions ont boug\u00E9 les choses.", how: "Marge actuelle \u2212 marge de d\u00E9part. Une vente l'augmente ; un achat ou une hausse de salaire la r\u00E9duit.", impact: "Positif = tes mouvements t'ont lib\u00E9r\u00E9 de la marge \u00E0 r\u00E9investir. N\u00E9gatif = tu as d\u00E9j\u00E0 consomm\u00E9 de la marge." })),
                         !(expertMode) && (React.createElement("span", { className: "marge-bar-ind", "data-tour": "indicators", style: { textTransform: "none", letterSpacing: 0 } },
