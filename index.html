@@ -14449,45 +14449,12 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
     const _bargains = recruits.filter((r) => (+r.fee || 0) <= 1 && (+r.sal || 0) <= 3).length;
     let axMalin = 5 + _cl(_pvSales / 25, 0, 2.5) + _cl((26 - _avgAge) / 6, -1, 1.5) + Math.min(1.5, _bargains * 0.5);
     axMalin = _cl(axMalin, 0, 10);
-    // ❤️ FANS · le regard des supporters, ADAPTÉ À L'IDENTITÉ DU CLUB (local / star / formateur) + nationalité + « formé au club ».
-    const ident = CLUB_IDENTITY[clubId] || "normal";
-    let fanPts = 0;
-    recruits.forEach((r) => {
-        const u = uefaStatOf(r.name);
-        const v = +r.mkt || +r.fee || 0;
-        let d = 0.3;
-        const dupays = (u.na && u.na === club.meta.country) || u.st === "P";
-        if (u.st === "C")
-            d += 2.4; // enfant du club (universel ++)
-        else if (dupays)
-            d += (ident === "local" ? 2.2 : 1); // joueur du pays : ÉNORME pour un club local
-        if (v >= 40)
-            d += (ident === "star" ? 1.7 : ident === "local" ? 1 : 2); // une star : le club local préfère le local, le gros club l'attend
-        else if (v >= 15)
-            d += 0.8;
-        else if (ident === "star" && v < 8)
-            d -= 0.4; // gros club + petit joueur = fans blasés
-        if (u.age > 0 && u.age <= 21)
-            d += (ident === "formateur" ? 0.9 : 0.5); // un jeune : le club formateur adore
-        if (r.from && (RIVALS[clubId] || []).indexOf(r.from) >= 0)
-            d += 1.6; // 🔥 piquer un joueur À UN RIVAL : les tribunes jubilent
-        fanPts += d;
-    });
-    const ICN = CLUB_ICONS[clubId] || [];
-    sold.forEach((p) => {
-        const u = uefaStatOf(p.name);
-        const named = ICN.indexOf(p.name) >= 0;
-        const icon = named || (captain === p.id) || (+p.mkt || 0) >= 25 || (u.st === "C" && (+p.mkt || 0) >= 8);
-        let d = 0;
-        if (icon)
-            d -= (named ? 3 : ident === "star" ? 2.2 : 2.6); // vendre une ICÔNE nommée du club = grosse colère
-        else if ((+p.mkt || 0) < 3)
-            d += 0.4; // se débarrasser d'un cadre = bonne affaire
-        if (u.st === "C")
-            d -= (ident === "formateur" ? 1.8 : 1); // laisser partir un titi : SCANDALE dans un club formateur
-        fanPts += d;
-    });
-    let axFans = _cl(6 + fanPts * 0.5, 0, 10);
+    // ❤️ FANS · SIMPLIFIÉ (demande user) : un simple petit bonus quand tu signes une STAR, rien d'autre.
+    // L'ancien modèle (icônes vendues, rivaux, identité du club, formé au club, nationalité) était trop délicat
+    // et trop subjectif pour être juste → retiré volontairement.
+    const _stars = recruits.filter((r) => (+r.mkt || +r.fee || 0) >= 40).length; // une « star » = 40 M€ et plus
+    const _grosCoups = recruits.filter((r) => { const v = +r.mkt || +r.fee || 0; return v >= 15 && v < 40; }).length;
+    const axFans = _cl(6 + _stars * 1.1 + _grosCoups * 0.35, 0, 10);
     // 🎯 RÉALISME (fictif) · crédibilité de chaque achat/vente vs la réalité (prix, salaire, club d'origine, prêt/option).
     const _dna = clubDNA(clubId);
     const _dealR = recruits.map((r) => Object.assign({ id: r.id, name: r.name }, dealRealism(r, PLAYER_INDEX[r.name] || null, _dna)));
@@ -14502,15 +14469,53 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
     const _worstReal = _allR.filter((x) => x.msg && x.sev >= 1).sort((a, b) => b.sev - a.sev || a.score - b.score)[0];
     // NOTE GLOBALE pondérée → A-F. Un dépassement de règle plafonne fort (le board ne valide pas un mercato hors-la-loi).
     let _ov = axSport * 0.24 + axFin * 0.26 + axMalin * 0.16 + axFans * 0.16 + axReal * 0.18;
+    // GRAVITÉ du dépassement (0 = à peine hors des clous · 1 = complètement explosé), mesurée sur ce qui
+    // te manque pour repasser dans les clous, rapporté à la taille de ton club (un club riche encaisse plus).
+    const _overAmt = Math.max(0, -investRoom);
+    const breachSev = _cl(_overAmt / Math.max(20, (revenue || 100) * 0.18), 0, 1);
+    // Le plafond n'est plus brutal (5/10 quoi qu'il arrive) mais PROPORTIONNEL : frôler la limite plafonne
+    // vers 6,5 ; l'exploser plafonne vers 3. Chaque infraction supplémentaire coûte 0,8 de plus.
     if (nBreach > 0)
-        _ov = Math.min(_ov, 5 - (nBreach - 1) * 1.2);
+        _ov = Math.min(_ov, 6.5 - breachSev * 3.5 - (nBreach - 1) * 0.8);
     const boardNote = Math.round(_cl(_ov, 0, 10) * 10) / 10;
     const boardGrade = gradeA(boardNote);
+    // === SANCTIONS RÉELLEMENT PRONONCÉES EN FIN DE SAISON ===
+    // Avant, dépasser une règle ne coûtait qu'une mauvaise note : la menace n'était JAMAIS exécutée.
+    // Désormais chaque infraction déclenche la vraie sanction de ta règle, dans ton championnat, dosée selon la gravité.
+    const sanctions = (() => {
+        if (nBreach === 0)
+            return [];
+        const F = {};
+        seasonChecks.filter((c) => !c.ok).forEach((c) => { F[c.k] = true; });
+        const gros = breachSev > 0.55, moyen = breachSev > 0.25;
+        const S = [];
+        if (F.scr || F.ssr)
+            S.push({ org: "Premier League", verdict: "Retrait de " + (gros ? 8 : moyen ? 6 : 4) + " points", detail: "Commission indépendante : coûts d'effectif au-delà du plafond. Précédents réels : Everton −8 pts, Nottingham Forest −4 pts.", hard: true });
+        if (F.dncg)
+            S.push(gros
+                ? { org: "DNCG", verdict: "Interdiction de recruter + masse salariale encadrée", detail: "Comptes jugés insoutenables. Dans les cas extrêmes, la DNCG peut aller jusqu'à la rétrogradation administrative (menace réelle à Lyon, Bordeaux).", hard: true }
+                : { org: "DNCG", verdict: "Masse salariale encadrée", detail: "Tu passes, mais sous surveillance : masse salariale gelée et recrutements contrôlés la saison prochaine.", hard: false });
+        if (F.liga)
+            S.push({ org: "LaLiga", verdict: "Blocage d'inscription", detail: "Impossible d'enregistrer tes recrues tant que tu n'es pas repassé sous ton plafond de coût d'effectif (règle 1:1). Le Barça en a fait les frais.", hard: true });
+        if (F.seriea)
+            S.push({ org: "Serie A", verdict: "Mercato bloqué en entrée", detail: "Indicateur de liquidité insuffisant : tu ne peux inscrire une recrue qu'en la finançant par une vente.", hard: true });
+        if (F.dfl)
+            S.push({ org: "DFL", verdict: "Licence refusée", detail: "Preuve de liquidité insuffisante. Sans licence, le club ne joue pas la saison en pro : c'est la condition n°1 de la Bundesliga.", hard: true });
+        if (F.uefa)
+            S.push({ org: "UEFA", verdict: "Amende " + (gros ? 25 : moyen ? 15 : 5) + " M€ + Liste A réduite à " + (gros ? 21 : 23) + " joueurs", detail: "Ratio coûts d'effectif au-dessus de la limite : amende proportionnelle au dépassement et moins de joueurs inscriptibles en Coupe d'Europe.", hard: true });
+        if (F.r3)
+            S.push(gros
+                ? { org: "UEFA", verdict: "Exclusion de la Coupe d'Europe", detail: "Pertes cumulées sur 3 ans très au-delà du plafond, non couvertes par un apport en capital. La sanction la plus lourde du règlement.", hard: true }
+                : { org: "UEFA", verdict: "Accord de règlement (settlement)", detail: "Plan de retour à l'équilibre sur plusieurs saisons, avec amendes conditionnelles et restrictions d'inscription si les paliers ne sont pas tenus.", hard: false });
+        if (F.sanc)
+            S.push({ org: club.meta.domesticRule, verdict: "Sanction en cours non respectée", detail: "Tu as recruté malgré une mesure déjà prononcée contre ton club : elle est immédiatement durcie.", hard: true });
+        return S;
+    })();
     const bulletin = [
         { k: "sport", emo: "⚽", lab: "Sportif", sub: _holes.length ? (_holes.length + " poste(s) sans titulaire !") : _noBackup.length ? (_noBackup.length + " poste(s) sans remplaçant") : "effectif complet à chaque poste", n: Math.round(axSport * 10) / 10, g: gradeA(axSport) },
         { k: "fin", emo: "💰", lab: "Financier", sub: "conformité & santé des comptes", n: Math.round(axFin * 10) / 10, g: gradeA(axFin) },
         { k: "malin", emo: "🧠", lab: "Malin", sub: "plus-values, jeunes, coups pas chers", n: Math.round(axMalin * 10) / 10, g: gradeA(axMalin) },
-        { k: "fans", emo: "❤️", lab: "Fans", sub: IDENTITY_SUB[ident] || "le regard des supporters", n: Math.round(axFans * 10) / 10, g: gradeA(axFans) },
+        { k: "fans", emo: "❤️", lab: "Fans", sub: _stars ? (_stars + (_stars > 1 ? " stars signées" : " star signée") + " · les tribunes jubilent") : (_grosCoups ? (_grosCoups + " belle" + (_grosCoups > 1 ? "s recrues" : " recrue")) : "aucune grosse signature"), n: Math.round(axFans * 10) / 10, g: gradeA(axFans) },
         { k: "real", emo: "🎯", lab: "Réalisme", sub: _worstReal ? _worstReal.msg : (_allR.length ? "mercato crédible" : "aucun mouvement"), n: Math.round(axReal * 10) / 10, g: gradeA(axReal) },
     ];
     const _worst = bulletin.slice().sort((a, b) => a.n - b.n)[0], _fansAx = bulletin.find((x) => x.k === "fans");
@@ -15146,7 +15151,7 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
                     cashFx.kind === "in" ? "+" : "−",
                     fmt(cashFx.amt)),
                 React.createElement("span", { className: "cash-fx-lab" }, cashFx.kind === "in" ? "encaissé" : "investi")),
-            endOpen && React.createElement(SeasonEnd, { checks: seasonChecks, note: boardNote, grade: boardGrade, line: boardLine, bulletin: bulletin, badges: badges, recapStats: recapStats, newTrophies: newTrophies, clubName: club.meta.name, modeShort: START_MODES[startMode].short, seedKey: clubId + "|" + startMode, recruits: recruits, sold: sold, imgs: imgs, teamShareImg: teamShareImg, onGenerate: genImages, onClose: () => setEndOpen(false) }),
+            endOpen && React.createElement(SeasonEnd, { sanctions: sanctions, checks: seasonChecks, note: boardNote, grade: boardGrade, line: boardLine, bulletin: bulletin, badges: badges, recapStats: recapStats, newTrophies: newTrophies, clubName: club.meta.name, modeShort: START_MODES[startMode].short, seedKey: clubId + "|" + startMode, recruits: recruits, sold: sold, imgs: imgs, teamShareImg: teamShareImg, onGenerate: genImages, onClose: () => setEndOpen(false) }),
             React.createElement(Assistant, { tips: coachTips, tab: tab, explain: explain, onCloseExplain: () => setExplain(null) }),
             tourMain && React.createElement(Tour, { steps: TOUR_MAIN, tab: tab, setTab: setTab, onDone: () => { try {
                     localStorage.setItem("sm_onboarded", "1");
@@ -18197,7 +18202,7 @@ function lbBoard(seedKey, myNote) {
     return rows;
 }
 // « BOUTON FIN » : overlay de fin de mercato · déroule les règles une par une (animé), révèle la note du board, puis la carte à partager.
-function SeasonEnd({ checks, note, grade, line, bulletin, badges, recapStats, newTrophies, clubName, modeShort, seedKey, recruits, sold, imgs, teamShareImg, onGenerate, onClose }) {
+function SeasonEnd({ sanctions, checks, note, grade, line, bulletin, badges, recapStats, newTrophies, clubName, modeShort, seedKey, recruits, sold, imgs, teamShareImg, onGenerate, onClose }) {
     const nBreach = checks.filter((c) => !c.ok).length;
     const allGreen = nBreach === 0;
     const nRec = recruits.length, nSold = sold.length;
@@ -18327,12 +18332,18 @@ function SeasonEnd({ checks, note, grade, line, bulletin, badges, recapStats, ne
                     ? React.createElement("div", { className: "se-pop", style: { marginTop: 4, fontSize: 12.5, color: "#9be3c2", background: "rgba(0,255,106,.08)", border: "1px solid rgba(0,255,106,.25)", borderRadius: 10, padding: "9px 11px" } },
                         React.createElement(Icon, { name: "valide", size: 13, style: { marginRight: 6, verticalAlign: "-2px" } }),
                         "Tous les voyants au vert \u00B7 le board validera ton mercato.")
-                    : React.createElement("div", { className: "se-pop", style: { marginTop: 4, fontSize: 12.5, color: "#ffc2cc", background: "rgba(224,90,74,.1)", border: "1px solid rgba(224,90,74,.4)", borderRadius: 10, padding: "9px 11px" } },
-                        React.createElement(Icon, { name: "warn", size: 13, style: { marginRight: 6, verticalAlign: "-2px" } }),
-                        nBreach,
-                        " voyant",
-                        nBreach > 1 ? "s" : "",
-                        " au rouge \u00B7 tu t'exposes \u00E0 une sanction en fin de saison (amende, encadrement, voire points).")) : null) : null,
+                    : React.createElement("div", { className: "se-pop", style: { marginTop: 4 } },
+                        React.createElement("div", { style: { fontSize: 11, fontWeight: 800, letterSpacing: ".08em", textTransform: "uppercase", color: "#ff96a6", marginBottom: 7 } },
+                            React.createElement(Icon, { name: "warn", size: 13, style: { marginRight: 6, verticalAlign: "-2px" } }),
+                            nBreach,
+                            " voyant",
+                            nBreach > 1 ? "s" : "",
+                            " au rouge \u00B7 sanction prononc\u00E9e"),
+                        (sanctions || []).map((sc, i) => (React.createElement("div", { key: i, style: { marginBottom: 8, background: sc.hard ? "rgba(224,90,74,.13)" : "rgba(232,196,106,.11)", border: "1px solid " + (sc.hard ? "rgba(255,90,110,.5)" : "rgba(232,196,106,.45)"), borderRadius: 10, padding: "10px 12px", textAlign: "left" } },
+                            React.createElement("div", { style: { fontSize: 10.5, fontWeight: 800, letterSpacing: ".06em", textTransform: "uppercase", color: sc.hard ? "#ff96a6" : "#e8c46a", marginBottom: 3 } }, sc.org),
+                            React.createElement("div", { style: { fontFamily: "Raleway, sans-serif", fontWeight: 800, fontSize: 15, color: "#fff", lineHeight: 1.25, marginBottom: 4 } }, sc.verdict),
+                            React.createElement("div", { style: { fontSize: 12, color: "#cdd8ee", lineHeight: 1.45 } }, sc.detail)))),
+                        !(sanctions || []).length ? React.createElement("div", { style: { fontSize: 12.5, color: "#ffc2cc" } }, "Tu t'exposes \u00E0 une sanction en fin de saison.") : null)) : null) : null,
             phase === 3 ? React.createElement("div", { className: "se-phase", key: "p3", style: { textAlign: "center", position: "relative", paddingTop: 6 } },
                 allGreen ? React.createElement("div", { className: "se-glow" }) : null,
                 React.createElement("div", { className: "se-lbl", style: { position: "relative" } }, PHASES[3].label),
