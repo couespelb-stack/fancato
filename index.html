@@ -14269,6 +14269,77 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
             ? "Tu es dans les clous. Ce qui te limite en ce moment : " + bindingRule + " · vendre ou prêter augmente ta marge."
             : "Tu es au-dessus de ta limite · vends, prête, ou fais apporter le propriétaire. Ce qui te contraint : " + bindingRule + ".")
             + ((startInRed && simpleState !== "ok") ? " (situation héritée du club · pas ta faute)" : ""));
+    // === ADJOINT · IMPACT D'UNE ACTION SUR LES INDICATEURS (avant → après) ===
+    // Le joueur ne voyait pas QUELS indicateurs une action allait bouger. impactOf() simule un geste
+    // (vente / prêt / recrue) et renvoie le ratio clé, le résultat et la marge, AVANT et APRÈS.
+    //   dSal   = variation de masse salariale CHARGÉE (M€/an)  · négatif = on allège
+    //   dAmort = variation d'amortissement (M€/an)
+    //   dMut   = variation du résultat des mutations (plus-value de cession, indemnité de prêt reçue)
+    //   dAg    = variation des honoraires d'agents
+    const impactOf = (dSal, dAmort, dMut, dAg) => {
+        const _d = (+dMut || 0) - (+dSal || 0) - (+dAmort || 0) - (+dAg || 0); // effet net sur le résultat
+        const resA = res2627 + _d;
+        const margeA = investRoom + _d; // la marge suit le résultat
+        let rLab = "", rLim = null, rB = null, rA = null;
+        if (isDNCG && dncgSalRatio != null && dncgSalNum != null && dncgSalDen > 0) {
+            rLab = "Masse salariale";
+            rLim = 70;
+            rB = dncgSalRatio;
+            rA = (dncgSalNum + (+dSal || 0) + (+dAmort || 0) + (+dAg || 0)) / Math.max(1, dncgSalDen + Math.max(0, +dMut || 0)) * 100;
+        }
+        else if (cascade && scr != null) {
+            rLab = "Coûts d'effectif";
+            rLim = (isPSR && scrGreen != null) ? scrGreen : limit;
+            rB = scr;
+            const _n = cascade.b.remun + cascade.b.amort + cascade.b.agents;
+            rA = (_n + (+dSal || 0) + (+dAmort || 0) + (+dAg || 0)) / Math.max(1, cascade.b.produits) * 100;
+        }
+        return { rLab, rLim, rB, rA, resB: res2627, resA, margeB: investRoom, margeA: Math.round(margeA), dRes: _d };
+    };
+    // Rendu du bloc « ce que ça change pour toi » (utilisé dans les fenêtres vente / prêt / recrue).
+    const ImpactBox = ({ imp, title }) => {
+        if (!imp)
+            return null;
+        const line = (lab, before, after, unit, lowerIsBetter, lim) => {
+            const dv = after - before;
+            if (Math.abs(dv) < 0.05)
+                return null;
+            const good = lowerIsBetter ? dv < 0 : dv > 0;
+            const okB = lim != null ? (lowerIsBetter ? before <= lim : before >= lim) : null;
+            const okA = lim != null ? (lowerIsBetter ? after <= lim : after >= lim) : null;
+            const flip = (okB === false && okA === true) ? "repasse dans les clous" : (okB === true && okA === false) ? "sort des clous" : null;
+            return (React.createElement("div", { className: "vrow", key: lab },
+                React.createElement("span", null,
+                    lab,
+                    lim != null ? React.createElement("span", { className: "mini", style: { textTransform: "none" } },
+                        " (limite ",
+                        lowerIsBetter ? "≤" : "≥",
+                        " ",
+                        lim,
+                        unit,
+                        ")") : null),
+                React.createElement("b", { style: { color: good ? "#00ff6a" : "#ff96a6", whiteSpace: "nowrap" } },
+                    React.createElement("span", { style: { color: "#7d8eae", fontWeight: 600 } },
+                        Math.round(before),
+                        unit),
+                    React.createElement("span", { style: { color: "#7d8eae", margin: "0 4px" } }, "\u2192"),
+                    Math.round(after),
+                    unit,
+                    flip ? React.createElement("span", { style: { display: "block", fontSize: 9.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: ".03em" } }, flip) : null)));
+        };
+        const rows = [
+            imp.rB != null && imp.rA != null ? line(imp.rLab, imp.rB, imp.rA, " %", true, imp.rLim) : null,
+            line("Résultat 2026-27", imp.resB, imp.resA, " " + CUR, false, null),
+            line("Marge d'investissement", imp.margeB, imp.margeA, " " + CUR, false, 0),
+        ].filter(Boolean);
+        if (!rows.length)
+            return null;
+        return (React.createElement("div", { className: "sellmodal-brk", style: { background: "rgba(123,61,255,.09)", border: "1px solid rgba(123,61,255,.32)" } },
+            React.createElement("div", { className: "sellmodal-brk-t", style: { color: "#b79bff" } },
+                React.createElement(Icon, { name: "adjoint", size: 12, style: { marginRight: 5, verticalAlign: "-2px" } }),
+                title || "Ce que ça change sur tes indicateurs"),
+            rows));
+    };
     // === 2.4 : micro-leçon contextuelle (apprendre en jouant) · s'adapte à la situation du club ===
     const microTip = (() => {
         if (isDNCG && dncgSalRatio != null && dncgSalRatio > 70)
@@ -17382,6 +17453,7 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
                                 React.createElement("b", null, "Effet sur ton r\u00E9sultat 2026-27"),
                                 React.createElement(InfoDot, { title: "Ce que la vente rapporte \u00E0 tes comptes", what: "L'effet total de cette vente sur ton r\u00E9sultat net projet\u00E9 2026-27.", how: "Plus-value comptable (prix \u2212 valeur comptable nette) + salaire charg\u00E9 que tu ne paies plus + amortissement qui s'arr\u00EAte. Le cash encaiss\u00E9, lui, alimente ta tr\u00E9sorerie de mercato.", impact: "Plus la plus-value est haute (joueur tr\u00E8s amorti ou form\u00E9 au club, VCN basse), plus la vente redresse tes comptes \u00B7 c'est le meilleur levier pour \u00E9quilibrer un club d\u00E9ficitaire." })),
                             React.createElement("b", { style: { color: resImpact >= 0 ? "#00ff6a" : "#ff96a6", fontSize: 15 } }, sign(resImpact)))),
+                    React.createElement(ImpactBox, { imp: impactOf(-salEco, -amortEco, pv, 0) }),
                     pv < 0 && React.createElement("div", { className: "mini", style: { textTransform: "none", color: "#ffb0b0", padding: "4px 2px 0", lineHeight: 1.4 } },
                         React.createElement(Icon, { name: "warn", size: 12, style: { marginRight: 4, verticalAlign: "-2px" } }),
                         "\u00C0 ce prix tu vends sous la valeur comptable \u2192 moins-value, \u00E7a p\u00E8se sur ton r\u00E9sultat."),
@@ -17482,6 +17554,7 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
                                 React.createElement("b", null, "Effet sur ton r\u00E9sultat 2026-27"),
                                 React.createElement(InfoDot, { title: "Ce que le pr\u00EAt rapporte \u00E0 tes comptes", what: "L'effet de ce pr\u00EAt sur ton r\u00E9sultat net projet\u00E9 2026-27.", how: "Salaire charg\u00E9 que le club preneur prend \u00E0 sa place + prime de pr\u00EAt encaiss\u00E9e. L'amortissement, lui, RESTE \u00E0 ta charge (le joueur t'appartient toujours) \u00B7 un pr\u00EAt n'efface pas la valeur comptable, contrairement \u00E0 une vente.", impact: "Un pr\u00EAt all\u00E8ge la masse salariale sans perdre le joueur, mais rapporte moins qu'une vente (pas de plus-value). Id\u00E9al pour faire jouer un jeune ailleurs ou d\u00E9graisser sans brader." })),
                             React.createElement("b", { style: { color: resImpact >= 0 ? "#00ff6a" : "#ff96a6", fontSize: 15 } }, sign(resImpact)))),
+                    React.createElement(ImpactBox, { imp: impactOf(-salEco, 0, fee, 0) }),
                     loanDraft.type !== "sec" && React.createElement("div", { className: "mini", style: { textTransform: "none", color: "#9ad0ff", padding: "4px 2px 0", lineHeight: 1.4 } },
                         "\u2139\uFE0F ",
                         loanDraft.type === "obligation" ? "Obligation" : "Option",
