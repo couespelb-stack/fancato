@@ -15115,7 +15115,12 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
         .wrap{--navy:#111a26;--navy2:#0c1118;--red:#e30613;--gold:#00ff6a;--green:#00ff6a;--new:#7b3dff;--loan:#5ec8e0;
           --rose:#ff5b78;--line:rgba(255,255,255,.1);font-family:'Raleway',system-ui,sans-serif;
           background:radial-gradient(900px 460px at 50% -6%, rgba(0,255,106,.06), rgba(0,255,106,0) 62%),var(--navy2);color:#fff;min-height:100%;padding:calc(16px + env(safe-area-inset-top)) calc(16px + env(safe-area-inset-right)) 16px calc(16px + env(safe-area-inset-left));max-width:780px;margin:0 auto;}
-        @media(min-width:1040px){.wrap{max-width:980px;padding:calc(20px + env(safe-area-inset-top)) 26px 20px;}}
+        /* === PC / grand écran : l'appli est conçue pour un téléphone. À 980px tout s'étirait (visages géants, boutons démesurés).
+           On la cadre à sa largeur naturelle, centrée, et on habille les côtés. Rien ne change en dessous de 1040px (mobile intact). === */
+        @media(min-width:1040px){
+          .wrap{max-width:560px;padding:calc(20px + env(safe-area-inset-top)) 20px 20px;box-shadow:0 0 0 1px rgba(255,255,255,.06),0 30px 90px rgba(0,0,0,.55);border-radius:22px;background:linear-gradient(180deg,rgba(18,26,38,.55),rgba(10,15,22,.55));backdrop-filter:blur(2px);margin-top:18px;margin-bottom:18px;}
+          body{background:radial-gradient(1200px 700px at 50% -10%, rgba(123,61,255,.10), transparent 60%), radial-gradient(900px 600px at 50% 110%, rgba(0,255,106,.07), transparent 60%), #070b11;}
+        }
         .kicker{font-family:'Raleway';letter-spacing:.22em;text-transform:uppercase;font-size:11px;color:var(--gold);margin:0 0 2px;}
         .title{font-family:'Raleway';font-weight:700;font-size:25px;line-height:1.05;margin:0 0 12px;text-transform:uppercase;}
         .title .red{color:var(--red);}
@@ -15525,6 +15530,8 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
         .tabs::before{content:"";position:absolute;top:6px;left:10px;right:10px;bottom:6px;border-radius:20px;background:linear-gradient(180deg,#16294a,#1a212b);border:1px solid var(--line);box-shadow:0 -6px 20px rgba(0,0,0,.45);z-index:-1;}
         .tab-ind{display:none;}
         .wrap{padding-bottom:100px;}
+        /* PC : la barre du bas suit la colonne de l'appli (placée APRÈS la règle .tabs de base, sinon elle serait écrasée). */
+        @media(min-width:1040px){.tabs{left:calc(50% - 280px);right:auto;width:560px;border-radius:20px 20px 0 0;box-shadow:0 -8px 30px rgba(0,0,0,.5);}}
         .picker{display:flex;gap:8px;margin-bottom:14px;}
         .pk{flex:1;display:flex;flex-direction:column;gap:3px;}
         .pk span{font-family:'Raleway';font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:#9fb0d0;}
