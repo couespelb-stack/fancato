@@ -549,6 +549,114 @@ if (typeof document !== "undefined") {
     document.addEventListener("pointerdown", _mStart);
     document.addEventListener("keydown", _mStart);
 }
+// ===================== PUBLICITÉ (Google H5 Games Ads) =====================
+// ÉTEINT tant que le SDK n'est pas chargé (pas d'identifiant AdSense) → le jeu se comporte
+// EXACTEMENT comme avant : aucune pub, aucun bouton, aucun changement visible.
+//
+// RÈGLE ABSOLUE : aucune récompense ne touche à l'argent, au budget, à la marge d'investissement,
+// à l'apport du propriétaire ni aux sanctions. Fancato ne vend qu'une chose : des règles financières
+// RÉELLES. Vendre du budget contre une pub détruirait sa raison d'être.
+//
+// Points d'appel autorisés (et AUCUN autre) :
+//   · ADS.breakAd()  -> uniquement sur une transition franche (fin de mercato), jamais pendant une action.
+//   · ADS.reward()   -> uniquement opt-in, et uniquement pour une fonctionnalité ADDITIVE
+//                       (jamais pour déverrouiller quelque chose qui est gratuit aujourd'hui).
+const ADS = (function () {
+    var K_LAST = "fancato_ad_last"; // horodatage du dernier interstitiel
+    var K_COUNT = "fancato_ad_count"; // { d: "2026-6-14", n: 2 }
+    var K_START = "fancato_first_play"; // début de la 1re partie (période de grâce)
+    var MIN_GAP = 5 * 60 * 1000; // 5 min minimum entre 2 interstitiels
+    var MAX_PER_DAY = 6; // plafond quotidien
+    var GRACE = 3 * 60 * 1000; // aucune pub dans les 3 premières minutes de jeu
+    function _now() { try {
+        return Date.now();
+    }
+    catch (e) {
+        return 0;
+    } }
+    function _get(k, d) { try {
+        var v = localStorage.getItem(k);
+        return v ? JSON.parse(v) : d;
+    }
+    catch (e) {
+        return d;
+    } }
+    function _set(k, v) { try {
+        localStorage.setItem(k, JSON.stringify(v));
+    }
+    catch (e) { } }
+    function _today() { var d = new Date(); return d.getFullYear() + "-" + d.getMonth() + "-" + d.getDate(); }
+    function _sdk() { return (typeof window !== "undefined") && (typeof window.adBreak === "function"); }
+    function _canBreak() {
+        if (!_sdk())
+            return false;
+        var t = _now(), start = _get(K_START, 0);
+        if (!start) {
+            _set(K_START, t);
+            return false;
+        } // toute 1re partie : jamais de pub
+        if (t - start < GRACE)
+            return false; // période de grâce (rétention)
+        if (t - _get(K_LAST, 0) < MIN_GAP)
+            return false; // plafond de fréquence
+        var c = _get(K_COUNT, {});
+        if (c && c.d === _today() && c.n >= MAX_PER_DAY)
+            return false;
+        return true;
+    }
+    return {
+        // Interstitiel. done() est TOUJOURS appelé, même si la pub échoue ou est bloquée
+        // → le jeu ne peut JAMAIS rester bloqué derrière une publicité.
+        breakAd: function (name, done) {
+            if (!_canBreak()) {
+                done();
+                return;
+            }
+            var c = _get(K_COUNT, {});
+            _set(K_LAST, _now());
+            _set(K_COUNT, { d: _today(), n: ((c && c.d === _today()) ? c.n : 0) + 1 });
+            var fired = false;
+            var go = function () { if (!fired) {
+                fired = true;
+                done();
+            } };
+            try {
+                window.adBreak({ type: "next", name: name, adBreakDone: go });
+                setTimeout(go, 8000); // filet de sécurité : jamais plus de 8 s d'attente
+            }
+            catch (e) {
+                go();
+            }
+        },
+        // Vidéo récompensée. onReward() n'est appelé QUE si la pub a réellement été vue (adViewed)
+        // → impossible d'obtenir la récompense en fermant la vidéo.
+        reward: function (name, onReward, onFail) {
+            if (!_sdk()) {
+                if (onFail)
+                    onFail("indisponible");
+                return;
+            }
+            var granted = false;
+            try {
+                window.adBreak({
+                    type: "reward", name: name,
+                    beforeReward: function (showAdFn) { showAdFn(); }, // l'utilisateur a déjà accepté dans NOTRE interface
+                    adViewed: function () { granted = true; onReward(); },
+                    adDismissed: function () { if (!granted && onFail)
+                        onFail("abandon"); },
+                    adBreakDone: function (info) { if (!granted && onFail)
+                        onFail((info && info.breakStatus) || "echec"); }
+                });
+            }
+            catch (e) {
+                if (onFail)
+                    onFail("erreur");
+            }
+        },
+        // Le bouton de récompense ne doit s'afficher QUE si une pub est réellement disponible.
+        rewardReady: function () { return _sdk(); }
+    };
+})();
 function rr(ctx, x, y, w, h, r) {
     ctx.beginPath();
     ctx.moveTo(x + r, y);
@@ -15200,7 +15308,10 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
         }
         catch (e) { }
         setNewTrophies(got);
-        setEndOpen(true);
+        // PUB · seule transition franche du jeu : le joueur a fini d'agir, il attend son verdict.
+        // Le calcul est DÉJÀ fait au-dessus → si la pub échoue, il voit quand même son résultat.
+        // Tant qu'aucun SDK n'est chargé, breakAd() appelle done() immédiatement (comportement inchangé).
+        ADS.breakAd("fin_mercato", function () { setEndOpen(true); });
     };
     // Fixe/efface l'override manuel du statut UEFA d'un joueur (suit le joueur par son nom)
     const setUefa = (name, v) => setUefaOv((o) => { const n = { ...o }; if (v === "" || v == null)
