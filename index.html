@@ -15069,14 +15069,36 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
             T.push({ sev: "ok", txt: " Dans les clous ET ambitieux · c'est exactement ce qu'on aime. Le board te fait confiance." });
         else if (mercatoValid && !ambitieux)
             T.push({ sev: "ok", txt: "Comptes carrés mais le board en veut un peu plus : vise plus haut au classement pour la note." });
-        // · Repères courts selon l'onglet —
-        if (tab === "compta")
-            T.push({ sev: "ok", txt: "Touche un ⓘ ou un terme souligné : je te l'explique ici. Et bascule Débutant / Pro en haut selon ton niveau." });
-        else if (tab === "mercato")
-            T.push({ sev: "ok", txt: "« Plus-value » sous un joueur = ce que sa vente rapporte. = à vendre les yeux fermés si t'as besoin de cash." });
-        else if (tab === "terrain")
-            T.push({ sev: "ok", txt: "Cale ton onze et ton capitaine. Quand t'es prêt : Terminer le mercato pour ta note du board." });
-        return T;
+        // · VOIX DE L'ADJOINT PROPRE À LA PAGE · sur chaque page il dit ce qui compte ICI,
+        //   et surtout QUELLES ACTIONS bougent QUELS indicateurs (c'est ce qu'on ne devinait pas).
+        const _pisteVente = (best && pvf(best) > 3) ? " Ta meilleure piste : céder " + best.name + " (~" + fmt(pvf(best)) + " de plus-value)." : "";
+        const P = []; // conseils PROPRES À LA PAGE : ils passent en TÊTE (après une éventuelle alerte bloquante)
+        if (tab === "compta") {
+            P.push({ sev: "ok", txt: "Ici tu lis tes comptes. Ce qui te bride en ce moment : " + bindingRule + "." });
+            P.push({ sev: "ok", txt: "Pour faire bouger ces chiffres, tu as 3 leviers : VENDRE (plus-value + salaire en moins → le plus puissant), PRÊTER (allège la masse sans perdre le joueur), ou faire APPORTER le propriétaire." + _pisteVente });
+            P.push({ sev: "ok", txt: "Sur chaque indicateur : « Ta situation » te dit où tu en es, « C'est quoi ? » explique la règle, « Si tu dépasses » ce que tu risques. Tout se met à jour en direct avec ton mercato." });
+        }
+        else if (tab === "mercato") {
+            P.push({ sev: "ok", txt: "C'est ici que tes indicateurs bougent vraiment. ACHETER fait monter ta masse salariale ET ton amortissement (l'indemnité étalée sur le contrat). VENDRE crée une plus-value et libère un salaire. PRÊTER n'efface pas l'amortissement, mais allège le salaire." });
+            P.push({ sev: "ok", txt: "Avant de valider une offre, une vente ou un prêt, je t'affiche l'effet exact sur tes indicateurs : masse salariale, résultat et marge, AVANT → APRÈS. Regarde-le, c'est là que tout se comprend." });
+            P.push({ sev: "ok", txt: "« Plus-value » sous un joueur = ce que sa vente rapporterait à tes comptes. Un joueur presque amorti (ou formé au club) = quasi 100 % de plus-value." + _pisteVente });
+        }
+        else if (tab === "terrain") {
+            P.push({ sev: "ok", txt: "Ta compo ne touche pas directement tes comptes... mais elle décide de ton CLASSEMENT. Et le classement, lui, rapporte gros : droits TV, prime de position, qualification européenne." });
+            P.push({ sev: "ok", txt: "Cale ton onze et ton capitaine. Quand tu es prêt : « Terminer le mercato » pour ta note du board." });
+        }
+        else if (tab === "club") {
+            P.push({ sev: "ok", txt: "La carte d'identité de ton club : qui le possède, sa santé financière héritée, et ce que les instances lui reprochent déjà. Ce que tu vois là, tu ne l'as pas choisi · c'est ton point de départ." });
+            P.push({ sev: "ok", txt: "Son propriétaire compte : c'est lui qui peut combler un déficit par un apport en capital. Un proprio riche te donne de l'air, mais l'UEFA plafonne ce qu'elle accepte de retenir." });
+        }
+        else if (tab === "douzieme") {
+            P.push({ sev: "ok", txt: "Publie ton mercato et compare-toi aux autres fans de " + (club.meta.shortName || club.meta.name) + ". Le meilleur mercato, ce n'est pas le plus cher : c'est le plus malin." });
+            P.push({ sev: "ok", txt: "La commu juge sur le sportif ET les comptes. Un effectif de rêve mais des instances dans le rouge, ça ne passe pas." });
+        }
+        // Ordre d'affichage : 1) alertes BLOQUANTES, 2) la voix de la page (pourquoi tu es ici, ce qui bouge quoi), 3) le reste.
+        const _ko = T.filter((t) => t.sev === "ko");
+        const _rest = T.filter((t) => t.sev !== "ko");
+        return [].concat(_ko, P, _rest);
     })();
     // === Repère « règle la plus dure » : l'indicateur le plus tendu (le plus proche/au-delà de sa limite) ===
     const _hard = [];
