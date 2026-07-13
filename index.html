@@ -14251,8 +14251,8 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
     const simpleAdvice = inheritedRed
         ? "Marge négative HÉRITÉE (le club dépensait déjà plus qu'il ne gagne). En France comme en Angleterre, c'est jugé EN FIN DE SAISON, pas à l'inscription : tu peux jouer ton mercato normalement. Évite juste de creuser · une vente ou un apport du propriétaire te remet à l'aise."
         : ((investRoom >= 0
-            ? "Tu peux encore investir ~" + fmt(investRoom) + " (indemnités + salaires)."
-            : "Tu dépasses de ~" + fmt(-investRoom) + " · vends, prête, ou fais apporter le propriétaire.")
+            ? "Tu es dans les clous. Ce qui te limite en ce moment : " + bindingRule + " · vendre ou prêter augmente ta marge."
+            : "Tu es au-dessus de ta limite · vends, prête, ou fais apporter le propriétaire. Ce qui te contraint : " + bindingRule + ".")
             + ((startInRed && simpleState !== "ok") ? " (situation héritée du club · pas ta faute)" : ""));
     // === 2.4 : micro-leçon contextuelle (apprendre en jouant) · s'adapte à la situation du club ===
     const microTip = (() => {
