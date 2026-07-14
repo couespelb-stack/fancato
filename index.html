@@ -10088,6 +10088,111 @@ const PHOTO_BY_ID = {
     "realsociedad|Wesley": { "u": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/CORINTHIANS_X_NEWELL%27S_OLD_BOYS%E2%80%93_COPA_SUL-AMERICANA_2023_-_Wesley_Gassova.jpg/960px-CORINTHIANS_X_NEWELL%27S_OLD_BOYS%E2%80%93_COPA_SUL-AMERICANA_2023_-_Wesley_Gassova.jpg", "s": 1.79, "cf": 0.0, "cfx": 0.516 }
 };
 // Photos entraîneurs (libres de droit · Wikimedia Commons, via API Wikipedia). Clé = nom de l'entraîneur (MANAGERS).
+// Nom d'usage d'un club — celui qu'on emploie en parlant (« les fans de Marseille »), PAS le code TV
+// à 3 lettres de meta.shortName (« ARS », « MCI »), qui reste réservé aux monogrammes de logo.
+const CLUB_NICK = {
+    psg: "PSG",
+    om: "Marseille",
+    monaco: "Monaco",
+    ol: "Lyon",
+    losc: "Lille",
+    lens: "Lens",
+    nice: "Nice",
+    strasbourg: "Strasbourg",
+    parisfc: "Paris FC",
+    auxerre: "Auxerre",
+    toulouse: "Toulouse",
+    rennes: "Rennes",
+    lorient: "Lorient",
+    lehavre: "Le Havre",
+    brest: "Brest",
+    angers: "Angers",
+    troyes: "Troyes",
+    lemans: "Le Mans",
+    arsenal: "Arsenal",
+    mancity: "Manchester City",
+    manutd: "Manchester United",
+    liverpool: "Liverpool",
+    chelsea: "Chelsea",
+    tottenham: "Tottenham",
+    newcastle: "Newcastle",
+    villa: "Aston Villa",
+    brighton: "Brighton",
+    everton: "Everton",
+    fulham: "Fulham",
+    brentford: "Brentford",
+    bournemouth: "Bournemouth",
+    palace: "Crystal Palace",
+    forest: "Nottingham Forest",
+    leeds: "Leeds",
+    sunderland: "Sunderland",
+    ipswich: "Ipswich",
+    coventry: "Coventry",
+    hull: "Hull",
+    realmadrid: "le Real",
+    barcelona: "le Barça",
+    atletico: "l'Atlético",
+    sevilla: "Séville",
+    valencia: "Valence",
+    villarreal: "Villarreal",
+    athletic: "l'Athletic",
+    realsociedad: "la Real Sociedad",
+    betis: "le Betis",
+    celta: "le Celta",
+    getafe: "Getafe",
+    osasuna: "Osasuna",
+    rayo: "le Rayo",
+    espanyol: "l'Espanyol",
+    elche: "Elche",
+    levante: "Levante",
+    alaves: "Alavés",
+    depor: "le Deportivo",
+    malaga: "Málaga",
+    racing: "le Racing",
+    juventus: "la Juve",
+    inter: "l'Inter",
+    milan: "le Milan",
+    napoli: "Naples",
+    roma: "la Roma",
+    lazio: "la Lazio",
+    atalanta: "l'Atalanta",
+    fiorentina: "la Fiorentina",
+    torino: "le Torino",
+    bologna: "Bologne",
+    udinese: "l'Udinese",
+    genoa: "le Genoa",
+    cagliari: "Cagliari",
+    como: "Côme",
+    parma: "Parme",
+    lecce: "Lecce",
+    sassuolo: "Sassuolo",
+    venezia: "Venise",
+    monza: "Monza",
+    frosinone: "Frosinone",
+    bayern: "le Bayern",
+    dortmund: "Dortmund",
+    leipzig: "Leipzig",
+    leverkusen: "Leverkusen",
+    stuttgart: "Stuttgart",
+    frankfurt: "Francfort",
+    freiburg: "Fribourg",
+    hoffenheim: "Hoffenheim",
+    augsburg: "Augsbourg",
+    union: "Union Berlin",
+    mainz: "Mayence",
+    koln: "Cologne",
+    werder: "le Werder",
+    gladbach: "Mönchengladbach",
+    hsv: "Hambourg",
+    schalke: "Schalke",
+    paderborn: "Paderborn",
+    elversberg: "Elversberg",
+};
+function nickOf(c) {
+    var id = c && c.meta ? c.meta.id : c;
+    var cl = CLUBS[id];
+    return CLUB_NICK[id] || (cl && cl.meta.shortName) || (cl && cl.meta.name) || id;
+}
 const COACH_PHOTOS = {
     "Adi Hütter": "https://upload.wikimedia.org/wikipedia/commons/f/fc/Hutter_asse_asm_2425.png",
     "Alberto Aquilani": "https://upload.wikimedia.org/wikipedia/commons/6/63/Alberto_Aquilani_-_Fiorentina_2012.jpg",
@@ -12113,10 +12218,10 @@ function dealRealism(r, real, dna) {
         set(0.4, nm + " à 0 de salaire ? Impossible, il gagne des millions.", 2);
     const topFrom = CLUB_TOPVAL[r.from] || 0;
     if (!loan && mkt >= 45 && topFrom >= mkt && r.from)
-        set(0.8, "Un club comme " + ((CLUBS[r.from] && CLUBS[r.from].meta.shortName) || r.from) + " ne lâche pas facilement un joueur à " + Math.round(mkt) + " M€.", 1);
+        set(0.8, "Un club comme " + nickOf(r.from) + " ne lâche pas facilement un joueur à " + Math.round(mkt) + " M€.", 1);
     // Contexte du club VENDEUR (veille) : liste des transferts / veut partir / intransférable / must-sell / cash-rich
     if (r.from && CLUBS[r.from]) {
-        const ctx = clubMercatoContext(r.from), sn = (CLUBS[r.from].meta.shortName) || r.from;
+        const ctx = clubMercatoContext(r.from), sn = nickOf(r.from);
         if (ctx.untouchable.indexOf(r.name) >= 0)
             set(0.55, sn + " considère " + nm + " comme intransférable · dossier très peu crédible.", 2);
         else if (ctx.transferList.indexOf(r.name) >= 0) {
@@ -15313,7 +15418,7 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
         catch (e) { }
         slog.push({ club: clubId, league: club.meta.league, grade: boardGrade, green: finishFacts.green, savedRed: finishFacts.savedRed, small: finishFacts.small, euro: finishFacts.euro, date: _d });
         const got = evalTrophies(finishFacts, slog, store);
-        got.forEach((t) => { store[t.id] = { club: clubId, clubName: club.meta.shortName || club.meta.name, date: _d }; });
+        got.forEach((t) => { store[t.id] = { club: clubId, clubName: nickOf(club.meta.id), date: _d }; });
         try {
             localStorage.setItem("fancato_trophies", JSON.stringify(store));
             localStorage.setItem("fancato_slog", JSON.stringify(slog));
@@ -15758,7 +15863,7 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
     };
     const upRec = (id, k, v) => setRecruits((r) => r.map((x) => (x.id === id ? { ...x, [k]: v } : x)));
     const rmRec = (id) => setRecruits((r) => r.filter((x) => x.id !== id || x.locked)); // ne retire pas les recrues verrouillées (officielles)
-    const _tsh = club.meta.shortName;
+    const _tsh = nickOf(club.meta.id);
     const _treg = _rule === "DNCG" ? "la DNCG" : _rule === "PSR" ? "le SCR/PSR" : _rule === "Bundesliga" ? "la licence DFL" : _rule === "LaLiga" ? "le plafond LaLiga" : "l'indicateur FIGC";
     const TOUR_MAIN = [
         { center: true, emoji: "🤝", title: (SPORTING_DIR[clubId] || "Le directeur sportif") + " te passe les clés", txt: (SPORTING_DIR[clubId] ? "Salut, moi c'est " + SPORTING_DIR[clubId] + " · je quitte le poste de directeur sportif du " + club.meta.name + ". " : "") + "Le fauteuil est à toi. Ta mission : le meilleur effectif possible sans faire exploser les comptes. Je te montre l'essentiel, vite fait." },
@@ -15827,7 +15932,7 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
             P.push({ sev: "ok", txt: "Son propriétaire compte : c'est lui qui peut combler un déficit par un apport en capital. Un proprio riche te donne de l'air, mais l'UEFA plafonne ce qu'elle accepte de retenir." });
         }
         else if (tab === "douzieme") {
-            P.push({ sev: "ok", txt: "Publie ton mercato et compare-toi aux autres fans de " + (club.meta.shortName || club.meta.name) + ". Le meilleur mercato, ce n'est pas le plus cher : c'est le plus malin." });
+            P.push({ sev: "ok", txt: "Publie ton mercato et compare-toi aux autres fans de " + nickOf(club.meta.id) + ". Le meilleur mercato, ce n'est pas le plus cher : c'est le plus malin." });
             P.push({ sev: "ok", txt: "La commu juge sur le sportif ET les comptes. Un effectif de rêve mais des instances dans le rouge, ça ne passe pas." });
         }
         // Ordre d'affichage : 1) alertes BLOQUANTES, 2) la voix de la page (pourquoi tu es ici, ce qui bouge quoi), 3) le reste.
@@ -15931,12 +16036,7 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
                 React.createElement("div", { className: "topname", style: { justifyContent: "center" } },
                     React.createElement("span", null, club.meta.name)),
                 React.createElement("button", { type: "button", className: "topmenu", onClick: () => setSheet("param"), title: "Param\u00E8tres", "aria-label": "Param\u00E8tres" },
-                    React.createElement(Icon, { name: "gear", size: 20 })),
-                React.createElement("button", { type: "button", className: "topmenu adj", onClick: () => { try {
-                        window.dispatchEvent(new Event("sm-adj-open"));
-                    }
-                    catch (e) { } }, title: "Ton adjoint", "aria-label": "Ton adjoint" },
-                    React.createElement(Icon, { name: "adjoint", size: 22 }))),
+                    React.createElement(Icon, { name: "gear", size: 20 }))),
             React.createElement("style", null, `
         @import url('https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,700;1,800;1,900&family=Inter:wght@400;500;600&display=swap');
         *{box-sizing:border-box;}
@@ -16916,7 +17016,7 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
                     // Détail réglementaire réel (sanctions déjà tombées, settlement, encadrement…) → expliqué par l'adjoint au clic.
                     const _regNat = "" + (club.meta.domesticRule || "Régulateur national");
                     const _hasRegDetail = !!(reg.dncg || reg.uefa);
-                    const openReg = () => setExplain({ title: "Situation réglementaire · " + (club.meta.shortName || club.meta.name), kind: "info", lines: [
+                    const openReg = () => setExplain({ title: "Situation réglementaire · " + nickOf(club.meta.id), kind: "info", lines: [
                             reg.uefa ? { h: "🇪🇺 UEFA", t: reg.uefa } : null,
                             reg.dncg ? { h: _regNat, t: reg.dncg } : null,
                         ].filter(Boolean) });
@@ -17525,7 +17625,7 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
                                     "amort conserv\u00E9 ",
                                     p.amort,
                                     " \u00B7 salaire ",
-                                    club.meta.shortName,
+                                    nickOf(club.meta.id),
                                     " ",
                                     (p.sal * (1 - (+p.loanPct || 0) / 100)).toFixed(1))),
                             React.createElement("div", { style: { textAlign: "right" } },
@@ -18577,7 +18677,7 @@ function Home({ slots, onResume, onEnter, onRemove, onCommunity }) {
                 React.createElement(Icon, { name: "bolt", size: 13, style: { marginRight: 5, verticalAlign: "-2px" } }),
                 "\u00C9t\u00E9 2026"),
             React.createElement("div", { style: { fontSize: 15, lineHeight: 1.4, color: "#fff", fontWeight: 600 } }, "Le mercato vient d'ouvrir.")),
-        React.createElement("div", { style: { maxWidth: 620, margin: "0 auto" } },
+        React.createElement("div", { style: { width: "100%", minWidth: 0, maxWidth: 620, margin: "0 auto" } },
             React.createElement("div", { style: { textAlign: "center", marginBottom: 12 } },
                 React.createElement("div", { style: { fontFamily: "Raleway, sans-serif", fontWeight: 800, fontSize: 16, letterSpacing: ".08em", textTransform: "uppercase", color: "#fff" } }, "Choisis ton club"),
                 React.createElement("div", { style: { fontSize: 12, color: "#8a94a6", marginTop: 3 } }, slotClubs.length === 0 ? "Commence ta première partie" : (slotClubs.length + " partie" + (slotClubs.length > 1 ? "s" : "") + " en cours"))),
@@ -18635,8 +18735,11 @@ function Home({ slots, onResume, onEnter, onRemove, onCommunity }) {
             const results = qq ? Object.values(CLUBS).filter((c) => nrm(c.meta.name).includes(nrm(qq)) || nrm(c.meta.shortName).includes(nrm(qq)) || (CLUB_ALIAS[c.meta.id] || []).some((a) => nrm(a).includes(nrm(qq)))) : null;
             const gridStyle = { display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 10 };
             const actLg = openLeague && leagues.indexOf(openLeague) >= 0 ? openLeague : leagues[0];
-            return React.createElement("div", { style: { position: "fixed", inset: 0, zIndex: 900, background: "rgba(6,10,20,.9)", display: "flex", alignItems: "flex-start", justifyContent: "center", padding: "max(3vh, calc(env(safe-area-inset-top) + 10px)) 14px max(3vh, env(safe-area-inset-bottom))", overflowY: "auto", overflowX: "hidden" }, onClick: close },
-                React.createElement("div", { style: { width: 940, maxWidth: "96vw", maxHeight: "92vh", display: "flex", flexDirection: "column", background: "linear-gradient(160deg,#1a212b,#141b24)", border: "1px solid rgba(0,255,106,.4)", borderRadius: 16, boxShadow: "0 24px 70px rgba(0,0,0,.6)", overflow: "hidden" }, onClick: (e) => e.stopPropagation() },
+            { /* Le FOND ne défile pas : seule la liste (plus bas) défile. Sans ça, l'élan du doigt
+                passait de la liste à l'overlay et emportait la modale entière hors de l'écran. */
+            }
+            return React.createElement("div", { style: { position: "fixed", inset: 0, zIndex: 900, background: "rgba(6,10,20,.9)", display: "flex", alignItems: "flex-start", justifyContent: "center", padding: "max(3vh, calc(env(safe-area-inset-top) + 10px)) 14px max(3vh, env(safe-area-inset-bottom))", overflow: "hidden", overscrollBehavior: "contain" }, onClick: close },
+                React.createElement("div", { style: { width: 940, maxWidth: "96vw", maxHeight: "100%", minHeight: 0, display: "flex", flexDirection: "column", background: "linear-gradient(160deg,#1a212b,#141b24)", border: "1px solid rgba(0,255,106,.4)", borderRadius: 16, boxShadow: "0 24px 70px rgba(0,0,0,.6)", overflow: "hidden" }, onClick: (e) => e.stopPropagation() },
                     React.createElement("div", { style: { flex: "none", padding: "16px 18px 2px" } },
                         React.createElement("div", { style: { display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 } },
                             React.createElement("div", { style: { fontFamily: "Raleway, sans-serif", fontSize: 19, fontWeight: 700, color: "#fff" } }, "Choisis ton club"),
@@ -18646,7 +18749,7 @@ function Home({ slots, onResume, onEnter, onRemove, onCommunity }) {
                             const a = lg === actLg;
                             return (React.createElement("button", { key: lg, type: "button", onClick: () => setOpenLeague(lg), style: { flex: "0 0 auto", background: a ? "linear-gradient(180deg,rgba(0,255,106,.92),rgba(0,196,82,.92))" : "none", border: "none", borderRadius: 9, color: a ? "#04120a" : "#8b9cbe", fontFamily: "Raleway,sans-serif", fontWeight: 800, fontSize: 12, letterSpacing: ".03em", textTransform: "uppercase", padding: "8px 13px", cursor: "pointer", whiteSpace: "nowrap" } }, lg));
                         })) : null),
-                    React.createElement("div", { style: { flex: 1, overflowY: "auto", overflowX: "hidden", padding: "12px 18px 20px", WebkitOverflowScrolling: "touch" } }, results ? (results.length ? React.createElement("div", { style: gridStyle }, results.map(card)) : React.createElement("div", { style: { color: "#8b9cbe", fontSize: 13, padding: 12 } }, "Aucun club trouv\u00E9")) : (React.createElement("div", { onTouchStart: (e) => { _pickSw.current = { x: e.touches[0].clientX, y: e.touches[0].clientY }; }, onTouchEnd: (e) => { const s = _pickSw.current; if (!s)
+                    React.createElement("div", { style: { flex: 1, minHeight: 0, overflowY: "auto", overflowX: "hidden", overscrollBehavior: "contain", padding: "12px 18px 20px", WebkitOverflowScrolling: "touch" } }, results ? (results.length ? React.createElement("div", { style: gridStyle }, results.map(card)) : React.createElement("div", { style: { color: "#8b9cbe", fontSize: 13, padding: 12 } }, "Aucun club trouv\u00E9")) : (React.createElement("div", { onTouchStart: (e) => { _pickSw.current = { x: e.touches[0].clientX, y: e.touches[0].clientY }; }, onTouchEnd: (e) => { const s = _pickSw.current; if (!s)
                             return; _pickSw.current = null; const t = e.changedTouches[0]; const dx = t.clientX - s.x, dy = t.clientY - s.y; if (Math.abs(dx) < 45 || Math.abs(dx) < Math.abs(dy) * 1.4)
                             return; const i = leagues.indexOf(actLg); if (dx < 0 && i < leagues.length - 1)
                             setOpenLeague(leagues[i + 1]);
