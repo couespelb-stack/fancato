@@ -1013,115 +1013,191 @@ function drawPitch(canvas, d) {
     }
     const cen = d.slots.map((s) => ({ cx: px + s.x / 100 * pw, cy: py + s.y / 100 * ph }));
     const pitchBot = py + ph - 8;
-    const limitYof = (i) => { let lim = pitchBot; for (let j = 0; j < cen.length; j++) {
-        if (j !== i && cen[j].cy > cen[i].cy + 30 && Math.abs(cen[j].cx - cen[i].cx) < pw * 0.17)
-            lim = Math.min(lim, cen[j].cy - 90);
-    } return lim; };
+    // ── Cartes de poste ─────────────────────────────────────────────────────────
+    // Chaque poste est une carte arrondie qui CONTIENT son rond, son titulaire et sa profondeur.
+    // Largeur, hauteur et rayon du rond sont calculés à partir des voisins : aucune carte n'en
+    // touche une autre, quelle que soit la composition (les slots viennent de FORMATIONS).
+    const GAP = 18, PADT = 16, PADB = 14, RMAX = 74, RMIN = 46, NAMEBLOCK = 46;
+    const halfW = cen.map((c, i) => {
+        let hw = pw * 0.145;
+        for (let j = 0; j < cen.length; j++) {
+            if (j === i)
+                continue;
+            const dx = Math.abs(cen[j].cx - c.cx), dy = Math.abs(cen[j].cy - c.cy);
+            if (dy < 170 && dx > 1)
+                hw = Math.min(hw, dx / 2 - GAP / 2); // voisin de la même rangée
+        }
+        return Math.max(RMIN + 10, hw);
+    });
+    // Rayons COUPLÉS : entre deux postes superposés, (rond du haut + nom) + (rond du bas) doivent
+    // tenir dans l'écart vertical. Compos serrées (4-4-2 losange, 3-5-2) → on rétrécit les deux ronds
+    // plutôt que de couper les noms. Résolution par relaxation.
+    const Rs = cen.map(() => RMAX), pairs = [];
+    for (let i = 0; i < cen.length; i++) {
+        for (let j = 0; j < cen.length; j++) {
+            if (j === i || cen[j].cy <= cen[i].cy + 40)
+                continue;
+            if (Math.abs(cen[j].cx - cen[i].cx) >= halfW[i] + halfW[j])
+                continue;
+            pairs.push({ i: i, j: j, budget: (cen[j].cy - cen[i].cy) - (NAMEBLOCK + PADB + PADT + GAP) });
+        }
+    }
+    for (let pass = 0; pass < 8; pass++) {
+        let moved = false;
+        for (let k = 0; k < pairs.length; k++) {
+            const pr = pairs[k], excess = (Rs[pr.i] + Rs[pr.j]) - pr.budget;
+            if (excess <= 0.5)
+                continue;
+            Rs[pr.i] = Math.max(RMIN, Rs[pr.i] - excess / 2);
+            Rs[pr.j] = Math.max(RMIN, Rs[pr.j] - excess / 2);
+            moved = true;
+        }
+        if (!moved)
+            break;
+    }
+    for (let i = 0; i < cen.length; i++)
+        Rs[i] = Math.max(RMIN, Math.min(Rs[i], (pitchBot - cen[i].cy) - (NAMEBLOCK + PADB)));
+    const topOf = (i) => cen[i].cy - Rs[i] - PADT;
+    const botLimit = cen.map((c, i) => {
+        let lim = pitchBot;
+        for (let j = 0; j < cen.length; j++) {
+            if (j === i)
+                continue;
+            if (cen[j].cy > c.cy + 40 && Math.abs(cen[j].cx - c.cx) < halfW[i] + halfW[j])
+                lim = Math.min(lim, topOf(j) - GAP);
+        }
+        return lim;
+    });
+    // Adapte une police pour qu'un texte tienne dans une largeur ; sinon coupe avec « … ».
+    const fitText = (txt, maxW, weight, size, min) => {
+        let fs = size;
+        ctx.font = weight + " " + fs + "px Raleway, Arial, sans-serif";
+        while (fs > min && ctx.measureText(txt).width > maxW) {
+            fs -= 1;
+            ctx.font = weight + " " + fs + "px Raleway, Arial, sans-serif";
+        }
+        let t = txt;
+        if (ctx.measureText(t).width > maxW) {
+            while (t.length > 1 && ctx.measureText(t + "…").width > maxW)
+                t = t.slice(0, -1);
+            t += "…";
+        }
+        return { txt: t, fs: fs };
+    };
     d.cols.forEach((col, idx) => {
         const slot = d.slots[idx], cx = cen[idx].cx, cy = cen[idx].cy;
         const p = col[0], rec = p && p.recrue, loanF = p && p.loanInF;
+        const R = Rs[idx], hw = halfW[idx], innerW = hw * 2 - 22;
+        const accent = rec ? "#ffd76b" : loanF ? "#5ec8e0" : (d.pcol[slot.pos] || "#fff");
+        const subs = col.slice(1);
+        const _snm = (pl) => surname(pl.name) + (d.captain && pl.id === d.captain ? " (C)" : "");
+        // 1) Textes : titulaire, puis la profondeur. Un remplaçant PAR LIGNE tant que ça rentre
+        //    (deux par ligne collaient des noms courts entre eux : « Lee / Sanches » se lisait « Lee Sanches »).
+        const nm = fitText(p ? surname(p.name) : "—", innerW, "700", Math.max(26, Math.round(R * 0.5)), 20);
+        const nameY = cy + R + 34;
+        let lines = [], step = 26;
+        if (subs.length) {
+            const room = botLimit[idx] - (nameY + 12) - PADB;
+            const mk = (per) => { const out = []; for (let k = 0; k < subs.length; k += per) {
+                const g = subs.slice(k, k + per);
+                out.push({ txt: g.map(_snm).join(" · "), rec: g.some((x) => x.recrue) });
+            } return out; };
+            let per = 1;
+            lines = mk(1);
+            while (lines.length * 24 > room && per < 3) {
+                per++;
+                lines = mk(per);
+            }
+            step = lines.length ? Math.max(20, Math.min(28, room / lines.length)) : 26;
+            const fs0 = Math.max(16, Math.min(24, Math.round(step - 4)));
+            lines.forEach((l) => { const f = fitText(l.txt, innerW, "400", fs0, 13); l.txt = f.txt; l.fs = f.fs; });
+        }
+        // 2) La carte, bornée par le voisin du dessous
+        const top = topOf(idx);
+        const needed = (nameY + 14) + (lines.length ? lines.length * step : 0) + PADB - top;
+        const cardH = Math.max(2 * R + PADT + 10, Math.min(needed, botLimit[idx] - top));
+        ctx.save();
+        ctx.fillStyle = rec ? "rgba(30,44,28,.60)" : "rgba(8,14,24,.52)";
+        rr(ctx, cx - hw, top, hw * 2, cardH, 20);
+        ctx.fill();
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = rec ? "rgba(255,215,107,.5)" : "rgba(255,255,255,.15)";
+        rr(ctx, cx - hw, top, hw * 2, cardH, 20);
+        ctx.stroke();
+        ctx.restore();
+        ctx.save();
+        rr(ctx, cx - hw, top, hw * 2, cardH, 20);
+        ctx.clip(); // rien ne sort de la carte
+        // 3) Le rond du joueur
         var pimg = (p && d.imgMap) ? d.imgMap[p.name] : null;
         ctx.beginPath();
-        ctx.arc(cx, cy, 74, 0, 7);
+        ctx.arc(cx, cy, R, 0, 7);
         ctx.fillStyle = rec ? "rgba(0,255,106,.6)" : "rgba(0,0,0,.45)";
         ctx.fill();
         if (pimg) {
             ctx.save();
             ctx.beginPath();
-            ctx.arc(cx, cy, 73, 0, 7);
+            ctx.arc(cx, cy, R - 1, 0, 7);
             ctx.closePath();
             ctx.clip();
             var padj = (typeof PHOTO_ADJ !== "undefined" && PHOTO_ADJ && PHOTO_ADJ[p.name]) ? PHOTO_ADJ[p.name] : null;
             var zoom = padj ? (padj.s || 1.3) : 1.3, frac = (padj && padj.cf != null) ? padj.cf : 0.28;
             var fracx = (padj && padj.cfx != null) ? padj.cfx : 0.5;
-            var sc = Math.max(152 / pimg.width, 152 / pimg.height) * zoom, dw = pimg.width * sc, dh = pimg.height * sc;
-            var R = 73;
-            fracx = Math.min(Math.max(fracx, R / dw), 1 - R / dw);
-            frac = Math.min(Math.max(frac, R / dh), 1 - R / dh);
+            var sc2 = Math.max(2 * R / pimg.width, 2 * R / pimg.height) * zoom, dw = pimg.width * sc2, dh = pimg.height * sc2;
+            fracx = Math.min(Math.max(fracx, (R - 1) / dw), 1 - (R - 1) / dw);
+            frac = Math.min(Math.max(frac, (R - 1) / dh), 1 - (R - 1) / dh);
             ctx.drawImage(pimg, cx - dw * fracx, cy - dh * frac, dw, dh);
             ctx.restore();
         }
         ctx.lineWidth = 6;
-        ctx.strokeStyle = rec ? "#ffd76b" : loanF ? "#5ec8e0" : (d.pcol[slot.pos] || "#fff");
+        ctx.strokeStyle = accent;
         ctx.beginPath();
-        ctx.arc(cx, cy, 74, 0, 7);
+        ctx.arc(cx, cy, R, 0, 7);
         ctx.stroke();
         if (!pimg) {
-            if (p && d.avatarImg) { // joueur SANS photo → avatar FANCATO par défaut
+            if (p && d.avatarImg) {
                 ctx.save();
                 ctx.beginPath();
-                ctx.arc(cx, cy, 73, 0, 7);
+                ctx.arc(cx, cy, R - 1, 0, 7);
                 ctx.closePath();
                 ctx.clip();
-                var av = d.avatarImg, asc = Math.max(152 / av.width, 152 / av.height) * 1.12, adw = av.width * asc, adh = av.height * asc;
+                var av = d.avatarImg, asc = Math.max(2 * R / av.width, 2 * R / av.height) * 1.12, adw = av.width * asc, adh = av.height * asc;
                 ctx.drawImage(av, cx - adw * 0.5, cy - adh * 0.42, adw, adh);
                 ctx.restore();
             }
             else {
                 ctx.textAlign = "center";
                 ctx.fillStyle = "#fff";
-                ctx.font = "600 42px Raleway, Arial, sans-serif";
-                ctx.fillText(slot.pos, cx, cy + 16);
+                ctx.font = "600 " + Math.round(R * 0.57) + "px Raleway, Arial, sans-serif";
+                ctx.fillText(slot.pos, cx, cy + R * 0.22);
             }
         }
         if (p && d.captain && p.id === d.captain) {
-            const bx = cx + 54, by = cy - 54;
+            const bx = cx + R * 0.73, by = cy - R * 0.73, br = Math.max(15, R * 0.27);
             ctx.beginPath();
-            ctx.arc(bx, by, 20, 0, 7);
+            ctx.arc(bx, by, br, 0, 7);
             ctx.fillStyle = "#00ff6a";
             ctx.fill();
             ctx.lineWidth = 3;
             ctx.strokeStyle = "#14213c";
             ctx.stroke();
             ctx.fillStyle = "#14213c";
-            ctx.font = "700 24px Raleway, Arial, sans-serif";
+            ctx.font = "700 " + Math.round(br * 1.2) + "px Raleway, Arial, sans-serif";
             ctx.textAlign = "center";
-            ctx.fillText("C", bx, by + 8);
+            ctx.fillText("C", bx, by + br * 0.4);
         }
+        // 4) Nom du titulaire, DANS la carte
         ctx.textAlign = "center";
-        const subs = col.slice(1);
-        const _snm = (pl) => surname(pl.name) + (d.captain && pl.id === d.captain ? " (C)" : "");
-        ctx.font = "600 37px Raleway, Arial, sans-serif";
+        ctx.font = "700 " + nm.fs + "px Raleway, Arial, sans-serif";
         ctx.fillStyle = rec ? "#ffd76b" : loanF ? "#5ec8e0" : "#fff";
-        ctx.fillText(p ? surname(p.name) : "—", cx, cy + 122);
-        if (subs.length) {
-            const mkLines = (per) => { const L = []; for (let k = 0; k < subs.length; k += per) {
-                const grp = subs.slice(k, k + per);
-                L.push({ txt: grp.map(_snm).join(" / "), rec: grp.some((x) => x.recrue) });
-            } return L; };
-            const top = cy + 152, limitY = limitYof(idx);
-            let lines = mkLines(2);
-            let step = lines.length > 1 ? Math.min(30, Math.max(17, (limitY - top) / (lines.length - 1))) : 30;
-            if (step < 20 && subs.length >= 3) {
-                lines = mkLines(3);
-                step = lines.length > 1 ? Math.min(30, Math.max(16, (limitY - top) / (lines.length - 1))) : 30;
-            }
-            let fs = Math.max(15, Math.min(25, Math.round(step - 4)));
-            // largeur max avant de chevaucher un slot voisin sur la même rangée (anti-collision horizontale des noms de profondeur, ex. les 2 milieux centraux)
-            let maxW = pw * 0.42;
-            for (let j = 0; j < cen.length; j++) {
-                if (j !== idx && Math.abs(cen[j].cy - cy) < 100) {
-                    const dx = Math.abs(cen[j].cx - cx);
-                    if (dx > 1)
-                        maxW = Math.min(maxW, dx - 28);
-                }
-            }
-            maxW = Math.max(90, maxW);
-            ctx.font = "400 " + fs + "px Raleway, Arial, sans-serif";
-            let widest = 0;
-            lines.forEach((l) => { widest = Math.max(widest, ctx.measureText(l.txt).width); });
-            if (widest > maxW) {
-                fs = Math.max(13, Math.floor(fs * maxW / widest));
-                ctx.font = "400 " + fs + "px Raleway, Arial, sans-serif";
-            } // réduit la police pour tenir
-            lines.forEach((l) => { if (ctx.measureText(l.txt).width > maxW) {
-                let t = l.txt;
-                while (t.length > 1 && ctx.measureText(t + "…").width > maxW)
-                    t = t.slice(0, -1);
-                l.txt = t + "…";
-            } }); // filet de sécurité : tronque si encore trop large
-            lines.forEach((l, j) => { ctx.fillStyle = l.rec ? "#ffd76b" : "rgba(255,255,255,.82)"; ctx.fillText(l.txt, cx, top + j * step); });
-        }
+        ctx.fillText(nm.txt, cx, nameY);
+        // 5) Profondeur, sous le nom, toujours dans la carte
+        lines.forEach((l, k) => {
+            ctx.font = "400 " + (l.fs || 18) + "px Raleway, Arial, sans-serif";
+            ctx.fillStyle = l.rec ? "#ffd76b" : "rgba(255,255,255,.82)";
+            ctx.fillText(l.txt, cx, nameY + 26 + k * step);
+        });
+        ctx.restore();
         ctx.textAlign = "left";
     });
     // Entraîneur · badge en bas à gauche du terrain
@@ -16503,7 +16579,7 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
         .tbar{display:flex;gap:8px;margin:2px 0 0;}
         .tbtn{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;background:rgba(255,255,255,.05);border:1px solid var(--line);color:#cdd8ee;border-radius:11px;padding:11px 8px;font-family:'Raleway';font-size:12.5px;font-weight:600;letter-spacing:.02em;cursor:pointer;text-transform:uppercase;transition:background .15s,border-color .15s,color .15s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-height:44px;}
         .tbtn.on{background:rgba(0,255,106,.15);border-color:#00ff6a;color:#00ff6a;}
-        .pslot{position:absolute;transform:translate(-50%,-38%);width:19%;height:16.5%;border-radius:12px;cursor:grab;z-index:2;touch-action:none;box-shadow:inset 0 0 0 1px rgba(255,255,255,.07);transition:background .15s,box-shadow .15s;-webkit-tap-highlight-color:transparent;}
+        .pslot{position:absolute;transform:translate(-50%,-38%);width:19%;height:16.5%;border-radius:14px;cursor:grab;z-index:2;touch-action:none;transition:background .15s,box-shadow .15s;-webkit-tap-highlight-color:transparent;}
         .pslot.droptgt{background:rgba(0,255,106,.18);box-shadow:inset 0 0 0 2.5px #00ff6a,0 0 26px 5px rgba(0,255,106,.55);z-index:5;}
         .pslot:active{cursor:grabbing;}
         .pslot:hover{background:rgba(255,255,255,.05);box-shadow:inset 0 0 0 1px rgba(255,255,255,.18);}
