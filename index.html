@@ -19294,37 +19294,176 @@ function StartModePicker({ clubId, onPick, onCancel }) {
 // Aujourd'hui : mercatos FICTIFS à seed stable + tes publications réelles (localStorage) + votes locaux. Backend réel plus tard.
 const COMM_AUTHORS = ["Alex_75", "MarcoDT", "LaLégende", "Sofia.OM", "TactiX", "El Profesor", "GegenPress", "Nina9", "UltraSud", "Zizou_06", "Le Tacticien", "KingKylian", "RiadhDS", "MilanoAC", "TribuneSud"];
 const COMM_LINES = ["Priorité à la jeunesse et aux plus-values.", "Du lourd offensivement, on vise l'Europe.", "Gestion prudente, on assainit les comptes.", "On mise sur les titis du club.", "Coups malins et joueurs libres.", "On garde l'ossature, quelques retouches ciblées."];
+// Revenus totaux d'un club (M€) — sert de base au budget mercato d'un profil fictif.
+function _revOf(clubId) {
+    const c = CLUBS[clubId];
+    if (!c || !Array.isArray(c.revenue))
+        return 120;
+    return c.revenue.reduce((s, g) => s + (g.lines || []).reduce((a, l) => a + (+l[2] || 0), 0), 0);
+}
+// Ligne de poste : on raisonne par secteur, pas par poste exact (un DC remplace un DC).
+function _line(pos) {
+    const p = String(pos || "").toUpperCase();
+    if (p.indexOf("G") === 0)
+        return "G";
+    if (p.indexOf("D") === 0 || p === "LAT" || p === "DC")
+        return "DEF";
+    if (p.indexOf("M") === 0 || p === "MDF" || p === "MO")
+        return "MIL";
+    return "ATT";
+}
+// Faux mercatos du 12ᵉ Homme — RÉALISTES : vrais joueurs, prix crédibles, budget tenu.
+//
+// Règles (dans l'ordre) :
+//  1. Budget = part des revenus du club, modulée par sa posture (doit vendre / riche en cash).
+//  2. Départs d'abord : on vend ce qui est vendable (transferables, joueurs âgés), JAMAIS un intouchable.
+//     Les ventes alimentent l'enveloppe → un club fauché doit vendre pour acheter.
+//  3. Arrivées ensuite : de VRAIS joueurs du vivier, à un poste où le club est réellement court,
+//     dans une gamme de prix crédible pour sa stature (pas de Mbappé au Havre), et l'addition
+//     ne dépasse JAMAIS l'enveloppe.
+//  4. La note découle de la cohérence du mercato (besoins comblés, comptes tenus), pas d'un tirage.
 function commMock(clubId, mode) {
-    const rnd = _lbRnd(_lbHash("comm|" + clubId + "|" + mode)), cl = (x, a, b) => Math.max(a, Math.min(b, x));
-    const pool = playerPool(clubId), squad = (CLUBS[clubId] && Array.isArray(CLUBS[clubId].squad)) ? CLUBS[clubId].squad : [];
-    const n = 4 + Math.floor(rnd() * 4), used = new Set(), rows = [];
-    for (let i = 0; i < n; i++) {
+    const cl = CLUBS[clubId];
+    if (!cl)
+        return [];
+    const squad = Array.isArray(cl.squad) ? cl.squad : [];
+    if (!squad.length)
+        return [];
+    const ctx = clubMercatoContext(clubId);
+    const rev = _revOf(clubId);
+    const pool = playerPool(clubId);
+    const star = squad.reduce((m, p) => Math.max(m, +p.mkt || 0), 0) || 20;
+    const untouch = ctx.untouchable || [], tlist = (ctx.transferList || []).concat(ctx.wantAway || []);
+    // Combien de joueurs par secteur : sert à repérer où le club est court.
+    const cnt = { G: 0, DEF: 0, MIL: 0, ATT: 0 };
+    squad.forEach((p) => { cnt[_line(p.pos)]++; });
+    const TARGET = { G: 3, DEF: 8, MIL: 7, ATT: 6 };
+    const needs = Object.keys(TARGET).filter((k) => cnt[k] < TARGET[k]);
+    const ageOf = (nm) => { const f = UEFA_FORM[nm]; return (f && f.by) ? (2026 - f.by) : 27; };
+    // Plafond d'un seul transfert : un club ne claque pas plus que ~35 % de ses revenus sur un joueur,
+    // et ne dépasse guère la valeur de son propre meilleur élément.
+    const maxFee = Math.max(4, Math.min(star * 1.4, rev * 0.35));
+    // Enveloppe de base, avant les ventes.
+    const purse0 = rev * (ctx.cashRich ? 0.30 : ctx.mustSell ? 0.06 : 0.16);
+    // « Plus sur le Jour J » : 6 profils sur le Jour J, 3 sur Coup d'envoi, 2 sur Vierge (≥ 10 par club).
+    const N = mode === 3 ? 6 : mode === 2 ? 3 : 2;
+    const rows = [], usedAuthor = new Set();
+    for (let i = 0; i < N; i++) {
+        const rnd = _lbRnd(_lbHash("comm2|" + clubId + "|" + mode + "|" + i));
         let a, g = 0;
         do {
             a = COMM_AUTHORS[Math.floor(rnd() * COMM_AUTHORS.length)];
             g++;
-        } while (used.has(a) && g < 40);
-        used.add(a);
-        const note = Math.round(cl(5.5 + (rnd() - 0.42) * 4.6, 3.2, 9.4) * 10) / 10;
-        const arrivals = [], departures = [];
-        for (let j = 0; j < 1 + Math.floor(rnd() * 3); j++) {
-            const p = pool[Math.floor(rnd() * pool.length)];
-            if (p && arrivals.indexOf(p.name) < 0)
-                arrivals.push(p.name);
+        } while (usedAuthor.has(a) && g < 60);
+        usedAuthor.add(a);
+        // --- 1) DÉPARTS : on vend ce qui est vendable ---
+        const sellable = squad.filter((p) => untouch.indexOf(p.name) < 0 && (+p.mkt || 0) > 0)
+            .map((p) => {
+            let sc = rnd() * 4.5; // part d'aléa : évite que le même joueur soit vendu dans TOUS les profils
+            if (tlist.indexOf(p.name) >= 0)
+                sc += 5; // annoncé partant
+            if (ageOf(p.name) >= 31)
+                sc += 2.5; // fin de cycle
+            if ((+p.mkt || 0) < star * 0.12)
+                sc += 1.2; // remplaçant
+            if (ctx.mustSell && (+p.mkt || 0) > star * 0.5)
+                sc += 3; // il FAUT une grosse vente
+            return { p: p, sc: sc };
+        }).sort((x, y) => y.sc - x.sc);
+        const nOut = 1 + Math.floor(rnd() * 3);
+        const departures = [], feesOut = {};
+        let earn = 0;
+        for (let k = 0; k < sellable.length && departures.length < nOut; k++) {
+            const p = sellable[k].p;
+            const price = Math.round((+p.mkt || 0) * (0.85 + rnd() * 0.35));
+            if (price <= 0)
+                continue;
+            departures.push(p.name);
+            feesOut[p.name] = price;
+            earn += price;
         }
-        for (let j = 0; j < 1 + Math.floor(rnd() * 3); j++) {
-            const p = squad[Math.floor(rnd() * squad.length)];
-            if (p && departures.indexOf(p.name) < 0)
-                departures.push(p.name);
+        // --- 2) ARRIVÉES : vrais joueurs, poste utile, prix tenable ---
+        let purse = purse0 + earn;
+        const wanted = needs.length ? needs : ["ATT", "MIL", "DEF"];
+        const cands = pool.filter((p) => {
+            const mk = +p.mkt || 0;
+            if (mk <= 0 || mk > maxFee)
+                return false;
+            if (mk < star * 0.10)
+                return false; // pas d'inconnu pour un gros club
+            return wanted.indexOf(_line(p.pos)) >= 0;
+        }).sort((x, y) => (+y.mkt || 0) - (+x.mkt || 0));
+        if (!cands.length)
+            continue;
+        const nIn = 1 + Math.floor(rnd() * 3);
+        const arrivals = [], feesIn = {};
+        let spend = 0, tries = 0;
+        // Un club RICHE vise le haut de la gamme qu'il peut s'offrir (le PSG ne signe pas 3 joueurs à 8 M€
+        // quand il a 200 M€ à dépenser) ; un club modeste pioche plus bas. `cands` est trié du + cher au - cher :
+        // on tire l'indice avec une loi de puissance dont l'exposant dépend des moyens du club.
+        while (arrivals.length < nIn && tries < 120) {
+            tries++;
+            const left = purse - spend;
+            const afford = cands.filter((c) => (c.clause > 0 ? c.clause : (+c.mkt || 0) * 0.9) <= left && arrivals.indexOf(c.name) < 0);
+            if (!afford.length)
+                break;
+            // ambition = ce que le club peut encore mettre, rapporté au meilleur joueur accessible
+            const best = +afford[0].mkt || 1;
+            const ambition = Math.max(0.05, Math.min(1, left / (best * 1.15)));
+            // cands est trié du + cher au - cher : Math.pow(rnd(), expo) tend vers 0 quand expo grandit,
+            // donc un expo ÉLEVÉ tire les premiers indices = les joueurs les plus chers.
+            const expo = 1 + 5 * ambition;
+            const p = afford[Math.floor(Math.pow(rnd(), expo) * afford.length)];
+            if (!p)
+                continue;
+            const fee = Math.round(p.clause > 0 ? p.clause : (+p.mkt || 0) * (0.9 + rnd() * 0.45));
+            if (fee <= 0 || spend + fee > purse)
+                continue; // l'enveloppe doit tenir
+            arrivals.push(p.name);
+            feesIn[p.name] = fee;
+            spend += fee;
         }
-        const bulletin = [["⚽", "Sportif"], ["💰", "Financier"], ["🧠", "Malin"], ["❤️", "Fans"]].map(([emo, lab]) => { const an = Math.round(cl(note + (rnd() - 0.5) * 3, 1, 10) * 10) / 10; return { emo, lab, n: an, g: lbGrade(an) }; });
-        const bp = [["👑", "Mercato de patron"], ["💰", "Vendeur malin"], ["🌟", "Coup de génie"], ["🏠", "Enfant du club"], ["👶", "Bâtisseur d'avenir"], ["🎣", "Dénicheur"], ["❤️", "Chouchou des tribunes"]], badges = [];
-        for (let b = 0, nb = note >= 7 ? 1 + Math.floor(rnd() * 2) : Math.floor(rnd() * 2); b < nb; b++) {
-            const d = bp[Math.floor(rnd() * bp.length)];
-            if (!badges.find((x) => x.lab === d[1]))
-                badges.push({ emo: d[0], lab: d[1] });
-        }
-        rows.push({ id: "k_" + clubId + "_" + mode + "_" + i, club: clubId, mode, author: a, note, grade: lbGrade(note), votes: Math.floor(rnd() * 180) + 3, arrivals, departures, line: COMM_LINES[Math.floor(rnd() * COMM_LINES.length)], bulletin, badges, mock: true });
+        if (!arrivals.length)
+            continue;
+        // --- 3) NOTE : cohérence, pas hasard ---
+        const covered = arrivals.filter((nm) => {
+            const p = pool.find((x) => x.name === nm);
+            return p && wanted.indexOf(_line(p.pos)) >= 0;
+        }).length;
+        const balance = earn - spend;
+        let note = 5.4;
+        note += Math.min(2.2, covered * 0.75); // besoins comblés
+        note += balance >= 0 ? 1.1 : Math.max(-1.8, balance / Math.max(20, purse0) * 2);
+        if (ctx.mustSell && balance > 0)
+            note += 0.8; // il fallait assainir : c'est fait
+        if (spend > purse0 * 1.6 && earn < spend * 0.5)
+            note -= 1.2; // fuite en avant
+        note += (rnd() - 0.5) * 1.2; // part d'appréciation
+        note = Math.round(Math.max(3.2, Math.min(9.4, note)) * 10) / 10;
+        const bulletin = [["⚽", "Sportif", covered * 1.6 + 4.6], ["💰", "Financier", balance >= 0 ? 7.6 : 4.4],
+            ["🧠", "Malin", note], ["❤️", "Fans", spend > earn ? 7.4 : 5.2]]
+            .map((b) => ({ e: b[0], k: b[1], n: Math.round(Math.max(1, Math.min(10, b[2] + (rnd() - 0.5) * 1.6)) * 10) / 10 }));
+        const badges = [];
+        if (balance > purse0 * 0.5)
+            badges.push({ e: "💰", lab: "Vendeur malin" });
+        if (spend > rev * 0.25)
+            badges.push({ e: "👑", lab: "Mercato de patron" });
+        if (covered >= 2)
+            badges.push({ e: "🎣", lab: "Dénicheur" });
+        if (note >= 8.2)
+            badges.push({ e: "🌟", lab: "Coup de génie" });
+        // La phrase colle au mercato réellement fait.
+        const line = ctx.mustSell && balance > 0 ? "Gestion prudente, on assainit les comptes."
+            : spend > rev * 0.25 ? "Du lourd, on vise l'Europe."
+                : covered >= 2 ? "On bouche les trous, poste par poste."
+                    : COMM_LINES[Math.floor(rnd() * COMM_LINES.length)];
+        rows.push({
+            id: "k_" + clubId + "_" + mode + "_" + i, club: clubId, mode: mode, author: a,
+            note: note, grade: lbGrade(note), votes: Math.floor(rnd() * 180) + 3,
+            arrivals: arrivals, departures: departures, feesIn: feesIn, feesOut: feesOut,
+            spend: Math.round(spend), earn: Math.round(earn), balance: Math.round(earn - spend),
+            line: line, bulletin: bulletin, badges: badges,
+        });
     }
     return rows;
 }
@@ -19372,10 +19511,10 @@ function commInspire(fiche) {
     if (!club)
         return;
     const pool = playerPool(fiche.club), squad = Array.isArray(club.squad) ? club.squad : [];
-    const recruits = (fiche.arrivals || []).map((nm, i) => { const p = pool.find((x) => x.name === nm) || {}; return { id: 90000 + i, name: nm, pos: p.pos || "MC", kind: "transfer", fee: Math.round(+p.mkt || 10), yrs: 5, sal: +p.sal || 2, loanFee: 0, buyFee: 0, locked: false, moveDate: "" }; });
+    const recruits = (fiche.arrivals || []).map((nm, i) => { const p = pool.find((x) => x.name === nm) || {}; return { id: 90000 + i, name: nm, pos: p.pos || "MC", kind: "transfer", fee: Math.round(((fiche.feesIn || {})[nm]) || +p.mkt || 10), yrs: 5, sal: +p.sal || 2, loanFee: 0, buyFee: 0, locked: false, moveDate: "" }; });
     const playersOv = {};
     (fiche.departures || []).forEach((nm) => { const sp = squad.find((x) => x.name === nm); if (sp)
-        playersOv[sp.id] = { status: "sold", price: Math.round(+sp.mkt || +sp.book || 0) }; });
+        playersOv[sp.id] = { status: "sold", price: Math.round(((fiche.feesOut || {})[nm]) || +sp.mkt || +sp.book || 0) }; });
     try {
         const key = "sm_scn_" + fiche.club, prev = JSON.parse(localStorage.getItem(key) || "{}");
         localStorage.setItem(key, JSON.stringify({ ...prev, startMode: fiche.mode, recruits, playersOv, inspiredFrom: fiche.author }));
@@ -19477,6 +19616,11 @@ function Community({ onClose, onPlay, embedded, homeClub, active }) {
                         "\u00AB ",
                         fiche.line,
                         " \u00BB"),
+                    (fiche.spend != null || fiche.earn != null) ? React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(3,minmax(0,1fr))", gap: 6, marginBottom: 12 } }, [["Dépensé", fiche.spend || 0, "#ff96a6"], ["Encaissé", fiche.earn || 0, "#00ff6a"], ["Solde", fiche.balance || 0, (fiche.balance || 0) >= 0 ? "#00ff6a" : "#ff96a6"]].map((b, i) => (React.createElement("div", { key: i, style: { background: "rgba(255,255,255,.05)", border: "1px solid rgba(255,255,255,.1)", borderRadius: 10, padding: "7px 9px", textAlign: "center" } },
+                        React.createElement("div", { style: { fontSize: 10, textTransform: "uppercase", letterSpacing: ".06em", color: "#8b9cbe" } }, b[0]),
+                        React.createElement("div", { style: { fontWeight: 800, fontSize: 15, color: b[2] } },
+                            (b[1] > 0 && i === 2 ? "+" : "") + b[1],
+                            " M\u20AC"))))) : null,
                     fiche.bulletin && fiche.bulletin.length ? React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(" + fiche.bulletin.length + ",1fr)", gap: 6, marginBottom: 12 } }, fiche.bulletin.map((ax, i) => {
                         const c = ax.n >= 7 ? "#00ff6a" : ax.n >= 5.5 ? "#9ad0ff" : ax.n >= 4 ? "#ffd76b" : "#ff96a6";
                         return (React.createElement("div", { key: i, title: ax.lab + " : " + ax.n.toFixed(1) + "/10", style: { background: "rgba(255,255,255,.04)", border: "1px solid rgba(255,255,255,.09)", borderRadius: 9, padding: "7px 4px 6px", textAlign: "center", cursor: "help" } },
@@ -19493,12 +19637,20 @@ function Community({ onClose, onPlay, embedded, homeClub, active }) {
                             React.createElement("div", { style: { fontSize: 11, textTransform: "uppercase", letterSpacing: ".06em", color: "#00ff6a", marginBottom: 5 } }, "Arriv\u00E9es"),
                             (fiche.arrivals || []).length ? fiche.arrivals.map((n, i) => React.createElement("div", { key: i, style: { fontSize: 13, color: "#dfe7f5", padding: "2px 0" } },
                                 React.createElement(Icon, { name: "plus", size: 11, style: { verticalAlign: "-1px", marginRight: 3 } }),
-                                n)) : React.createElement("div", { style: { fontSize: 12.5, color: "#6b7d9c" } }, "aucune")),
+                                n,
+                                (fiche.feesIn && fiche.feesIn[n]) ? React.createElement("span", { style: { color: "#8fa3c4", fontSize: 12 } },
+                                    " \u00B7 ",
+                                    fiche.feesIn[n],
+                                    " M\u20AC") : null)) : React.createElement("div", { style: { fontSize: 12.5, color: "#6b7d9c" } }, "aucune")),
                         React.createElement("div", null,
                             React.createElement("div", { style: { fontSize: 11, textTransform: "uppercase", letterSpacing: ".06em", color: "#ff96a6", marginBottom: 5 } }, "D\u00E9parts"),
                             (fiche.departures || []).length ? fiche.departures.map((n, i) => React.createElement("div", { key: i, style: { fontSize: 13, color: "#dfe7f5", padding: "2px 0" } },
                                 React.createElement(Icon, { name: "minus", size: 11, style: { verticalAlign: "-1px", marginRight: 3 } }),
-                                n)) : React.createElement("div", { style: { fontSize: 12.5, color: "#6b7d9c" } }, "aucun"))),
+                                n,
+                                (fiche.feesOut && fiche.feesOut[n]) ? React.createElement("span", { style: { color: "#8fa3c4", fontSize: 12 } },
+                                    " \u00B7 ",
+                                    fiche.feesOut[n],
+                                    " M\u20AC") : null)) : React.createElement("div", { style: { fontSize: 12.5, color: "#6b7d9c" } }, "aucun"))),
                     React.createElement("div", { style: { display: "flex", gap: 8, marginTop: 16 } },
                         React.createElement("button", { onClick: () => { commToggleFav(fiche); force((x) => x + 1); }, title: commIsFav(fiche.id) ? "Retirer des favoris" : "Mettre en favori", style: { flex: "none", width: 48, background: commIsFav(fiche.id) ? "rgba(0,255,106,.2)" : "rgba(255,255,255,.05)", border: "1px solid " + (commIsFav(fiche.id) ? "#00ff6a" : "rgba(255,255,255,.16)"), color: commIsFav(fiche.id) ? "#00ff6a" : "#9fb0d0", borderRadius: 11, padding: "11px 0", fontSize: 18, cursor: "pointer" } },
                             React.createElement(Icon, { name: "bookmark", size: 18 })),
