@@ -13,6 +13,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png" />
 <link rel="manifest" href="manifest.webmanifest" />
 <title>FANCATO — Le mercato imaginé par les fans</title>
+
 <style>
   html,body{margin:0;padding:0;background:#0c1118;-webkit-text-size-adjust:100%;}
   #boot{color:#e6e6e6;font-family:'Raleway',system-ui,sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;font-size:14px;letter-spacing:.02em;}
@@ -657,6 +658,28 @@ const ADS = (function () {
         rewardReady: function () { return _sdk(); }
     };
 })();
+// Bannière publicitaire. Rend RIEN tant que l'identifiant AdSense n'est pas configuré
+// (ads.config.json → build.py pose window.__AD_CLIENT). Jamais collante, jamais dans le
+// cœur du jeu (Budget / Mercato / Terrain) : uniquement accueil et 12ᵉ Homme.
+function AdBanner({ slot }) {
+    const ref = useRef(null);
+    const client = (typeof window !== "undefined" && window.__AD_CLIENT) ? window.__AD_CLIENT : "";
+    const sl = slot || "";
+    useEffect(() => {
+        if (!client || !sl || !ref.current)
+            return;
+        try {
+            (window.adsbygoogle = window.adsbygoogle || []).push({});
+        }
+        catch (e) { }
+    }, [client, sl]);
+    if (!client || !sl)
+        return null; // pub éteinte → aucun espace réservé, aucun trou dans l'écran
+    return (React.createElement("div", { style: { margin: "14px 0", minHeight: 90, overflow: "hidden", borderRadius: 12 } },
+        React.createElement("ins", { ref: ref, className: "adsbygoogle", style: { display: "block" }, "data-ad-client": client, "data-ad-slot": sl, "data-ad-format": "auto", "data-full-width-responsive": "true" })));
+}
+const AD_SLOT_HOME = () => (typeof window !== "undefined" && window.__AD_SLOT_HOME) ? window.__AD_SLOT_HOME : "";
+const AD_SLOT_FEED = () => (typeof window !== "undefined" && window.__AD_SLOT_FEED) ? window.__AD_SLOT_FEED : "";
 function rr(ctx, x, y, w, h, r) {
     ctx.beginPath();
     ctx.moveTo(x + r, y);
@@ -18798,6 +18821,8 @@ function Home({ slots, onResume, onEnter, onRemove, onCommunity }) {
                 React.createElement("button", { onClick: () => setParamsOpen(true), style: { display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 6, background: "rgba(255,255,255,.04)", border: "1px solid rgba(255,255,255,.12)", color: "#cdd8ee", borderRadius: 14, padding: "16px 10px", cursor: "pointer", fontFamily: "Raleway,sans-serif" } },
                     React.createElement(Icon, { name: "sliders", size: 24 }),
                     React.createElement("span", { style: { fontWeight: 800, fontSize: 12.5, letterSpacing: ".04em", textTransform: "uppercase" } }, "Param\u00E8tres")))),
+        React.createElement("div", { style: { width: "100%", maxWidth: 620, margin: "0 auto" } },
+            React.createElement(AdBanner, { slot: AD_SLOT_HOME() })),
         paramsOpen && React.createElement(SettingsPage, { onClose: () => setParamsOpen(false), onCommunity: onCommunity, slotCount: slotClubs.length }),
         trophyOpen && React.createElement(TrophyRoom, { onClose: () => setTrophyOpen(false) }),
         pick !== null && (() => {
@@ -19598,6 +19623,8 @@ function commInspire(fiche) {
     catch (e) { }
 }
 function Community({ onClose, onPlay, embedded, homeClub, active }) {
+    // Pub autorisée seulement quand cet écran est VISIBLE (en plein écran, ou onglet actif dans le jeu).
+    const adOn = embedded ? !!active : true;
     const [club, setClub] = useState(embedded ? (homeClub || null) : null);
     const [mode, setMode] = useState(3);
     const [fiche, setFiche] = useState(null);
@@ -19755,19 +19782,21 @@ function Community({ onClose, onPlay, embedded, homeClub, active }) {
                         return; const arr = [3, 2, 1], i = arr.indexOf(mode); if (dx < 0 && i < 2)
                         setMode(arr[i + 1]);
                     else if (dx > 0 && i > 0)
-                        setMode(arr[i - 1]); } }, list.map((m) => React.createElement("div", { key: m.id, onClick: () => setFiche(m), style: { display: "flex", alignItems: "center", gap: 12, background: m.mine ? "rgba(0,255,106,.09)" : "rgba(255,255,255,.04)", border: "1px solid " + (m.mine ? "rgba(0,255,106,.4)" : "rgba(255,255,255,.09)"), borderRadius: 13, padding: "11px 13px", cursor: "pointer" } },
-                    React.createElement("div", { style: { textAlign: "center", flex: "none", width: 42 } },
-                        React.createElement("div", { style: { fontFamily: "Raleway, sans-serif", fontWeight: 800, fontSize: 24, color: gc(m.note) } }, m.grade)),
-                    React.createElement("div", { style: { flex: 1, minWidth: 0 } },
-                        React.createElement("div", { style: { fontWeight: 700, fontSize: 14 } }, m.mine ? "★ Toi" : m.author),
-                        React.createElement("div", { style: { fontSize: 11.5, color: "#9fb0d0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" } },
-                            (m.arrivals || []).slice(0, 2).map((n) => "+ " + surname(n)).join(" "),
-                            " ",
-                            (m.departures || []).slice(0, 1).map((n) => "− " + surname(n)).join(" "))),
-                    React.createElement("div", { style: { textAlign: "center", flex: "none" } },
-                        React.createElement("div", { style: { fontWeight: 700, fontSize: 14, color: votes[m.id] ? "#00ff6a" : "#cdd8ee" } },
-                            React.createElement(Icon, { name: "thumb", size: 12, style: { marginRight: 3, verticalAlign: "-1px" } }),
-                            vCount(m))))))));
+                        setMode(arr[i - 1]); } },
+                    list.map((m, mi) => [React.createElement("div", { key: m.id, onClick: () => setFiche(m), style: { display: "flex", alignItems: "center", gap: 12, background: m.mine ? "rgba(0,255,106,.09)" : "rgba(255,255,255,.04)", border: "1px solid " + (m.mine ? "rgba(0,255,106,.4)" : "rgba(255,255,255,.09)"), borderRadius: 13, padding: "11px 13px", cursor: "pointer" } },
+                            React.createElement("div", { style: { textAlign: "center", flex: "none", width: 42 } },
+                                React.createElement("div", { style: { fontFamily: "Raleway, sans-serif", fontWeight: 800, fontSize: 24, color: gc(m.note) } }, m.grade)),
+                            React.createElement("div", { style: { flex: 1, minWidth: 0 } },
+                                React.createElement("div", { style: { fontWeight: 700, fontSize: 14 } }, m.mine ? "★ Toi" : m.author),
+                                React.createElement("div", { style: { fontSize: 11.5, color: "#9fb0d0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" } },
+                                    (m.arrivals || []).slice(0, 2).map((n) => "+ " + surname(n)).join(" "),
+                                    " ",
+                                    (m.departures || []).slice(0, 1).map((n) => "− " + surname(n)).join(" "))),
+                            React.createElement("div", { style: { textAlign: "center", flex: "none" } },
+                                React.createElement("div", { style: { fontWeight: 700, fontSize: 14, color: votes[m.id] ? "#00ff6a" : "#cdd8ee" } },
+                                    React.createElement(Icon, { name: "thumb", size: 12, style: { marginRight: 3, verticalAlign: "-1px" } }),
+                                    vCount(m)))), ((mi + 1) % 7 === 0 && mi < list.length - 1 && adOn) ? React.createElement(AdBanner, { key: "ad" + mi, slot: AD_SLOT_FEED() }) : null]),
+                    adOn && list.length >= 3 && list.length < 7 ? React.createElement(AdBanner, { slot: AD_SLOT_FEED() }) : null)));
     }
     // --- Grille des clubs, GROUPÉE PAR LIGUE (plus rapide à retrouver un club) ---
     const LEAGUE_ORDER = ["Ligue 1", "Premier League", "LaLiga", "Serie A", "Bundesliga"];
