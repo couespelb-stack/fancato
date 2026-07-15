@@ -27,6 +27,8 @@
 </script>
 <style>
   html,body{margin:0;padding:0;background:#0c1118;-webkit-text-size-adjust:100%;}
+  /* Accessibilite clavier GLOBALE (present des le splash, avant meme le chargement du jeu). */
+  a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,[tabindex]:focus-visible{outline:3px solid #00ff6a;outline-offset:2px;border-radius:6px;}
   #boot{color:#e6e6e6;font-family:'Raleway',system-ui,sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;font-size:14px;letter-spacing:.02em;}
   #boot .wm{font-size:34px;font-weight:900;font-style:italic;letter-spacing:.01em;}
   #boot .wm i{color:#fff;font-style:inherit;}#boot .wm b{color:#00ff6a;font-style:inherit;}
@@ -1336,7 +1338,7 @@ function InfoDot({ title, what, why, how, impact }) {
             lines.push({ h: "Concrètement : ", t: impact });
         setExplain({ title: title || "", kind: "info", lines });
     };
-    return React.createElement("button", { className: "idot", onClick: open, title: "L'adjoint t'explique" }, "i");
+    return React.createElement("button", { className: "idot", onClick: open, title: "L'adjoint t'explique", "aria-label": "Explication de l'adjoint" }, "i");
 }
 // Salaire d'une recrue : au clic, l'adjoint explique d'où vient le chiffre.
 // mode="kept" → on a gardé son salaire d'avant (nouveau salaire non communiqué) ;
@@ -15708,6 +15710,11 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
             React.createElement("style", null, `
         @import url('https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,700;1,800;1,900&family=Inter:wght@400;500;600&display=swap');
         *{box-sizing:border-box;}
+        /* Accessibilité clavier : anneau de focus net et visible sur tout élément interactif au clavier
+           (n'apparaît PAS au clic souris/tactile grâce à :focus-visible → aucune gêne visuelle en usage normal). */
+        a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
+          outline: 3px solid #00ff6a; outline-offset: 2px; border-radius: 6px;
+        }
         .wrap{--navy:#111a26;--navy2:#0c1118;--red:#e30613;--gold:#00ff6a;--green:#00ff6a;--new:#7b3dff;--loan:#5ec8e0;
           --rose:#ff5b78;--line:rgba(255,255,255,.1);font-family:'Raleway',system-ui,sans-serif;
           background:radial-gradient(900px 460px at 50% -6%, rgba(0,255,106,.06), rgba(0,255,106,0) 62%),var(--navy2);color:#fff;min-height:100%;padding:calc(16px + env(safe-area-inset-top)) calc(16px + env(safe-area-inset-right)) 16px calc(16px + env(safe-area-inset-left));max-width:780px;margin:0 auto;}
@@ -16580,7 +16587,7 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
                                         list.length,
                                         " joueur",
                                         list.length > 1 ? "s" : ""),
-                                    React.createElement("button", { type: "button", className: "ppop-x", onClick: () => setPitchPop(null) }, "\u2715")),
+                                    React.createElement("button", { type: "button", className: "ppop-x", "aria-label": "Fermer", onClick: () => setPitchPop(null) }, "\u2715")),
                                 React.createElement("div", { className: "ppop-list" },
                                     list.map((p, ix) => {
                                         const isStarter = ix === 0;
@@ -17937,7 +17944,7 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
             const pct = mkt > 0 ? Math.round(price / mkt * 100) : null;
             const pcol = (POSITIONS.find((x) => x[0] === p.pos) || [])[2] || "#26324d";
             return (React.createElement("div", { className: "sellmodal-scrim", onClick: () => setSellModal(null) },
-                React.createElement("div", { className: "sellmodal", onClick: (e) => e.stopPropagation() },
+                React.createElement("div", { className: "sellmodal", role: "dialog", "aria-modal": "true", "aria-label": "Vendre un joueur", onClick: (e) => e.stopPropagation() },
                     React.createElement("div", { className: "sellmodal-head" },
                         React.createElement(PlayerPhoto, { club: clubId, name: p.name, color: pcol }),
                         React.createElement("div", { style: { minWidth: 0, flex: 1 } },
@@ -18038,7 +18045,7 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
             const buyFee = Math.max(0, +loanDraft.buyFee || 0);
             const pcol = (POSITIONS.find((x) => x[0] === p.pos) || [])[2] || "#26324d";
             return (React.createElement("div", { className: "sellmodal-scrim", onClick: () => setLoanModal(null) },
-                React.createElement("div", { className: "sellmodal", onClick: (e) => e.stopPropagation() },
+                React.createElement("div", { className: "sellmodal", role: "dialog", "aria-modal": "true", "aria-label": "Pr\u00EAter un joueur", onClick: (e) => e.stopPropagation() },
                     React.createElement("div", { className: "sellmodal-head" },
                         React.createElement(PlayerPhoto, { club: clubId, name: p.name, color: pcol }),
                         React.createElement("div", { style: { minWidth: 0, flex: 1 } },
@@ -18450,7 +18457,7 @@ function Home({ slots, onResume, onEnter, onRemove, onCommunity }) {
                 passait de la liste à l'overlay et emportait la modale entière hors de l'écran. */
             }
             return React.createElement("div", { style: { position: "fixed", inset: 0, zIndex: 900, background: "rgba(6,10,20,.9)", display: "flex", alignItems: "flex-start", justifyContent: "center", padding: "max(3vh, calc(env(safe-area-inset-top) + 10px)) 14px max(3vh, env(safe-area-inset-bottom))", overflow: "hidden", overscrollBehavior: "contain" }, onClick: close },
-                React.createElement("div", { style: { width: 940, maxWidth: "96vw", maxHeight: "100%", minHeight: 0, display: "flex", flexDirection: "column", background: "linear-gradient(160deg,#1a212b,#141b24)", border: "1px solid rgba(0,255,106,.4)", borderRadius: 16, boxShadow: "0 24px 70px rgba(0,0,0,.6)", overflow: "hidden" }, onClick: (e) => e.stopPropagation() },
+                React.createElement("div", { style: { width: 940, maxWidth: "96vw", maxHeight: "100%", minHeight: 0, display: "flex", flexDirection: "column", background: "linear-gradient(160deg,#1a212b,#141b24)", border: "1px solid rgba(0,255,106,.4)", borderRadius: 16, boxShadow: "0 24px 70px rgba(0,0,0,.6)", overflow: "hidden" }, role: "dialog", "aria-modal": "true", "aria-label": "Choisis ton club", onClick: (e) => e.stopPropagation() },
                     React.createElement("div", { style: { flex: "none", padding: "16px 18px 2px" } },
                         React.createElement("div", { style: { display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 } },
                             React.createElement("div", { style: { fontFamily: "Raleway, sans-serif", fontSize: 19, fontWeight: 700, color: "#fff" } }, "Choisis ton club"),
@@ -18497,7 +18504,7 @@ function Assistant({ tips, tab, explain, onCloseExplain }) {
                 React.createElement("span", { className: "adj-av" },
                     React.createElement(Icon, { name: "adjoint", size: 24 })),
                 React.createElement("span", { className: "adj-nm" }, "Ton adjoint t'explique"),
-                React.createElement("button", { className: "adj-min", onClick: onCloseExplain, title: "Fermer (\u00C9chap)" }, "\u00D7")),
+                React.createElement("button", { className: "adj-min", "aria-label": "R\u00E9duire l'adjoint", onClick: onCloseExplain, title: "Fermer (\u00C9chap)" }, "\u00D7")),
             React.createElement("div", { className: "adj-tip", style: { borderLeftColor: kc } },
                 explain.title ? React.createElement("b", { style: { display: "block", color: "#eaf0fb", marginBottom: 5, fontSize: 13.5 } },
                     explain.title,
@@ -18529,7 +18536,7 @@ function Assistant({ tips, tab, explain, onCloseExplain }) {
             React.createElement("span", { className: "adj-av" },
                 React.createElement(Icon, { name: "adjoint", size: 24 })),
             React.createElement("span", { className: "adj-nm" }, "Ton adjoint"),
-            React.createElement("button", { className: "adj-min", onClick: () => setMinP(true), title: "R\u00E9duire" }, "\u2013")),
+            React.createElement("button", { className: "adj-min", "aria-label": "R\u00E9duire l'adjoint", onClick: () => setMinP(true), title: "R\u00E9duire" }, "\u2013")),
         React.createElement("div", { className: "adj-tip", style: { borderLeftColor: col } }, t.txt),
         list.length > 1 ? React.createElement("div", { className: "adj-nav" },
             React.createElement("button", { onClick: () => setI(idx - 1) }, "\u2039"),
@@ -18619,13 +18626,13 @@ function Onboarding({ club, setTab }) {
     return (React.createElement("div", { className: "ob-ov", onClick: done, style: { "--acc": acc, "--prim": prim } },
         React.createElement("style", null, OB_CSS),
         React.createElement("div", { className: "ob-glow" }),
-        React.createElement("div", { className: "ob-card", onClick: (e) => e.stopPropagation() },
+        React.createElement("div", { className: "ob-card", role: "dialog", "aria-modal": "true", "aria-label": "Bienvenue \u2014 passation", onClick: (e) => e.stopPropagation() },
             React.createElement("div", { className: "ob-sweep", key: "sw" + step }),
             last ? React.createElement("div", { className: "ob-burst", key: "bu" + step },
                 React.createElement("i", null),
                 React.createElement("i", null),
                 React.createElement("i", null)) : null,
-            React.createElement("button", { onClick: done, title: "Fermer (\u00C9chap)", className: "ob-x" }, "\u00D7"),
+            React.createElement("button", { onClick: done, title: "Fermer (\u00C9chap)", className: "ob-x", "aria-label": "Fermer" }, "\u00D7"),
             React.createElement("div", { className: "ob-hero", key: "h" + step }, s.hero === "crest"
                 ? React.createElement("span", { className: "ob-crest" },
                     React.createElement("span", { className: "ob-ring" }),
