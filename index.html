@@ -16794,6 +16794,10 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
         .se-tr-val{font-family:Raleway,sans-serif;font-weight:800;font-size:13px;flex:none;text-align:right;}
         .se-dir{font-size:9.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;border-radius:20px;padding:1px 7px;margin-left:6px;}
         .se-glow{position:absolute;top:-30px;left:50%;width:260px;height:260px;transform:translateX(-50%);pointer-events:none;background:radial-gradient(circle,rgba(0,255,106,.16),transparent 68%);}
+        /* Pluie de confettis sur une bonne note — le moment qui claque. */
+        @keyframes seConf{0%{opacity:0;transform:translateY(-14px) rotate(0);}12%{opacity:1;}100%{opacity:0;transform:translateY(360px) rotate(720deg);}}
+        .se-conf{position:absolute;top:-4px;left:0;right:0;height:0;pointer-events:none;z-index:4;overflow:visible;}
+        .se-conf i{position:absolute;top:-14px;width:8px;height:13px;border-radius:2px;animation:seConf 1.9s ease-in forwards;}
         .se-hero-img{width:100%;border-radius:13px;border:1px solid rgba(255,255,255,.12);display:block;animation:smPopIn .5s var(--ease) both;}
         .se-cont{width:100%;background:#00ff6a;color:#062a13;border:none;border-radius:12px;padding:13px;font-family:Raleway,sans-serif;font-weight:800;font-size:15px;cursor:pointer;box-shadow:0 6px 18px rgba(0,255,106,.26);transition:transform .12s;}
         .se-cont:active{transform:translateY(1px);}
@@ -18186,9 +18190,9 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
                                         React.createElement("span", { style: { color: "#7d8eae", fontWeight: 400, fontSize: 10.5, textTransform: "none", letterSpacing: 0 } }, "\u00B7 cibles r\u00E9alistes pour ton budget")),
                                     React.createElement("div", { className: "reco-carousel" }, recoTop.map((p, i) => Card(p, "r" + i)))) : null));
                         })(),
-                        React.createElement("div", { className: "preview" }, draft.kind === "loan"
+                        (draft.name || +draft.fee > 0 || +draft.sal > 0 || +draft.lfee > 0) ? React.createElement("div", { className: "preview" }, draft.kind === "loan"
                             ? `prêt · coût annuel : ${((+draft.sal || 0) * load).toFixed(1)} (salaire chargé, aucun amortissement) · cash : −${fmt(+draft.lfee || 0)} (frais de prêt)${(+draft.buy > 0) ? ` · option d'achat ${fmt(+draft.buy || 0)}` : ""}`
-                            : `coût annuel : ${((+draft.fee || 0) / Math.min(+draft.yrs || 5, 5)).toFixed(1)} (transfert étalé) + ${((+draft.sal || 0) * load).toFixed(1)} (salaire chargé) = ${fmt((+draft.fee || 0) / Math.min(+draft.yrs || 5, 5) + (+draft.sal || 0) * load)}/an · cash : −${fmt(+draft.fee || 0)}`)))))),
+                            : `coût annuel : ${((+draft.fee || 0) / Math.min(+draft.yrs || 5, 5)).toFixed(1)} (transfert étalé) + ${((+draft.sal || 0) * load).toFixed(1)} (salaire chargé) = ${fmt((+draft.fee || 0) / Math.min(+draft.yrs || 5, 5) + (+draft.sal || 0) * load)}/an · cash : −${fmt(+draft.fee || 0)}`) : null))))),
             React.createElement("div", { style: { display: tab === "douzieme" ? "block" : "none" }, "data-tour": "douzieme" },
                 React.createElement(Community, { embedded: true, active: tab === "douzieme", homeClub: clubId, onPlay: setClubId })),
             false && tab === "compta" && (React.createElement(React.Fragment, null,
@@ -18812,25 +18816,21 @@ function Home({ slots, onResume, onEnter, onRemove, onCommunity }) {
             React.createElement("div", { style: { fontSize: 15, lineHeight: 1.4, color: "#fff", fontWeight: 600 } }, "Le mercato vient d'ouvrir.")),
         React.createElement("div", { style: { width: "100%", minWidth: 0, maxWidth: 620, margin: "0 auto" } },
             React.createElement("div", { style: { textAlign: "center", marginBottom: 12 } },
-                React.createElement("div", { style: { fontFamily: "Raleway, sans-serif", fontWeight: 800, fontSize: 16, letterSpacing: ".08em", textTransform: "uppercase", color: "#fff" } }, "Choisis ton club"),
-                React.createElement("div", { style: { fontSize: 12, color: "#8a94a6", marginTop: 3 } }, slotClubs.length === 0 ? "Commence ta première partie" : (slotClubs.length + " partie" + (slotClubs.length > 1 ? "s" : "") + " en cours"))),
-            React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 9 } },
-                slotClubs.slice(0, SLOT_MAX).map((s) => {
-                    const c = s.club;
-                    const pend = confirmDel === s.uid;
-                    return (React.createElement("div", { key: s.uid, style: { position: "relative" } },
-                        React.createElement("button", { onClick: () => { if (!pend)
-                                onResume(s); }, style: { width: "100%", display: "flex", flexDirection: "column", alignItems: "center", gap: 7, background: pend ? "rgba(224,90,74,.12)" : "rgba(255,255,255,.03)", border: "1px solid " + (pend ? "rgba(224,90,74,.55)" : "rgba(255,255,255,.08)"), borderRadius: 14, padding: "14px 6px 10px", cursor: "pointer", color: "#eaf0fb", boxSizing: "border-box" } },
-                            React.createElement(ClubBadge, { club: c, size: 44 }),
-                            React.createElement("span", { style: { fontFamily: "Raleway,sans-serif", fontWeight: 700, fontSize: 11.5, textAlign: "center", lineHeight: 1.15, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "100%" } }, labelByUid[s.uid]),
-                            React.createElement("span", { style: { fontSize: 9.5, color: "#8a94a6" } }, modeShort(s.mode))),
-                        React.createElement("button", { onClick: (e) => { e.stopPropagation(); if (window.confirm("Supprimer la partie « " + c.meta.name + " » ?\n\nTon mercato, ta compo, ton entraîneur et tes réglages sur ce club seront définitivement perdus. Cette action est irréversible."))
-                                onRemove(s.uid); }, title: pend ? "Confirmer le retrait" : "Retirer cette partie", "aria-label": "Retirer", style: { position: "absolute", top: 5, right: 5, width: 22, height: 22, borderRadius: 11, background: pend ? "#c0392b" : "rgba(0,0,0,.45)", border: "none", color: "#fff", fontSize: pend ? 12 : 14, cursor: "pointer", lineHeight: 1 } }, pend ? "✓" : "×")));
-                }),
-                slotClubs.length < SLOT_MAX && React.createElement("button", { onClick: () => setPick(""), style: { display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 6, background: "rgba(0,255,106,.06)", border: "1px dashed rgba(0,255,106,.4)", borderRadius: 14, padding: "14px 6px", cursor: "pointer", color: "#00ff6a", minHeight: 100, boxSizing: "border-box" } },
-                    React.createElement("span", { style: { fontSize: 24, lineHeight: 1 } }, "\uFF0B"),
-                    React.createElement("span", { style: { fontFamily: "Raleway,sans-serif", fontWeight: 700, fontSize: 10.5, letterSpacing: ".03em", textAlign: "center" } }, "Ajouter"))),
-            React.createElement("button", { className: "sm-cta", onClick: () => setPick(""), style: { width: "100%", marginTop: 12, border: "none", background: "linear-gradient(180deg,#00ff6a,#00c452)", color: "#04120a", borderRadius: 13, padding: "15px", cursor: "pointer", fontFamily: "Raleway,sans-serif", fontWeight: 800, fontSize: 15, letterSpacing: ".04em", textTransform: "uppercase" } }, "Voir tous les clubs \u203A"),
+                React.createElement("div", { style: { fontFamily: "Raleway, sans-serif", fontWeight: 800, fontSize: 16, letterSpacing: ".08em", textTransform: "uppercase", color: "#fff" } }, slotClubs.length === 0 ? "Prêt à jouer ?" : "Tes parties"),
+                React.createElement("div", { style: { fontSize: 12, color: "#8a94a6", marginTop: 3 } }, slotClubs.length === 0 ? "Choisis ton club et lance ton mercato" : (slotClubs.length + " partie" + (slotClubs.length > 1 ? "s" : "") + " en cours · reprends ou lances-en une nouvelle"))),
+            slotClubs.length > 0 && React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 9 } }, slotClubs.slice(0, SLOT_MAX).map((s) => {
+                const c = s.club;
+                const pend = confirmDel === s.uid;
+                return (React.createElement("div", { key: s.uid, style: { position: "relative" } },
+                    React.createElement("button", { onClick: () => { if (!pend)
+                            onResume(s); }, style: { width: "100%", display: "flex", flexDirection: "column", alignItems: "center", gap: 7, background: pend ? "rgba(224,90,74,.12)" : "rgba(255,255,255,.03)", border: "1px solid " + (pend ? "rgba(224,90,74,.55)" : "rgba(255,255,255,.08)"), borderRadius: 14, padding: "14px 6px 10px", cursor: "pointer", color: "#eaf0fb", boxSizing: "border-box" } },
+                        React.createElement(ClubBadge, { club: c, size: 44 }),
+                        React.createElement("span", { style: { fontFamily: "Raleway,sans-serif", fontWeight: 700, fontSize: 11.5, textAlign: "center", lineHeight: 1.15, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "100%" } }, labelByUid[s.uid]),
+                        React.createElement("span", { style: { fontSize: 9.5, color: "#8a94a6" } }, modeShort(s.mode))),
+                    React.createElement("button", { onClick: (e) => { e.stopPropagation(); if (window.confirm("Supprimer la partie « " + c.meta.name + " » ?\n\nTon mercato, ta compo, ton entraîneur et tes réglages sur ce club seront définitivement perdus. Cette action est irréversible."))
+                            onRemove(s.uid); }, title: pend ? "Confirmer le retrait" : "Retirer cette partie", "aria-label": "Retirer", style: { position: "absolute", top: 5, right: 5, width: 22, height: 22, borderRadius: 11, background: pend ? "#c0392b" : "rgba(0,0,0,.45)", border: "none", color: "#fff", fontSize: pend ? 12 : 14, cursor: "pointer", lineHeight: 1 } }, pend ? "✓" : "×")));
+            })),
+            React.createElement("button", { className: "sm-cta", onClick: () => setPick(""), style: { width: "100%", marginTop: 12, border: "none", background: "linear-gradient(180deg,#00ff6a,#00c452)", color: "#04120a", borderRadius: 13, padding: "15px", cursor: "pointer", fontFamily: "Raleway,sans-serif", fontWeight: 800, fontSize: 15, letterSpacing: ".04em", textTransform: "uppercase" } }, slotClubs.length === 0 ? "Choisis ton club ›" : "＋ Nouvelle partie"),
             React.createElement("button", { onClick: () => setTrophyOpen(true), style: { width: "100%", marginTop: 10, display: "flex", alignItems: "center", gap: 11, background: "rgba(232,196,106,.1)", border: "1px solid rgba(232,196,106,.38)", borderRadius: 13, padding: "12px 14px", cursor: "pointer", color: "#f2d891", fontFamily: "Raleway,sans-serif", textAlign: "left" } },
                 React.createElement("span", { style: { lineHeight: 1, color: "#f2d891" } },
                     React.createElement(Icon, { name: "trophy", size: 22 })),
@@ -18842,7 +18842,7 @@ function Home({ slots, onResume, onEnter, onRemove, onCommunity }) {
                             trCount,
                             "/",
                             trTotal)),
-                    trNext ? React.createElement("span", { style: { display: "block", fontSize: 11, color: "#b7a76a", marginTop: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" } },
+                    trNext ? React.createElement("span", { style: { display: "block", fontSize: 11, color: "#b7a76a", marginTop: 1, lineHeight: 1.3 } },
                         "\u00C0 port\u00E9e : ",
                         trNext.name,
                         " \u00B7 ",
@@ -18997,21 +18997,17 @@ function Onboarding({ club, setTab }) {
                     : "En Allemagne, la licence DFL repose sur une preuve de liquidité : tu dois démontrer que tu peux financer ta saison (pas de plafond de masse salariale comme en France).";
     const euTxt = eu ? " Comme le " + sh + " joue l'Europe, tu dois AUSSI respecter le ratio UEFA (coûts d'effectif ≤ 70 % des revenus) et composer une Liste UEFA de 25 joueurs, dont 8 formés localement." : "";
     const natLabel = rule === "DNCG" ? "la DNCG" : rule === "PSR" ? "la Premier League (SCR/PSR)" : rule === "Bundesliga" ? "la licence DFL" : rule === "LaLiga" ? "le plafond LaLiga" : "l'indicateur FIGC";
+    // Onboarding condensé : 4 étapes punchy (au lieu de 7). Le reste s'apprend en jouant ;
+    // l'adjoint (bulle verte) et les ⓘ expliquent le détail à la demande. « Passer » ferme tout.
     const steps = m ? [
         { hero: "crest", goTab: "terrain", tag: "Passation", punch: "Le fauteuil est à toi.", sig: true,
-            txt: (sd ? "Moi c'est " + sd + ", je quitte mon poste de directeur sportif du " + nm + ". " : "Je quitte mon poste de directeur sportif du " + nm + ". ") + "À partir de maintenant, c'est toi le patron du sportif au " + sh + " (" + lg + "). Ta mission : l'effectif le plus fort possible, sans faire exploser les comptes. Je te montre le bureau en 30 secondes." },
+            txt: (sd ? "Moi c'est " + sd + ", je quitte le poste de directeur sportif du " + nm + ". " : "") + "À toi de jouer au " + sh + " (" + lg + "). Ta mission : l'effectif le plus fort possible, sans faire exploser les comptes." },
         { hero: "wallet", goTab: "compta", tag: "① Budget", punch: "Tiens les comptes.",
-            txt: ruleTxt + euTxt + " Touche une icône ⓘ pour comprendre chaque chiffre ; en haut, bascule Débutant / Pro selon ton niveau." },
-        { hero: "objectifs", goTab: "club", tag: "② Objectifs", punch: "Fixe tes ambitions.",
-            txt: "Sur la fiche du " + sh + ", tu choisis jusqu'où tu vises dans chaque compétition (championnat, coupe" + (eu ? ", Europe" : "") + "). Ces choix pilotent tes revenus : viser plus haut gonfle les primes et la billetterie, donc ton budget pour recruter · mais reste réaliste, le board jugera ta saison à l'aune de ces objectifs." },
-        { hero: "mercato", goTab: "mercato", tag: "③ Mercato", punch: "Fais ton marché.",
-            txt: "Achète, vends, prête ou prolonge : chaque mouvement recalcule tes comptes EN DIRECT." + (eu ? " Tu y pilotes aussi ta Liste UEFA (joueurs formés au club / au pays)." : "") + " Tu peux même faire monter un jeune de ton centre de formation." },
-        { hero: "terrain", goTab: "terrain", tag: "④ Terrain", punch: "Pose ton onze.",
-            txt: "Place tes joueurs, choisis ton dispositif et ton capitaine. Ton entraîneur (en bas à gauche du terrain) et la profondeur de ton effectif s'affichent ici." },
-        { hero: "douze", goTab: "douzieme", tag: "Le 12ᵉ Homme", punch: "Tu n'es pas seul.",
-            txt: "Quand ton mercato te plaît, publie-le : les autres fans du " + sh + " le découvrent et le notent. Et toi, tu vas voir et comparer leurs versions. Chaque club a sa communauté · confronte ton flair au leur." },
-        { hero: "crest", goTab: "terrain", tag: "À toi de jouer", punch: "Bonne saison au " + sh + " !", sig: true,
-            txt: "Tu sais l'essentiel. Reste dans les clous de " + natLabel + (eu ? " ET de l'UEFA" : "") + ", vise le haut du tableau · ta progression se sauvegarde toute seule (retour à l'accueil en haut, tu peux mener plusieurs clubs en parallèle). Je m'en vais, mais tu n'es pas seul : mon adjoint reste et te glissera un conseil quand il faut." },
+            txt: ruleTxt + euTxt + " Touche un ⓘ pour comprendre un chiffre ; en haut, bascule Débutant / Pro." },
+        { hero: "mercato", goTab: "mercato", tag: "② Mercato & Terrain", punch: "Fais ton marché.",
+            txt: "Achète, vends, prête : chaque mouvement recalcule tes comptes EN DIRECT." + (eu ? " Tu y gères aussi ta Liste UEFA." : "") + " Puis file sur le Terrain poser ton onze, ta compo et ton capitaine." },
+        { hero: "douze", goTab: "douzieme", tag: "③ Le 12ᵉ Homme", punch: "À toi de jouer !", sig: true,
+            txt: "Publie ton mercato : les autres fans du " + sh + " le notent, et tu compares le tien au leur. Reste dans les clous, vise le haut du tableau · tout se sauvegarde tout seul. Mon adjoint (bulle verte) reste à tes côtés." },
     ] : [];
     const last = step === steps.length - 1;
     const done = () => { try {
@@ -19206,6 +19202,8 @@ function SeasonEnd({ sanctions, checks, note, grade, line, bulletin, badges, rec
     } }, [phase]);
     useEffect(() => { if (phase === 4 && newTrophies && newTrophies.length > 0)
         SFX.play("trophy"); }, [phase]); // fanfare quand la salle des trophées s'ouvre
+    useEffect(() => { if (phase === 3 && note >= 7)
+        SFX.play("trophy"); }, [phase]); // note révélée : son de victoire sur une belle saison
     const next = () => setPhase((p) => Math.min(PHASES.length - 1, p + 1));
     const gcol = note >= 8 ? "#00ff6a" : note >= 6 ? "#9ad0ff" : note >= 5 ? "#ffd76b" : "#ff96a6";
     const teamImg = (imgs.find((im) => im.label === "Équipe") || {}).url;
@@ -19294,6 +19292,7 @@ function SeasonEnd({ sanctions, checks, note, grade, line, bulletin, badges, rec
                         !(sanctions || []).length ? React.createElement("div", { style: { fontSize: 12.5, color: "#ffc2cc" } }, "Tu t'exposes \u00E0 une sanction en fin de saison.") : null)) : null) : null,
             phase === 3 ? React.createElement("div", { className: "se-phase", key: "p3", style: { textAlign: "center", position: "relative", paddingTop: 6 } },
                 allGreen ? React.createElement("div", { className: "se-glow" }) : null,
+                note >= 7 ? React.createElement("div", { className: "se-conf", key: "cf" + phase }, Array.from({ length: 28 }).map((_, i) => { const cols = ["#00ff6a", "#e8c46a", "#9ad0ff", "#ff96a6", "#ffffff"]; const left = (i * 3.6 + (i * i % 11)) % 100; const dur = 1.4 + (i % 5) * 0.24; const del = (i % 8) * 0.07; return React.createElement("i", { key: i, style: { left: left + "%", background: cols[i % cols.length], animationDuration: dur + "s", animationDelay: del + "s", transform: "rotate(" + (i * 41 % 360) + "deg)" } }); })) : null,
                 React.createElement("div", { className: "se-lbl", style: { position: "relative" } }, PHASES[3].label),
                 React.createElement("div", { style: { display: "flex", alignItems: "center", justifyContent: "center", gap: 18, position: "relative" } },
                     React.createElement("span", { className: "se-note", style: { color: gcol } },
