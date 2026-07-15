@@ -19140,6 +19140,26 @@ function lbBoard(seedKey, myNote) {
     return rows;
 }
 // « BOUTON FIN » : overlay de fin de mercato · déroule les règles une par une (animé), révèle la note du board, puis la carte à partager.
+// Partage 1-tap : ouvre la feuille de partage NATIVE du téléphone (WhatsApp, Instagram, Messages…)
+// avec l'image de la carte. Renvoie "shared" | "cancel" | "unsupported" (desktop → repli téléchargement).
+async function shareCardImg(dataUrl) {
+    if (!dataUrl)
+        return "unsupported";
+    try {
+        const res = await fetch(dataUrl);
+        const blob = await res.blob();
+        const file = new File([blob], "FancatoMercato.png", { type: "image/png" });
+        if (typeof navigator !== "undefined" && navigator.canShare && navigator.canShare({ files: [file] })) {
+            await navigator.share({ files: [file], title: "Mon mercato FANCATO", text: "Voici mon mercato sur FANCATO ⚽ fancato.com" });
+            return "shared";
+        }
+    }
+    catch (e) {
+        if (e && e.name === "AbortError")
+            return "cancel";
+    }
+    return "unsupported";
+}
 function SeasonEnd({ sanctions, checks, note, grade, line, bulletin, badges, recapStats, newTrophies, clubName, modeShort, seedKey, recruits, sold, imgs, teamShareImg, onGenerate, onClose }) {
     const nBreach = checks.filter((c) => !c.ok).length;
     const allGreen = nBreach === 0;
@@ -19324,21 +19344,27 @@ function SeasonEnd({ sanctions, checks, note, grade, line, bulletin, badges, rec
                                 if (dlWait)
                                     return;
                                 setDlWait(true);
-                                ADS.reward("telecharger_carte", function () { setDlWait(false); setDlOk(true); SFX.play("trophy"); }, function () { setDlWait(false); });
-                            }, style: { display: "block", width: "100%", textAlign: "center", background: "#00ff6a", color: "#04120a", border: "none", borderRadius: 11, padding: "11px", fontFamily: "Raleway, sans-serif", fontWeight: 800, fontSize: 14, cursor: dlWait ? "default" : "pointer", opacity: dlWait ? .6 : 1 } },
-                            React.createElement(Icon, { name: "save", size: 15, style: { filter: "brightness(0)", marginRight: 7, verticalAlign: "-2px" } }),
-                            dlWait ? "Chargement de la pub…" : "Regarde une pub → télécharger ta carte"),
+                                ADS.reward("carte_mercato", function () { setDlWait(false); setDlOk(true); SFX.play("trophy"); }, function () { setDlWait(false); });
+                            }, style: { display: "block", width: "100%", textAlign: "center", background: "#00ff6a", color: "#04120a", border: "none", borderRadius: 11, padding: "12px", fontFamily: "Raleway, sans-serif", fontWeight: 800, fontSize: 14.5, cursor: dlWait ? "default" : "pointer", opacity: dlWait ? .6 : 1 } }, dlWait ? "Chargement de la pub…" : "🎬 Regarde une pub → débloquer ta carte"),
                         React.createElement("div", { style: { fontSize: 11.5, color: "#8a94a6", textAlign: "center", lineHeight: 1.4 } },
-                            "Publier au 12\u1D49 Homme reste ",
-                            React.createElement("b", { style: { color: "#9be3c2" } }, "gratuit"),
-                            " \u00B7 la pub ne concerne que le t\u00E9l\u00E9chargement pour toi."))) : imgs.map((im, i) => {
-                        const fn = "Fancato" + (im.label === "Bilan" ? "-Bilan" : "") + ".png";
-                        return (React.createElement("a", { key: i, href: im.url, download: fn, style: { display: "block", textAlign: "center", background: "#00ff6a", color: "#04120a", borderRadius: 11, padding: "11px", fontFamily: "Raleway, sans-serif", fontWeight: 800, fontSize: 14, textDecoration: "none" } },
-                            React.createElement(Icon, { name: "save", size: 15, style: { filter: "brightness(0)", marginRight: 7, verticalAlign: "-2px" } }),
-                            "T\u00E9l\u00E9charger la carte \u00AB ",
-                            im.label,
-                            " \u00BB"));
-                    })) : React.createElement("button", { onClick: () => { setGen(true); onGenerate(); }, style: { background: "#00ff6a", color: "#14213c", border: "none", borderRadius: 11, padding: "12px", fontFamily: "Raleway,sans-serif", fontWeight: 700, fontSize: 15, cursor: "pointer" } },
+                            "Une pub d\u00E9bloque le ",
+                            React.createElement("b", { style: { color: "#9be3c2" } }, "partage"),
+                            " ET le t\u00E9l\u00E9chargement \u00B7 publier au 12\u1D49 Homme reste gratuit."))) : (React.createElement(React.Fragment, null,
+                        React.createElement("button", { onClick: async () => { const r = await shareCardImg(teamImg); if (r === "unsupported") {
+                                try {
+                                    const a = document.createElement("a");
+                                    a.href = teamImg;
+                                    a.download = "FancatoMercato.png";
+                                    a.click();
+                                }
+                                catch (e) { }
+                            } }, style: { display: "block", width: "100%", textAlign: "center", background: "#00ff6a", color: "#04120a", border: "none", borderRadius: 11, padding: "13px", fontFamily: "Raleway, sans-serif", fontWeight: 800, fontSize: 15, cursor: "pointer", boxShadow: "0 6px 18px rgba(0,255,106,.26)" } }, "\uD83D\uDCF2 Partager ma carte"),
+                        React.createElement("div", { style: { display: "flex", gap: 8 } }, imgs.map((im, i) => {
+                            const fn = "Fancato" + (im.label === "Bilan" ? "-Bilan" : "") + ".png";
+                            return (React.createElement("a", { key: i, href: im.url, download: fn, style: { flex: 1, textAlign: "center", background: "rgba(255,255,255,.05)", color: "#eaf0fb", border: "1px solid rgba(255,255,255,.16)", borderRadius: 11, padding: "10px", fontFamily: "Raleway, sans-serif", fontWeight: 700, fontSize: 12.5, textDecoration: "none" } },
+                                React.createElement(Icon, { name: "save", size: 13, style: { marginRight: 5, verticalAlign: "-2px" } }),
+                                im.label));
+                        }))))) : React.createElement("button", { onClick: () => { setGen(true); onGenerate(); }, style: { background: "#00ff6a", color: "#14213c", border: "none", borderRadius: 11, padding: "12px", fontFamily: "Raleway,sans-serif", fontWeight: 700, fontSize: 15, cursor: "pointer" } },
                         React.createElement(Icon, { name: "generer", size: 16, style: { filter: "brightness(0)", marginRight: 7, verticalAlign: "-3px" } }),
                         "G\u00E9n\u00E9rer ma carte \u00E0 partager"),
                     React.createElement("button", { onClick: publish, disabled: pub, style: { background: pub ? "rgba(127,227,184,.14)" : "rgba(0,255,106,.12)", color: "#00ff6a", border: "1px solid " + (pub ? "rgba(127,227,184,.4)" : "rgba(0,255,106,.4)"), borderRadius: 11, padding: "11px", fontFamily: "Raleway, sans-serif", fontWeight: 700, fontSize: 14, cursor: pub ? "default" : "pointer" } }, pub ? React.createElement(React.Fragment, null,
