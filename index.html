@@ -17047,12 +17047,17 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
                                 React.createElement("div", { style: { display: "flex", justifyContent: "space-between", fontSize: 12, marginBottom: 6, color: "#9ad0ff" } },
                                     React.createElement("span", null, "Liste B \u00B7 jeunes \u2264 21 ans form\u00E9s au club (illimit\u00E9e, hors des 25)"),
                                     React.createElement("b", null, uefaListB)),
-                                uefaCheck > 0 ? React.createElement("div", { className: "note", style: { color: "#ffd76b", marginTop: 4 } },
-                                    " ",
-                                    uefaCheck,
-                                    " joueur",
-                                    uefaCheck > 1 ? "s" : "",
-                                    " \u00AB \u00C0 v\u00E9rifier \u00BB \u00B7 parcours de formation non confirm\u00E9.") : null))))),
+                                (uefaCheck >= Math.max(4, Math.ceil(uefaInscrits * 0.5)) && (uefaLocal + uefaClub) < 4)
+                                    ? React.createElement("div", { className: "note", style: { color: "#ffd76b", marginTop: 6, lineHeight: 1.45 } },
+                                        "\u26A0\uFE0F Parcours de formation encore incomplet pour ce club : le compteur \u00AB form\u00E9s \u00BB ci-dessus est ",
+                                        React.createElement("b", null, "sous-\u00E9valu\u00E9"),
+                                        " (donn\u00E9e manquante, pas un vrai 0). \u00C0 compl\u00E9ter \u2014 ne bloque pas le jeu.")
+                                    : (uefaCheck > 0 ? React.createElement("div", { className: "note", style: { color: "#ffd76b", marginTop: 4 } },
+                                        " ",
+                                        uefaCheck,
+                                        " joueur",
+                                        uefaCheck > 1 ? "s" : "",
+                                        " \u00AB \u00C0 v\u00E9rifier \u00BB \u00B7 parcours de formation non confirm\u00E9.") : null)))))),
                     (() => {
                         const remain = Math.max(0, coach.untilY - 2026);
                         const remainTxt = remain >= 1 ? (Math.round(remain * 10) / 10).toString().replace(".", ",") + " an" + (remain >= 2 ? "s" : "") : Math.round(remain * 12) + " mois";
