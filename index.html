@@ -454,7 +454,7 @@ const SFX_MUSIC = /* PLAYLIST · plusieurs morceaux enchaînés en fondu */ [
 // en cours s'estompe pendant que la suivante monte → aucune coupure brutale.
 const MUSIC = (function () {
     var on = true, live = [], idx = -1, started = false;
-    var VOL = 0.09; // volume de fond (discret)
+    var VOL = 0.05; // volume de fond (discret) — sous les voix et les bruitages (SFX à 0.55)
     var XF = 3.2; // durée du fondu enchaîné, en secondes
     try {
         on = localStorage.getItem("fancato_music") !== "0";
@@ -1150,12 +1150,21 @@ function drawPitch(canvas, d) {
         const top = topOf(idx);
         const needed = (nameY + 14) + (lines.length ? lines.length * step : 0) + PADB - top;
         const cardH = Math.max(2 * R + PADT + 10, Math.min(needed, botLimit[idx] - top));
+        // Sélection / cible de drop dessinées SUR la carte : un seul cadre remplit les deux rôles
+        // (affichage + sélection), au lieu d'un carré HTML qui doublait le contour.
+        const sel = d.keyOfGi && d.selKey && d.keyOfGi[idx] === d.selKey;
+        const dropt = d.keyOfGi && d.dropKey && d.keyOfGi[idx] === d.dropKey;
         ctx.save();
-        ctx.fillStyle = rec ? "rgba(30,44,28,.60)" : "rgba(8,14,24,.52)";
+        if (sel || dropt) {
+            ctx.shadowColor = "rgba(0,255,106,.55)";
+            ctx.shadowBlur = dropt ? 28 : 14;
+        }
+        ctx.fillStyle = dropt ? "rgba(0,255,106,.16)" : sel ? "rgba(0,255,106,.10)" : rec ? "rgba(30,44,28,.60)" : "rgba(8,14,24,.52)";
         rr(ctx, cx - hw, top, hw * 2, cardH, 20);
         ctx.fill();
-        ctx.lineWidth = 2;
-        ctx.strokeStyle = rec ? "rgba(255,215,107,.5)" : "rgba(255,255,255,.15)";
+        ctx.shadowBlur = 0;
+        ctx.lineWidth = (sel || dropt) ? 4 : 2;
+        ctx.strokeStyle = (sel || dropt) ? "#00ff6a" : rec ? "rgba(255,215,107,.5)" : "rgba(255,255,255,.15)";
         rr(ctx, cx - hw, top, hw * 2, cardH, 20);
         ctx.stroke();
         ctx.restore();
@@ -1275,18 +1284,18 @@ function drawPitch(canvas, d) {
         ctx.textAlign = "left";
     }
 }
-function PitchCanvas({ slots, cols, pcol, captain, coach }) {
+function PitchCanvas({ slots, cols, pcol, captain, coach, selKey, dropKey, keyOfGi }) {
     const ref = useRef(null);
     const names = cols.map((c) => (c[0] ? c[0].name : null)).filter(Boolean);
-    const sig = slots.map((s) => s.pos + "," + s.x + "," + s.y).join("|") + "#" + cols.map((c) => c.map((p) => (p ? p.id : "_")).join("-")).join(",") + "#" + captain + "#" + (coach || "");
+    const sig = slots.map((s) => s.pos + "," + s.x + "," + s.y).join("|") + "#" + cols.map((c) => c.map((p) => (p ? p.id : "_")).join("-")).join(",") + "#" + captain + "#" + (coach || "") + "#" + (selKey || "") + "#" + (dropKey || "");
     useEffect(() => {
         const cv = ref.current;
         if (!cv)
             return;
-        drawPitch(cv, { slots, cols, pcol, imgMap: {}, avatarImg: _AVATAR_CACHE, pitchImg: _PITCH_CACHE, captain, coach }); // rendu immédiat (sans photos)
+        drawPitch(cv, { slots, cols, pcol, imgMap: {}, avatarImg: _AVATAR_CACHE, pitchImg: _PITCH_CACHE, captain, coach, selKey, dropKey, keyOfGi }); // rendu immédiat (sans photos)
         let alive = true;
         Promise.all([_loadPhotos(names), _loadAvatar(), _loadPitchBg()]).then(([imgMap, avatarImg, pitchImg]) => { if (alive && ref.current)
-            drawPitch(ref.current, { slots, cols, pcol, imgMap, avatarImg, pitchImg, captain, coach }); });
+            drawPitch(ref.current, { slots, cols, pcol, imgMap, avatarImg, selKey, dropKey, keyOfGi, pitchImg, captain, coach }); });
         return () => { alive = false; };
     }, [sig]);
     return React.createElement("canvas", { ref: ref, style: { width: "100%", display: "block", borderRadius: 12, background: "#0a6230" } });
@@ -16614,10 +16623,10 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
         .tbtn{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;background:rgba(255,255,255,.05);border:1px solid var(--line);color:#cdd8ee;border-radius:11px;padding:11px 8px;font-family:'Raleway';font-size:12.5px;font-weight:600;letter-spacing:.02em;cursor:pointer;text-transform:uppercase;transition:background .15s,border-color .15s,color .15s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-height:44px;}
         .tbtn.on{background:rgba(0,255,106,.15);border-color:#00ff6a;color:#00ff6a;}
         .pslot{position:absolute;transform:translate(-50%,-38%);width:19%;height:16.5%;border-radius:14px;cursor:grab;z-index:2;touch-action:none;transition:background .15s,box-shadow .15s;-webkit-tap-highlight-color:transparent;}
-        .pslot.droptgt{background:rgba(0,255,106,.18);box-shadow:inset 0 0 0 2.5px #00ff6a,0 0 26px 5px rgba(0,255,106,.55);z-index:5;}
+        /* Sélection et cible de drop sont dessinées SUR la carte du canvas (un seul cadre).
+           Le .pslot ne fait que capter le doigt : on lui laisse juste le z-index de drop, sans contour. */
+        .pslot.droptgt{z-index:5;}
         .pslot:active{cursor:grabbing;}
-        .pslot:hover{background:rgba(255,255,255,.05);box-shadow:inset 0 0 0 1px rgba(255,255,255,.18);}
-        .pslot.on{background:rgba(0,255,106,.1);box-shadow:inset 0 0 0 2px rgba(0,255,106,.55);}
         .ppop{position:absolute;z-index:60;width:min(220px,80vw);max-height:290px;overflow-y:auto;background:linear-gradient(180deg,#152647,#0d1830);border:1.5px solid;border-radius:14px;box-shadow:0 16px 40px rgba(0,0,0,.6);padding:10px;}
         .ppop-hd{display:flex;align-items:center;gap:7px;font-family:'Raleway';font-weight:700;font-size:13.5px;text-transform:uppercase;letter-spacing:.03em;margin-bottom:8px;}
         .ppop-hd>span:first-child{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
@@ -16995,7 +17004,7 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
                             React.createElement("b", null, "entra\u00EEneur"),
                             " restent utilisables.")) : null,
                     React.createElement("div", { className: "pitchwrap", "data-tour": "pitch", style: { marginTop: 6, position: "relative" }, onClick: () => setPitchPop(null) },
-                        React.createElement(PitchCanvas, { slots: f.slots, cols: cols, pcol: Object.fromEntries(POSITIONS.map((pp) => [pp[0], pp[2]])), captain: captain, coach: coach && coach.name && coach.name !== "—" ? coach.name : null }),
+                        React.createElement(PitchCanvas, { slots: f.slots, cols: cols, pcol: Object.fromEntries(POSITIONS.map((pp) => [pp[0], pp[2]])), captain: captain, coach: coach && coach.name && coach.name !== "—" ? coach.name : null, selKey: pitchPop ? pitchPop.key : null, dropKey: drag ? dropKey : null, keyOfGi: keyOfGi }),
                         club.squad.length > 0 && f.slots.map((s, i) => {
                             const key = keyOfGi[i];
                             return (React.createElement("div", { key: i, className: "pslot" + (pitchPop && pitchPop.key === key ? " on" : "") + (drag && dropKey === key ? " droptgt" : ""), "data-dpos": key, "data-dline": key, "data-dx": s.x, "data-dy": s.y, onPointerDown: (e) => { const st = (cols[i] || [])[0]; const toggle = () => setPitchPop(pitchPop && pitchPop.key === key ? null : { key: key, x: s.x, y: s.y }); if (st)
@@ -18059,7 +18068,10 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
                             // === LISTE : recommandé (carrousel) + recherche (nom / club) ===
                             const keepers = players.filter((p) => p.status === "keep" && !isLeaver(p));
                             const cntByPos = {}, bestByPos = {};
-                            keepers.forEach((p) => { cntByPos[p.pos] = (cntByPos[p.pos] || 0) + 1; bestByPos[p.pos] = Math.max(bestByPos[p.pos] || 0, +p.mkt || 0); });
+                            // L'effectif compté = joueurs gardés + RECRUES (sinon acheter un défenseur ne corrige jamais
+                            // le point faible « défense »). Les vendus/prêtés sortants sont déjà exclus (status keep).
+                            keepers.concat(recruits || []).forEach((p) => { if (!p || !p.pos)
+                                return; cntByPos[p.pos] = (cntByPos[p.pos] || 0) + 1; bestByPos[p.pos] = Math.max(bestByPos[p.pos] || 0, +p.mkt || 0); });
                             const clubTop = Math.max(20, ...keepers.map((p) => +p.mkt || 0));
                             const budget = Math.max(25, Math.round(proceeds + loanFeesOut + clubTop * 0.7));
                             const reco = [];
@@ -18084,7 +18096,18 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
                             const posOrder = (k) => POSITIONS.findIndex((x) => x[0] === k);
                             const clubRes = searchClub ? pool.filter((p) => p.clubId === searchClub).sort((a, b) => (posOrder(a.pos) - posOrder(b.pos)) || (b.mkt - a.mkt)) : [];
                             const clubLabel = searchClub ? (searchClub.slice(0, 2) === "x_" ? ((EXTRA_PLAYERS.find((p) => "x_" + p.clubId === searchClub) || {}).club || "") : (CLUBS[searchClub] && CLUBS[searchClub].meta.name) || "") : "";
-                            const _weakPos = POSITIONS.map((x) => x[0]).filter((k) => k !== "GK" && (cntByPos[k] || 0) <= 2).sort((a, b) => (cntByPos[a] || 0) - (cntByPos[b] || 0))[0];
+                            // Point faible RELATIF À LA COMPO : besoin de chaque poste = nb de titulaires dans la formation
+                            // choisie ; profondeur = effectif à ce poste. Le plus faible = celui où le banc est le plus mince
+                            // (have − need). Change de compo (3-5-2 → 4-4-2) ou fais un transfert → le point faible bouge.
+                            const _wf = FORMATIONS[formation] || FORMATIONS["433d"];
+                            const _needByPos = {};
+                            _wf.slots.forEach((s) => { if (s.pos !== "GK")
+                                _needByPos[s.pos] = (_needByPos[s.pos] || 0) + 1; });
+                            const _weakPos = Object.keys(_needByPos)
+                                .map((k) => ({ k: k, surplus: (cntByPos[k] || 0) - _needByPos[k], have: cntByPos[k] || 0 }))
+                                .filter((x) => x.surplus < 1) // au moins 1 remplaçant, sinon c'est fragile
+                                .sort((a, b) => (a.surplus - b.surplus) || (a.have - b.have))
+                                .map((x) => x.k)[0];
                             return (React.createElement("div", { className: "finder", style: { borderColor: "rgba(110,168,255,.4)", background: "rgba(110,168,255,.05)" } },
                                 _weakPos && finder.pos !== _weakPos ? React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 12, padding: "9px 11px", background: "rgba(255,180,80,.09)", border: "1px solid rgba(255,180,80,.3)", borderRadius: 10 } },
                                     React.createElement("span", { style: { fontSize: 12.5, color: "#f3e2c4", flex: 1, minWidth: 150 } },
@@ -19633,12 +19656,103 @@ function commInspire(fiche) {
     }
     catch (e) { }
 }
+// Génère LA VRAIE carte d'équipe d'un mercato du 12ᵉ Homme (même visuel que la carte du joueur) :
+// onze complet, photos, composition, entraîneur — via le même drawTeamImg que l'écran de fin.
+// Reconstitue l'effectif = squad − départs + arrivées (recrues), remplit la compo par défaut du club.
+const _ficheCardCache = {};
+async function ficheTeamCard(fiche) {
+    if (!fiche || _ficheCardCache[fiche.id])
+        return _ficheCardCache[fiche.id] || null;
+    const club = CLUBS[fiche.club];
+    if (!club || !Array.isArray(club.squad))
+        return null;
+    const dep = {};
+    (fiche.departures || []).forEach((n) => { dep[n] = 1; });
+    const pool = playerPool(fiche.club);
+    const squad = club.squad
+        .filter((p) => !dep[p.name] && p.status !== "loaned")
+        .map((p) => ({ id: p.id, name: p.name, pos: p.pos, mkt: +p.mkt || 0, recrue: false }));
+    (fiche.arrivals || []).forEach((nm, i) => {
+        const src = pool.find((x) => x.name === nm) || {};
+        squad.push({ id: 800000 + i, name: nm, pos: src.pos || "MC", mkt: +src.mkt || 0, recrue: true });
+    });
+    const f = FORMATIONS[club.meta.defaultFormation] || FORMATIONS["433d"];
+    const avail = squad.slice().sort((a, b) => ((b.recrue ? 1 : 0) - (a.recrue ? 1 : 0)) || (b.mkt - a.mkt));
+    const used = {}, cols = f.slots.map(() => []);
+    // 1) titulaires : meilleur joueur libre du poste (avec repli), un par slot
+    f.slots.forEach((s, gi) => {
+        const chain = [s.pos].concat(POS_FALLBACK[s.pos] || []);
+        let pick = null;
+        for (let ci = 0; ci < chain.length && !pick; ci++)
+            pick = avail.find((p) => !used[p.id] && p.pos === chain[ci]);
+        if (!pick)
+            pick = avail.find((p) => !used[p.id] && (s.pos === "GK" ? p.pos === "GK" : p.pos !== "GK"));
+        if (pick) {
+            used[pick.id] = 1;
+            cols[gi].push(pick);
+        }
+    });
+    // 2) profondeur : chaque joueur restant rejoint le slot le moins garni de son poste (ou repli)
+    avail.forEach((p) => {
+        if (used[p.id])
+            return;
+        const chain = [p.pos].concat(POS_FALLBACK[p.pos] || []);
+        let idxs = [];
+        for (let ci = 0; ci < chain.length && !idxs.length; ci++)
+            idxs = f.slots.map((s, gi) => (s.pos === chain[ci] ? gi : -1)).filter((x) => x >= 0);
+        if (!idxs.length)
+            idxs = f.slots.map((s, gi) => ((p.pos === "GK" ? s.pos === "GK" : s.pos !== "GK") ? gi : -1)).filter((x) => x >= 0);
+        if (idxs.length) {
+            let best = idxs[0];
+            idxs.forEach((gi) => { if (cols[gi].length < cols[best].length)
+                best = gi; });
+            cols[best].push(p);
+            used[p.id] = 1;
+        }
+    });
+    const pcol = Object.fromEntries(POSITIONS.map((pp) => [pp[0], pp[2]]));
+    const starterNames = cols.map((c) => (c[0] ? c[0].name : null)).filter(Boolean);
+    const loaded = await Promise.all([_loadPhotos(starterNames), _loadAvatar(), _loadLogo()]);
+    const imgMap = loaded[0], avatarImg = loaded[1], logoImg = loaded[2];
+    const mgr = MANAGERS[fiche.club];
+    const coachName = (mgr && mgr.name && mgr.name !== "—") ? mgr.name : null;
+    const coachImg = coachName ? await _loadCoach(coachName) : null;
+    const cv = document.createElement("canvas");
+    drawTeamImg(cv, { formName: f.name, slots: f.slots, cols: cols, pcol: pcol,
+        clubName: club.meta.name.toUpperCase(), season: club.meta.season,
+        imgMap: imgMap, avatarImg: avatarImg, logoImg: logoImg, coach: coachName, coachImg: coachImg });
+    var url = null;
+    try {
+        url = cv.toDataURL("image/png");
+    }
+    catch (e) {
+        url = null;
+    }
+    if (url)
+        _ficheCardCache[fiche.id] = url;
+    return url;
+}
 function Community({ onClose, onPlay, embedded, homeClub, active }) {
     // Pub autorisée seulement quand cet écran est VISIBLE (en plein écran, ou onglet actif dans le jeu).
     const adOn = embedded ? !!active : true;
     const [club, setClub] = useState(embedded ? (homeClub || null) : null);
     const [mode, setMode] = useState(3);
     const [fiche, setFiche] = useState(null);
+    // Carte d'équipe générée à la volée pour la fiche ouverte (les profils fictifs n'en ont pas de pré-rendue).
+    const [ficheCard, setFicheCard] = useState(null); // { id, url } | { id, loading:true }
+    useEffect(() => {
+        if (!fiche)
+            return;
+        if (fiche.teamImg) {
+            setFicheCard(null);
+            return;
+        } // déjà une vraie carte publiée
+        let alive = true;
+        setFicheCard({ id: fiche.id, loading: true });
+        ficheTeamCard(fiche).then((url) => { if (alive)
+            setFicheCard({ id: fiche.id, url: url }); });
+        return () => { alive = false; };
+    }, [fiche ? fiche.id : null]);
     const [favView, setFavView] = useState(false);
     const [, force] = useState(0);
     const [openLeague, setOpenLeague] = useState(null);
@@ -19712,7 +19826,9 @@ function Community({ onClose, onPlay, embedded, homeClub, active }) {
             Head("Le mercato de " + fiche.author + " · " + (c ? c.meta.name : fiche.club), () => setFiche(null)),
             React.createElement("div", { style: { maxWidth: 560, margin: "0 auto" } },
                 React.createElement("div", { style: { background: "rgba(255,255,255,.04)", border: "1px solid rgba(255,255,255,.1)", borderRadius: 16, padding: 18 } },
-                    fiche.teamImg ? React.createElement("img", { src: fiche.teamImg, alt: "Photo d'\u00E9quipe", style: { width: "100%", borderRadius: 12, border: "1px solid rgba(255,255,255,.12)", marginBottom: 14, display: "block" } }) : null,
+                    fiche.teamImg ? React.createElement("img", { src: fiche.teamImg, alt: "Carte d'\u00E9quipe", style: { width: "100%", borderRadius: 12, border: "1px solid rgba(255,255,255,.12)", marginBottom: 14, display: "block" } })
+                        : (ficheCard && ficheCard.id === fiche.id && ficheCard.url) ? React.createElement("img", { src: ficheCard.url, alt: "Carte d'\u00E9quipe", style: { width: "100%", borderRadius: 12, border: "1px solid rgba(255,255,255,.12)", marginBottom: 14, display: "block" } })
+                            : React.createElement("div", { style: { width: "100%", aspectRatio: "1080 / 1560", borderRadius: 12, border: "1px solid rgba(255,255,255,.1)", marginBottom: 14, display: "flex", alignItems: "center", justifyContent: "center", color: "#8b9cbe", fontSize: 13, background: "rgba(255,255,255,.03)" } }, "\uD83C\uDFA8 G\u00E9n\u00E9ration de la carte d'\u00E9quipe\u2026"),
                     React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, marginBottom: 10 } },
                         React.createElement("div", null,
                             React.createElement("div", { style: { fontWeight: 700, fontSize: 16 } }, fiche.author),
