@@ -3284,7 +3284,7 @@ const CLUBS = /*VAULT:CLUBS*/ {
         ],
         squad: [
             // Effectif 2025-26 RÉEL (Transfermarkt) · Capitaine Lewis Cook. Salaires Capology 2025-26 (£M). Amort./book estimés. Semenyo (→City), Zabarnyi (→PSG), Huijsen (→Real), Kerkez (→Liverpool), Ouattara (→Brentford) vendus été 2025 (exclus). Senesi (→Tottenham, libre) → LOCKED_OUT.
-            { id: 1, name: "Djordje Petrović", by: 1999, end: 2030, pos: "GK", sal: 3.12, amort: 3.84, book: 15.36, mkt: 28 },
+            { id: 1, name: "Djordje Petrović", by: 1999, end: 2030, pos: "GK", sal: 3.12, amort: 3.84, book: 15.36, mkt: 28 }, { id: 26, name: "Christos Mandas", by: 2001, end: 2030, pos: "GK", sal: 2, amort: 1.5, book: 7, mkt: 10, salEst: true }, { id: 27, name: "Fraser Forster", by: 1988, end: 2027, pos: "GK", sal: 1.5, amort: 0, book: 0, mkt: 1, salEst: true },
             { id: 3, name: "Bafodé Diakité", by: 2001, end: 2028, pos: "DC", sal: 3.64, amort: 23.25, book: 0, mkt: 25 },
             { id: 4, name: "Marcos Senesi", by: 1997, end: 2026, pos: "DC", sal: 2.6, amort: 2.49, book: 0, mkt: 25 },
             { id: 5, name: "James Hill", by: 2002, end: 2029, pos: "DC", sal: 1.3, amort: 0.09, book: 0.29, mkt: 23 },
@@ -13733,6 +13733,7 @@ function evalTrophies(facts, log, store) {
 // équipe première (formés au club → UEFA « C »). Tant que la liste d'un club est vide, le panneau
 // affiche « aucun jeune répertorié ». Alimenté depuis data/youth_squads.json.
 const YOUTH = /*VAULT:YOUTH*/ {
+    bournemouth: [{ name: "Callan McKenna", pos: "GK", by: 2006, mkt: 0.3 }],
     alaves: [{ name: "Raúl Fernández", pos: "GK", mkt: 0.1 }, { name: "Xanet Oláiz", pos: "DC", mkt: 0.2 }, { name: "Álvaro García", pos: "DC", mkt: 0.2 }, { name: "Izei Hernández", pos: "AG", mkt: 0.2 }],
     angers: [{ name: "Dan Sinaté", pos: "DG", by: 2006, mkt: 0.15 }],
     atalanta: [{ name: "Francesco Rossi", pos: "GK", mkt: 0.1 }, { name: "Relja Obrić", pos: "DC", by: 2005, mkt: 1 }, { name: "Pietro Comi", pos: "DC", by: 2005, mkt: 0.4 }, { name: "Federico Cassa", pos: "MO", by: 2006, mkt: 0.7 }, { name: "Henry Camara", pos: "BU", by: 2006, mkt: 0.25 }],
