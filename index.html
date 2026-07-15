@@ -14060,7 +14060,7 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
     const openSell = (p) => { if (!p || p.locked)
         return; setSellPrice(String(Math.round(+p.mkt || +p.book || 0))); setSellModal(p); };
     const confirmSell = () => { if (!sellModal)
-        return; const id = sellModal.id, pr = Math.max(0, +sellPrice || 0); setPlayers((arr) => arr.map((x) => (x.id === id ? { ...x, price: pr, status: "sold" } : x))); setSellModal(null); };
+        return; const id = sellModal.id, cap = Math.max(3, Math.round((+sellModal.mkt || 0) * 2.5)), pr = Math.max(0, Math.min(cap, +sellPrice || 0)); setPlayers((arr) => arr.map((x) => (x.id === id ? { ...x, price: pr, status: "sold" } : x))); setSellModal(null); };
     const [loanModal, setLoanModal] = useState(null); // écran intermédiaire de prêt sortant, ou null
     const [cashFx, setCashFx] = useState(null); // feedback animé achat/vente (cash qui bouge + marge qui pulse)
     const _fxPrev = useRef({ sold: 0, rec: 0, proc: 0, fee: 0, id: 0, init: false });
@@ -17926,7 +17926,10 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
         sellModal && (() => {
             const p = sellModal;
             const mkt = +p.mkt || 0, book = +p.book || 0;
-            const price = Math.max(0, +sellPrice || 0);
+            // Plafond RÉALISTE : un club ne vend pas un joueur à un prix fantaisiste (anti-triche profil compétitif).
+            // ~2,5× la valeur de marché = marge de négociation généreuse ; minimum 3 M€ pour un joueur sans valeur.
+            const sellCap = Math.max(3, Math.round(mkt * 2.5));
+            const price = Math.max(0, Math.min(sellCap, +sellPrice || 0));
             const pv = +(price - book).toFixed(1);
             const salEco = +((+p.sal || 0) * load).toFixed(1);
             const amortEco = +(+p.amort || 0).toFixed(1);
@@ -17951,7 +17954,7 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
                     React.createElement("div", { className: "sellmodal-price" },
                         React.createElement("label", null, "Prix de vente demand\u00E9"),
                         React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8, marginTop: 4 } },
-                            React.createElement("input", { className: "num", type: "number", min: "0", value: sellPrice, onChange: (e) => setSellPrice(e.target.value), style: { fontSize: 21, fontWeight: 800, width: 132, textAlign: "right", padding: "8px 10px" } }),
+                            React.createElement("input", { className: "num", type: "number", min: "0", max: sellCap, value: sellPrice, onChange: (e) => setSellPrice(String(Math.min(sellCap, Math.max(0, +e.target.value || 0)))), style: { fontSize: 21, fontWeight: 800, width: 132, textAlign: "right", padding: "8px 10px" } }),
                             " ",
                             React.createElement("b", { style: { fontSize: 16, color: "#e8c46a" } }, CUR)),
                         React.createElement("div", { className: "sellmodal-mkt" },
