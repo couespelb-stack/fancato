@@ -12462,7 +12462,7 @@ function Tour({ steps, tab, setTab, onDone }) {
     if (s.center) {
         return React.createElement("div", { style: { position: "fixed", inset: 0, zIndex: 3000, background: "rgba(6,10,20,.82)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }, onClick: done },
             React.createElement("div", { style: { position: "relative", width: 340, maxWidth: "92vw", background: "linear-gradient(160deg,#1a212b,#141b24)", border: "1px solid rgba(0,255,106,.4)", borderRadius: 16, padding: "20px 18px", textAlign: "center", boxShadow: "0 20px 60px rgba(0,0,0,.6)" }, onClick: (e) => e.stopPropagation() },
-                React.createElement("button", { onClick: done, title: "Fermer (\u00C9chap)", style: { position: "absolute", top: 8, right: 8, width: 26, height: 26, borderRadius: "50%", border: "none", background: "rgba(255,255,255,.08)", color: "#cdd8ee", fontSize: 17, cursor: "pointer" } }, "\u00D7"),
+                React.createElement("button", { onClick: done, title: t("Fermer (Échap)"), style: { position: "absolute", top: 8, right: 8, width: 26, height: 26, borderRadius: "50%", border: "none", background: "rgba(255,255,255,.08)", color: "#cdd8ee", fontSize: 17, cursor: "pointer" } }, "\u00D7"),
                 inner));
     }
     const pad = 8, vh = window.innerHeight, vw = window.innerWidth;
@@ -12490,7 +12490,7 @@ function Tour({ steps, tab, setTab, onDone }) {
         React.createElement("div", { style: { position: "fixed", inset: 0, zIndex: 2999 }, onClick: done, title: "Cliquer pour fermer (\u00C9chap)" }),
         React.createElement("div", { style: { position: "fixed", zIndex: 3000, borderRadius: 12, boxShadow: "0 0 0 9999px rgba(6,10,20,.74), 0 0 22px rgba(0,255,106,.45)", border: "2px solid #00ff6a", pointerEvents: "none", transition: "top .45s cubic-bezier(.4,0,.2,1), left .45s cubic-bezier(.4,0,.2,1), width .45s cubic-bezier(.4,0,.2,1), height .45s cubic-bezier(.4,0,.2,1)", ...spot } }),
         React.createElement("div", { ref: tipRef, style: { position: "fixed", zIndex: 3001, top: tipTop, left: "50%", transform: "translateX(-50%)", width: 330, maxWidth: "92vw", background: "linear-gradient(160deg,#1a212b,#141b24)", border: "1px solid rgba(0,255,106,.45)", borderRadius: 14, padding: "16px 16px 14px", textAlign: "center", boxShadow: "0 16px 44px rgba(0,0,0,.6)", transition: "top .35s cubic-bezier(.4,0,.2,1)" } },
-            React.createElement("button", { onClick: done, title: "Fermer (\u00C9chap)", style: { position: "absolute", top: 6, right: 8, width: 24, height: 24, borderRadius: "50%", border: "none", background: "rgba(255,255,255,.08)", color: "#cdd8ee", fontSize: 16, cursor: "pointer" } }, "\u00D7"),
+            React.createElement("button", { onClick: done, title: t("Fermer (Échap)"), style: { position: "absolute", top: 6, right: 8, width: 24, height: 24, borderRadius: "50%", border: "none", background: "rgba(255,255,255,.08)", color: "#cdd8ee", fontSize: 16, cursor: "pointer" } }, "\u00D7"),
             inner));
 }
 const BACKOFFICE = (function () {
@@ -15727,7 +15727,7 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
                     cashFx.kind === "in" ? "+" : "−",
                     fmt(cashFx.amt)),
                 React.createElement("span", { className: "cash-fx-lab" }, cashFx.kind === "in" ? "encaissé" : "investi")),
-            endOpen && React.createElement(SeasonEnd, { sanctions: sanctions, checks: seasonChecks, note: boardNote, grade: boardGrade, line: boardLine, bulletin: bulletin, badges: badges, recapStats: recapStats, newTrophies: newTrophies, clubName: club.meta.name, modeShort: START_MODES[startMode].short, seedKey: clubId + "|" + startMode, recruits: recruits, sold: sold, imgs: imgs, teamShareImg: teamShareImg, onGenerate: genImages, onClose: () => setEndOpen(false) }),
+            endOpen && React.createElement(SeasonEnd, { sanctions: sanctions, checks: seasonChecks, note: boardNote, grade: boardGrade, line: boardLine, bulletin: bulletin, badges: badges, recapStats: recapStats, newTrophies: newTrophies, clubName: club.meta.name, modeShort: t(START_MODES[startMode].short), seedKey: clubId + "|" + startMode, recruits: recruits, sold: sold, imgs: imgs, teamShareImg: teamShareImg, onGenerate: genImages, onClose: () => setEndOpen(false) }),
             React.createElement(Assistant, { tips: coachTips, tab: tab, explain: explain, onCloseExplain: () => setExplain(null) }),
             tourMain && React.createElement(Tour, { steps: TOUR_MAIN, tab: tab, setTab: setTab, onDone: () => { try {
                     localStorage.setItem("sm_onboarded", "1");
@@ -16628,7 +16628,7 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
                     club.squad.length === 0 ? React.createElement("div", { className: "card", style: { borderColor: "rgba(0,255,106,.4)", background: "rgba(0,255,106,.06)", marginBottom: 10 } },
                         React.createElement("span", { style: { fontSize: 13, color: "#e8c46a", lineHeight: 1.5 } },
                             "\u2139\uFE0F ",
-                            React.createElement("b", null, "Effectif non disponible pour ce club"),
+                            React.createElement("b", null, t("Effectif non disponible pour ce club")),
                             " \u00B7 les donn\u00E9es de joueurs n'ont pas encore \u00E9t\u00E9 fournies. Le terrain et le mercato des joueurs sont donc vides, mais les ",
                             React.createElement("b", null, "finances"),
                             " et l'",
@@ -16676,18 +16676,21 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
                                                 React.createElement("button", { type: "button", onPointerDown: (e) => e.stopPropagation(), onClick: (e) => { e.stopPropagation(); slotMove(key, p.id, -1); }, disabled: ix === 0, title: "monter d'un cran" }, "\u25B2"),
                                                 React.createElement("button", { type: "button", onPointerDown: (e) => e.stopPropagation(), onClick: (e) => { e.stopPropagation(); slotMove(key, p.id, 1); }, disabled: ix === list.length - 1, title: "descendre d'un cran" }, "\u25BC"))));
                                     }),
-                                    list.length === 0 ? React.createElement("div", { style: { color: "#8b9cbe", fontSize: 12, padding: "10px 6px", textAlign: "center" } }, "Vide \u00B7 glisse un joueur ici depuis un autre poste.") : null)));
+                                    list.length === 0 ? React.createElement("div", { style: { color: "#8b9cbe", fontSize: 12, padding: "10px 6px", textAlign: "center" } }, t("Vide · glisse un joueur ici depuis un autre poste.")) : null)));
                         })() : null),
-                    club.squad.length > 0 ? React.createElement("div", { className: "mini", style: { margin: "10px 2px 8px", lineHeight: 1.55 } }, "Touche un poste pour g\u00E9rer sa profondeur. Glisse un joueur sur un autre poste (d\u00E9pannage) ou au-dessus du titulaire pour le titulariser.") : null,
+                    club.squad.length > 0 ? React.createElement("div", { className: "mini", style: { margin: "10px 2px 8px", lineHeight: 1.55 } }, t("Touche un poste pour gérer sa profondeur. Glisse un joueur sur un autre poste (dépannage) ou au-dessus du titulaire pour le titulariser.")) : null,
                     club.squad.length > 0 ? React.createElement("div", { className: "tbar" },
                         React.createElement("button", { type: "button", className: "tbtn" + (terrainPanel === "compo" ? " on" : ""), onClick: () => setTerrainPanel(terrainPanel === "compo" ? null : "compo") },
                             React.createElement("span", null,
                                 React.createElement(Icon, { name: "terrain", size: 12 })),
-                            " Compo \u00B7 ",
+                            " ",
+                            t("Compo"),
+                            " \u00B7 ",
                             (FORMATIONS[formation] || {}).name || formation),
                         React.createElement("button", { type: "button", className: "tbtn" + (terrainPanel === "captain" ? " on" : ""), onClick: () => setTerrainPanel(terrainPanel === "captain" ? null : "captain") },
                             React.createElement("span", { style: { fontWeight: 800 } }, "C"),
-                            " Capitaine")) : null,
+                            " ",
+                            t("Capitaine"))) : null,
                     terrainPanel === "compo" ?
                         React.createElement("div", { className: "fcarousel", "data-hscroll": "1" }, Object.entries(FORMATIONS).map(([k, v]) => (React.createElement("button", { key: k, type: "button", className: "fcard" + (formation === k ? " on" : ""), onClick: () => setFormation(k), title: "Jouer en " + v.name },
                             React.createElement("div", { className: "fmini" },
@@ -16703,8 +16706,8 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
                 return (React.createElement("div", { className: "card", style: { margin: "16px 0 0", display: "flex", alignItems: "center", gap: 11, flexWrap: "wrap" } },
                     React.createElement("span", { style: { display: "inline-flex", alignItems: "center", justifyContent: "center", width: 30, height: 30, borderRadius: "50%", background: "rgba(0,255,106,.22)", border: "1.5px solid #00ff6a", color: "#00ff6a", fontWeight: 700, fontFamily: "Raleway, sans-serif", fontSize: 13, flex: "none" } }, "C"),
                     React.createElement("div", { style: { flex: "1 1 auto", minWidth: 120 } },
-                        React.createElement("div", { style: { fontFamily: "Raleway, sans-serif", fontSize: 14, color: "#eaf0fb", fontWeight: 700 } }, "Choisis ton capitaine"),
-                        React.createElement("div", { style: { fontSize: 11, color: "#9fb0d0" } }, capName ? "actuel : " + capName + (known && capName === known ? " (par défaut)" : "") : "aucun capitaine désigné")),
+                        React.createElement("div", { style: { fontFamily: "Raleway, sans-serif", fontSize: 14, color: "#eaf0fb", fontWeight: 700 } }, t("Choisis ton capitaine")),
+                        React.createElement("div", { style: { fontSize: 11, color: "#9fb0d0" } }, capName ? "actuel : " + capName + (known && capName === known ? " (par défaut)" : "") : t("aucun capitaine désigné"))),
                     React.createElement("select", { className: "psel", style: { maxWidth: 210, minHeight: 40, flex: "0 0 auto" }, value: captain == null ? "" : String(captain), onChange: (e) => { const v = e.target.value; if (!v) {
                             setCaptain(null);
                             return;
@@ -16714,7 +16717,7 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
             })(),
             tab === "terrain" && React.createElement("button", { type: "button", onClick: finishMercato, "data-tour": "fin", style: { display: "block", width: "100%", margin: "16px 0 6px", background: "linear-gradient(180deg,#f4cf6e,#00c452)", color: "#14213c", border: "none", borderRadius: 13, padding: "15px", fontFamily: "Raleway, sans-serif", fontWeight: 800, fontSize: 16.5, letterSpacing: ".02em", cursor: "pointer", boxShadow: "0 8px 22px rgba(224,169,58,.3)" } },
                 React.createElement(Icon, { name: "fin", size: 16, style: { marginRight: 7, verticalAlign: "-3px" } }),
-                "Terminer le mercato \u00B7 valider mon effectif & voir ma note"),
+                t("Terminer le mercato · valider mon effectif & voir ma note")),
             drag && React.createElement("div", { style: { position: "fixed", left: drag.cx, top: drag.cy, transform: "translate(-50%,-150%)", zIndex: 5000, pointerEvents: "none", background: "linear-gradient(180deg,#00ff6a,#00c452)", color: "#14213c", borderRadius: 9, padding: "6px 12px", fontFamily: "Raleway, sans-serif", fontWeight: 700, fontSize: 13, boxShadow: "0 10px 26px rgba(0,0,0,.55)", whiteSpace: "nowrap" } },
                 "\u270B ",
                 surname(drag.name || "")),
@@ -17941,12 +17944,12 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
             React.createElement("div", { style: { display: tab === "douzieme" ? "none" : "flex", alignItems: "center", gap: 8, margin: "18px 0 8px", paddingTop: 12, borderTop: "1px solid rgba(255,255,255,.08)", fontSize: 11, color: "#7d8eae", flexWrap: "wrap" } },
                 React.createElement("span", null,
                     React.createElement(Icon, { name: "save", size: 13, style: { marginRight: 5 } }),
-                    "Progression sauvegard\u00E9e automatiquement sur cet appareil."),
+                    t("Progression sauvegardée automatiquement sur cet appareil.")),
                 React.createElement("span", { style: { marginLeft: "auto", display: "flex", gap: 12, flexWrap: "wrap" } },
-                    React.createElement("a", { href: "a-propos.html", style: { color: "#8b9cbe", textDecoration: "none" } }, "\u00C0 propos"),
-                    React.createElement("a", { href: "methodologie.html", style: { color: "#8b9cbe", textDecoration: "none" } }, "M\u00E9thodologie"),
-                    React.createElement("a", { href: "sources.html", style: { color: "#8b9cbe", textDecoration: "none" } }, "Sources"),
-                    React.createElement("a", { href: "confidentialite.html", style: { color: "#8b9cbe", textDecoration: "none" } }, "Confidentialit\u00E9")))),
+                    React.createElement("a", { href: "a-propos.html", style: { color: "#8b9cbe", textDecoration: "none" } }, t("À propos")),
+                    React.createElement("a", { href: "methodologie.html", style: { color: "#8b9cbe", textDecoration: "none" } }, t("Méthodologie")),
+                    React.createElement("a", { href: "sources.html", style: { color: "#8b9cbe", textDecoration: "none" } }, t("Sources")),
+                    React.createElement("a", { href: "confidentialite.html", style: { color: "#8b9cbe", textDecoration: "none" } }, t("Confidentialité"))))),
         dataEdit && (React.createElement("div", { style: { position: "fixed", inset: 0, zIndex: 1200, background: "rgba(6,10,20,.86)", display: "flex", alignItems: "flex-start", justifyContent: "center", padding: "max(4vh, calc(env(safe-area-inset-top) + 10px)) 12px max(4vh, env(safe-area-inset-bottom))", overflowY: "auto" }, onClick: () => setDataEdit(null) },
             React.createElement("div", { style: { width: "100%", maxWidth: 520, background: "linear-gradient(160deg,#1a212b,#141b24)", border: "1px solid rgba(0,255,106,.35)", borderRadius: 16, boxShadow: "0 24px 70px rgba(0,0,0,.6)", overflow: "hidden", display: "flex", flexDirection: "column", maxHeight: "92vh" }, onClick: (e) => e.stopPropagation() },
                 React.createElement("div", { style: { padding: "14px 16px 6px", flex: "none" } },
@@ -18245,7 +18248,7 @@ function TrophyRoom({ onClose }) {
                 React.createElement("div", { style: { fontFamily: "Raleway,sans-serif", fontWeight: 800, fontSize: 20, color: "#f2d891" } },
                     React.createElement(Icon, { name: "trophy", size: 19, style: { marginRight: 7, verticalAlign: "-3px" } }),
                     "Salle des troph\u00E9es"),
-                React.createElement("button", { onClick: onClose, title: "Fermer (\u00C9chap)", style: { background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.14)", color: "#cdd8ee", width: 32, height: 32, borderRadius: 9, fontSize: 18, cursor: "pointer", lineHeight: 1 } }, "\u2715")),
+                React.createElement("button", { onClick: onClose, title: t("Fermer (Échap)"), style: { background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.14)", color: "#cdd8ee", width: 32, height: 32, borderRadius: 9, fontSize: 18, cursor: "pointer", lineHeight: 1 } }, "\u2715")),
             React.createElement("div", { style: { color: "#9fb0d0", fontSize: 13, marginBottom: 6 } },
                 React.createElement("b", { style: { color: "#f2d891" } }, got),
                 " / ",
@@ -18330,7 +18333,7 @@ function SettingsPage({ onClose, onCommunity, slotCount }) {
                 React.createElement("div", { style: { fontFamily: "Raleway,sans-serif", fontWeight: 800, fontSize: 20, color: "#eaf0fb" } },
                     React.createElement(Icon, { name: "sliders", size: 19, style: { marginRight: 8, verticalAlign: "-3px", color: "#00ff6a" } }),
                     "Param\u00E8tres"),
-                React.createElement("button", { onClick: onClose, title: "Fermer (\u00C9chap)", style: { background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.14)", color: "#cdd8ee", width: 32, height: 32, borderRadius: 9, fontSize: 18, cursor: "pointer", lineHeight: 1 } }, "\u2715")),
+                React.createElement("button", { onClick: onClose, title: t("Fermer (Échap)"), style: { background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.14)", color: "#cdd8ee", width: 32, height: 32, borderRadius: 9, fontSize: 18, cursor: "pointer", lineHeight: 1 } }, "\u2715")),
             React.createElement("div", { style: secTitle }, "Mes parties"),
             React.createElement("div", { style: card },
                 React.createElement("div", { style: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "13px 2px" } },
@@ -18385,7 +18388,7 @@ function SettingsPage({ onClose, onCommunity, slotCount }) {
                         React.createElement("span", { style: { position: "absolute", top: 3, left: musicOn ? 23 : 3, width: 20, height: 20, borderRadius: "50%", background: "#fff", transition: "left .2s", boxShadow: "0 1px 3px rgba(0,0,0,.4)" } }))),
                 React.createElement("div", { style: { height: 1, background: "rgba(255,255,255,.06)" } }),
                 soon("Vibrations")),
-            React.createElement("div", { style: secTitle }, "\u00C0 propos"),
+            React.createElement("div", { style: secTitle }, t("À propos")),
             React.createElement("div", { style: { ...card, marginBottom: 4 } },
                 React.createElement("div", { style: { padding: "12px 2px" } },
                     React.createElement("div", { style: { fontFamily: "Raleway,sans-serif", fontWeight: 800, fontSize: 16, letterSpacing: ".02em", color: "#eaf0fb" } }, "FANCATO"),
@@ -18438,7 +18441,7 @@ function Home({ slots, onResume, onEnter, onRemove, onCommunity }) {
         _run[s.clubId] = (_run[s.clubId] || 0) + 1;
         labelByUid[s.uid] = base + " (" + _run[s.clubId] + ")";
     } });
-    const modeShort = (m) => (START_MODES[m] ? START_MODES[m].short : "");
+    const modeShort = (m) => (START_MODES[m] ? t(START_MODES[m].short) : "");
     var trStore = {};
     try {
         trStore = JSON.parse(localStorage.getItem("fancato_trophies") || "{}");
@@ -18467,12 +18470,12 @@ function Home({ slots, onResume, onEnter, onRemove, onCommunity }) {
                 React.createElement("span", { style: { color: "#fff" } }, "FAN"),
                 React.createElement("span", { style: { color: "#00ff6a" } }, "CATO")),
             React.createElement("div", { style: { fontFamily: "Raleway, sans-serif", fontSize: 11, fontWeight: 700, letterSpacing: ".16em", textTransform: "uppercase", color: "#8a94a6", marginBottom: 16 } },
-                "Le mercato imagin\u00E9 ",
-                React.createElement("span", { style: { color: "#00ff6a" } }, "par les fans")),
+                t("Le mercato imaginé "),
+                React.createElement("span", { style: { color: "#00ff6a" } }, t("par les fans"))),
             React.createElement("div", { style: { fontFamily: "Raleway, sans-serif", fontWeight: 800, fontSize: 15, letterSpacing: ".14em", textTransform: "uppercase", color: "#00ff6a", marginBottom: 4 } },
                 React.createElement(Icon, { name: "bolt", size: 13, style: { marginRight: 5, verticalAlign: "-2px" } }),
-                "\u00C9t\u00E9 2026"),
-            React.createElement("div", { style: { fontSize: 15, lineHeight: 1.4, color: "#fff", fontWeight: 600 } }, "Le mercato vient d'ouvrir.")),
+                t("Été 2026")),
+            React.createElement("div", { style: { fontSize: 15, lineHeight: 1.4, color: "#fff", fontWeight: 600 } }, t("Le mercato vient d'ouvrir."))),
         React.createElement("div", { style: { width: "100%", minWidth: 0, maxWidth: 620, margin: "0 auto" } },
             React.createElement("div", { style: { textAlign: "center", marginBottom: 12 } },
                 React.createElement("div", { style: { fontFamily: "Raleway, sans-serif", fontWeight: 800, fontSize: 16, letterSpacing: ".08em", textTransform: "uppercase", color: "#fff" } }, slotClubs.length === 0 ? t("Prêt à jouer ?") : t("Tes parties")),
@@ -18581,7 +18584,7 @@ function Assistant({ tips, tab, explain, onCloseExplain }) {
                 React.createElement("span", { className: "adj-av" },
                     React.createElement(Icon, { name: "adjoint", size: 24 })),
                 React.createElement("span", { className: "adj-nm" }, "Ton adjoint t'explique"),
-                React.createElement("button", { className: "adj-min", "aria-label": "R\u00E9duire l'adjoint", onClick: onCloseExplain, title: "Fermer (\u00C9chap)" }, "\u00D7")),
+                React.createElement("button", { className: "adj-min", "aria-label": "R\u00E9duire l'adjoint", onClick: onCloseExplain, title: t("Fermer (Échap)") }, "\u00D7")),
             React.createElement("div", { className: "adj-tip", style: { borderLeftColor: kc } },
                 explain.title ? React.createElement("b", { style: { display: "block", color: "#eaf0fb", marginBottom: 5, fontSize: 13.5 } },
                     explain.title,
@@ -18709,7 +18712,7 @@ function Onboarding({ club, setTab }) {
                 React.createElement("i", null),
                 React.createElement("i", null),
                 React.createElement("i", null)) : null,
-            React.createElement("button", { onClick: done, title: "Fermer (\u00C9chap)", className: "ob-x", "aria-label": "Fermer" }, "\u00D7"),
+            React.createElement("button", { onClick: done, title: t("Fermer (Échap)"), className: "ob-x", "aria-label": "Fermer" }, "\u00D7"),
             React.createElement("div", { className: "ob-hero", key: "h" + step }, s.hero === "crest"
                 ? React.createElement("span", { className: "ob-crest" },
                     React.createElement("span", { className: "ob-ring" }),
@@ -18830,11 +18833,11 @@ function SeasonEnd({ sanctions, checks, note, grade, line, bulletin, badges, rec
         ...sold.map((p) => ({ ...p, dir: "out" })),
     ];
     const PHASES = [
-        { key: "transf", label: "Ta fenêtre de transferts" },
-        { key: "onze", label: "Ton onze idéal" },
-        { key: "instances", label: "Passage devant les instances" },
-        { key: "note", label: "La note du board" },
-        { key: "final", label: "Ta saison" },
+        { key: "transf", label: t("Ta fenêtre de transferts") },
+        { key: "onze", label: t("Ton onze idéal") },
+        { key: "instances", label: t("Passage devant les instances") },
+        { key: "note", label: t("La note du board") },
+        { key: "final", label: t("Ta saison") },
     ];
     const [phase, setPhase] = useState(0);
     // PUB · TÉLÉCHARGER sa carte pour soi = 1 vidéo récompensée. PUBLIER au 12ᵉ Homme reste GRATUIT
@@ -18893,60 +18896,60 @@ function SeasonEnd({ sanctions, checks, note, grade, line, bulletin, badges, rec
                 return "Un prêt malin, sans alourdir les comptes.";
             const fee = +m.fee || 0;
             if (fee === 0)
-                return "Arrivée libre : zéro indemnité, du flair.";
+                return t("Arrivée libre : zéro indemnité, du flair.");
             if (fee >= 80)
-                return "Un renfort de classe mondiale.";
+                return t("Un renfort de classe mondiale.");
             if (fee >= 40)
-                return "Un gros chèque pour passer un cap.";
+                return t("Un gros chèque pour passer un cap.");
             if (fee > 0 && fee < 8)
-                return "Un coup pas cher qui peut rapporter gros.";
-            return "Un renfort crédible pour l'effectif.";
+                return t("Un coup pas cher qui peut rapporter gros.");
+            return t("Un renfort crédible pour l'effectif.");
         }
         const price = +m.price || 0;
         if (price === 0)
-            return "Départ libre : la masse salariale respire.";
+            return t("Départ libre : la masse salariale respire.");
         if (price >= 50)
-            return "Une très grosse vente pour les caisses.";
+            return t("Une très grosse vente pour les caisses.");
         if (price >= 20)
-            return "Une belle vente, bien négociée.";
-        return "Un départ qui renfloue un peu les comptes.";
+            return t("Une belle vente, bien négociée.");
+        return t("Un départ qui renfloue un peu les comptes.");
     };
-    const valOf = (m) => m.dir === "in" ? (m.kind === "loan" ? "prêt" : ((+m.fee || 0) === 0 ? "libre" : fmt(+m.fee || 0))) : ((+m.price || 0) === 0 ? "libre" : "+" + fmt(+m.price || 0));
+    const valOf = (m) => m.dir === "in" ? (m.kind === "loan" ? t("prêt") : ((+m.fee || 0) === 0 ? t("libre") : fmt(+m.fee || 0))) : ((+m.price || 0) === 0 ? t("libre") : "+" + fmt(+m.price || 0));
     return (React.createElement("div", { className: "se-ov", onClick: onClose },
         React.createElement("div", { className: "se-card" + (phase === 3 && !allGreen ? " se-shake" : ""), onClick: (e) => e.stopPropagation() },
             React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 } },
                 React.createElement("div", { style: { fontFamily: "Raleway,sans-serif", fontWeight: 700, fontSize: 20, color: "#eaf0fb" } },
                     React.createElement(Icon, { name: "fin", size: 16, style: { marginRight: 6, verticalAlign: "-2px" } }),
-                    "Fin du mercato"),
-                React.createElement("button", { onClick: onClose, title: "Fermer (\u00C9chap)", style: { background: "transparent", border: "none", color: "#9fb0d0", fontSize: 24, cursor: "pointer", lineHeight: 1 } }, "\u00D7")),
+                    t("Fin du mercato")),
+                React.createElement("button", { onClick: onClose, title: t("Fermer (Échap)"), style: { background: "transparent", border: "none", color: "#9fb0d0", fontSize: 24, cursor: "pointer", lineHeight: 1 } }, "\u00D7")),
             React.createElement("div", { style: { color: "#9fb0d0", fontSize: 12.5, marginBottom: 12 } },
                 clubName,
                 " \u00B7 ",
                 modeShort,
                 " \u00B7 ",
                 React.createElement("b", { style: { color: "#cdd8ee" } }, nRec),
-                " recrue",
-                nRec > 1 ? "s" : "",
+                " ",
+                t(nRec > 1 ? "recrues" : "recrue"),
                 " / ",
                 React.createElement("b", { style: { color: "#cdd8ee" } }, nSold),
-                " d\u00E9part",
-                nSold > 1 ? "s" : ""),
+                " ",
+                t(nSold > 1 ? "départs" : "départ")),
             React.createElement("div", { className: "se-dots" }, PHASES.map((_, i) => React.createElement("i", { key: i, className: i === phase ? "on" : (i < phase ? "past" : "") }))),
             phase === 0 ? React.createElement("div", { className: "se-phase", key: "p0" },
                 React.createElement("div", { className: "se-lbl" }, PHASES[0].label),
-                moves.length === 0 ? React.createElement("div", { style: { color: "#7d8eae", fontSize: 13, fontStyle: "italic", padding: "8px 2px" } }, "Aucun mouvement \u00B7 tu gardes ton effectif tel quel.")
+                moves.length === 0 ? React.createElement("div", { style: { color: "#7d8eae", fontSize: 13, fontStyle: "italic", padding: "8px 2px" } }, t("Aucun mouvement · tu gardes ton effectif tel quel."))
                     : moves.slice(0, revealed).map((m, i) => (React.createElement("div", { key: i, className: "se-tr " + (m.dir === "in" ? "inb" : "outb") },
                         React.createElement(PlayerPhoto, { club: m.dir === "out" ? myClubId : (m.from || null), name: m.name, color: m.dir === "in" ? "#1e3a2c" : "#3a2530" }),
                         React.createElement("div", { className: "se-tr-mid" },
                             React.createElement("div", { className: "se-tr-name" },
                                 surname(m.name),
-                                React.createElement("span", { className: "se-dir", style: m.dir === "in" ? { color: "#9be3c2", background: "rgba(127,227,184,.16)" } : { color: "#ff96a6", background: "rgba(255,150,166,.14)" } }, m.dir === "in" ? "Arrivée" : "Départ")),
+                                React.createElement("span", { className: "se-dir", style: m.dir === "in" ? { color: "#9be3c2", background: "rgba(127,227,184,.16)" } : { color: "#ff96a6", background: "rgba(255,150,166,.14)" } }, m.dir === "in" ? t("Arrivée") : t("Départ"))),
                             React.createElement("div", { className: "se-tr-note" }, noteFor(m))),
                         React.createElement("div", { className: "se-tr-val", style: { color: m.dir === "in" ? "#eaf0fb" : "#9be3c2" } }, valOf(m)))))) : null,
             phase === 1 ? React.createElement("div", { className: "se-phase", key: "p1", style: { textAlign: "center" } },
                 React.createElement("div", { className: "se-lbl", style: { textAlign: "left" } }, PHASES[1].label),
                 teamImg ? React.createElement("img", { src: teamImg, alt: "Ton onze", className: "se-hero-img" })
-                    : React.createElement("div", { style: { padding: "44px 10px", color: "#9fb0d0", fontSize: 13 } }, "Composition de ton onze id\u00E9al\u2026")) : null,
+                    : React.createElement("div", { style: { padding: "44px 10px", color: "#9fb0d0", fontSize: 13 } }, t("Composition de ton onze idéal…"))) : null,
             phase === 2 ? React.createElement("div", { className: "se-phase", key: "p2" },
                 React.createElement("div", { className: "se-lbl" }, PHASES[2].label),
                 checks.slice(0, chk).map((c) => (React.createElement("div", { key: c.k, className: "se-check se-pop " + (c.ok ? "ok" : "ko") },
@@ -18957,7 +18960,7 @@ function SeasonEnd({ sanctions, checks, note, grade, line, bulletin, badges, rec
                 chk >= checks.length ? (allGreen
                     ? React.createElement("div", { className: "se-pop", style: { marginTop: 4, fontSize: 12.5, color: "#9be3c2", background: "rgba(0,255,106,.08)", border: "1px solid rgba(0,255,106,.25)", borderRadius: 10, padding: "9px 11px" } },
                         React.createElement(Icon, { name: "valide", size: 13, style: { marginRight: 6, verticalAlign: "-2px" } }),
-                        "Tous les voyants au vert \u00B7 le board validera ton mercato.")
+                        t("Tous les voyants au vert · le board validera ton mercato."))
                     : React.createElement("div", { className: "se-pop", style: { marginTop: 4 } },
                         React.createElement("div", { style: { fontSize: 11, fontWeight: 800, letterSpacing: ".08em", textTransform: "uppercase", color: "#ff96a6", marginBottom: 7 } },
                             React.createElement(Icon, { name: "warn", size: 13, style: { marginRight: 6, verticalAlign: "-2px" } }),
@@ -18969,7 +18972,7 @@ function SeasonEnd({ sanctions, checks, note, grade, line, bulletin, badges, rec
                             React.createElement("div", { style: { fontSize: 10.5, fontWeight: 800, letterSpacing: ".06em", textTransform: "uppercase", color: sc.hard ? "#ff96a6" : "#e8c46a", marginBottom: 3 } }, sc.org),
                             React.createElement("div", { style: { fontFamily: "Raleway, sans-serif", fontWeight: 800, fontSize: 15, color: "#fff", lineHeight: 1.25, marginBottom: 4 } }, sc.verdict),
                             React.createElement("div", { style: { fontSize: 12, color: "#cdd8ee", lineHeight: 1.45 } }, sc.detail)))),
-                        !(sanctions || []).length ? React.createElement("div", { style: { fontSize: 12.5, color: "#ffc2cc" } }, "Tu t'exposes \u00E0 une sanction en fin de saison.") : null)) : null) : null,
+                        !(sanctions || []).length ? React.createElement("div", { style: { fontSize: 12.5, color: "#ffc2cc" } }, t("Tu t'exposes à une sanction en fin de saison.")) : null)) : null) : null,
             phase === 3 ? React.createElement("div", { className: "se-phase", key: "p3", style: { textAlign: "center", position: "relative", paddingTop: 6 } },
                 allGreen ? React.createElement("div", { className: "se-glow" }) : null,
                 note >= 7 ? React.createElement("div", { className: "se-conf", key: "cf" + phase }, Array.from({ length: 28 }).map((_, i) => { const cols = ["#00ff6a", "#e8c46a", "#9ad0ff", "#ff96a6", "#ffffff"]; const left = (i * 3.6 + (i * i % 11)) % 100; const dur = 1.4 + (i % 5) * 0.24; const del = (i % 8) * 0.07; return React.createElement("i", { key: i, style: { left: left + "%", background: cols[i % cols.length], animationDuration: dur + "s", animationDelay: del + "s", transform: "rotate(" + (i * 41 % 360) + "deg)" } }); })) : null,
@@ -18991,13 +18994,13 @@ function SeasonEnd({ sanctions, checks, note, grade, line, bulletin, badges, rec
                     " \u00BB")) : null,
             phase === 4 ? React.createElement("div", { className: "se-phase", key: "p4" },
                 newTrophies && newTrophies.length > 0 ? React.createElement("div", { style: { marginBottom: 16, padding: "15px", borderRadius: 14, background: "linear-gradient(180deg,rgba(232,196,106,.12),rgba(123,61,255,.06))", border: "1px solid rgba(232,196,106,.4)", textAlign: "center" } },
-                    React.createElement("div", { style: { fontSize: 11, textTransform: "uppercase", letterSpacing: ".12em", color: "#e8c46a", marginBottom: 10 } }, newTrophies.length > 1 ? newTrophies.length + " nouveaux trophées !" : "Nouveau trophée !"),
+                    React.createElement("div", { style: { fontSize: 11, textTransform: "uppercase", letterSpacing: ".12em", color: "#e8c46a", marginBottom: 10 } }, newTrophies.length > 1 ? newTrophies.length + t(" nouveaux trophées !") : t("Nouveau trophée !")),
                     newTrophies.map((t, i) => React.createElement("div", { key: t.id, style: { display: "flex", alignItems: "center", gap: 11, textAlign: "left", padding: "8px 4px", animation: "seSlideIn .45s var(--ease) both " + (0.1 + i * 0.16) + "s" } },
                         React.createElement("span", { style: { flex: "0 0 auto", color: "#f2d891" } },
                             React.createElement(Icon, { name: t.emo, size: 30 })),
                         React.createElement("div", { style: { minWidth: 0 } },
                             React.createElement("div", { style: { fontFamily: "Raleway,sans-serif", fontWeight: 800, fontSize: 15.5, color: "#f2d891" } }, t.name),
-                            React.createElement("div", { style: { fontSize: 12, color: "#c8d3e8", lineHeight: 1.4 } }, t.desc))))) : React.createElement("div", { style: { marginBottom: 14, fontSize: 12.5, color: "#9fb0d0", textAlign: "center", fontStyle: "italic" } }, "Aucun nouveau troph\u00E9e cette fois \u00B7 tente un autre club ou un mercato plus tranch\u00E9 pour en d\u00E9bloquer."),
+                            React.createElement("div", { style: { fontSize: 12, color: "#c8d3e8", lineHeight: 1.4 } }, t.desc))))) : React.createElement("div", { style: { marginBottom: 14, fontSize: 12.5, color: "#9fb0d0", textAlign: "center", fontStyle: "italic" } }, t("Aucun nouveau trophée cette fois · tente un autre club ou un mercato plus tranché pour en débloquer.")),
                 React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8 } },
                     imgs.length > 0 ? (dlLocked ? (React.createElement(React.Fragment, null,
                         React.createElement("button", { onClick: () => {
@@ -19005,7 +19008,7 @@ function SeasonEnd({ sanctions, checks, note, grade, line, bulletin, badges, rec
                                     return;
                                 setDlWait(true);
                                 ADS.reward("carte_mercato", function () { setDlWait(false); setDlOk(true); SFX.play("trophy"); }, function () { setDlWait(false); });
-                            }, style: { display: "block", width: "100%", textAlign: "center", background: "#00ff6a", color: "#04120a", border: "none", borderRadius: 11, padding: "12px", fontFamily: "Raleway, sans-serif", fontWeight: 800, fontSize: 14.5, cursor: dlWait ? "default" : "pointer", opacity: dlWait ? .6 : 1 } }, dlWait ? "Chargement de la pub…" : "🎬 Regarde une pub → débloquer ta carte"),
+                            }, style: { display: "block", width: "100%", textAlign: "center", background: "#00ff6a", color: "#04120a", border: "none", borderRadius: 11, padding: "12px", fontFamily: "Raleway, sans-serif", fontWeight: 800, fontSize: 14.5, cursor: dlWait ? "default" : "pointer", opacity: dlWait ? .6 : 1 } }, dlWait ? t("Chargement de la pub…") : t("🎬 Regarde une pub → débloquer ta carte")),
                         React.createElement("div", { style: { fontSize: 11.5, color: "#8a94a6", textAlign: "center", lineHeight: 1.4 } },
                             "Une pub d\u00E9bloque le ",
                             React.createElement("b", { style: { color: "#9be3c2" } }, "partage"),
@@ -19026,12 +19029,12 @@ function SeasonEnd({ sanctions, checks, note, grade, line, bulletin, badges, rec
                                 im.label));
                         }))))) : React.createElement("button", { onClick: () => { setGen(true); onGenerate(); }, style: { background: "#00ff6a", color: "#14213c", border: "none", borderRadius: 11, padding: "12px", fontFamily: "Raleway,sans-serif", fontWeight: 700, fontSize: 15, cursor: "pointer" } },
                         React.createElement(Icon, { name: "generer", size: 16, style: { filter: "brightness(0)", marginRight: 7, verticalAlign: "-3px" } }),
-                        "G\u00E9n\u00E9rer ma carte \u00E0 partager"),
+                        t("Générer ma carte à partager")),
                     React.createElement("button", { onClick: publish, disabled: pub, style: { background: pub ? "rgba(127,227,184,.14)" : "rgba(0,255,106,.12)", color: "#00ff6a", border: "1px solid " + (pub ? "rgba(127,227,184,.4)" : "rgba(0,255,106,.4)"), borderRadius: 11, padding: "11px", fontFamily: "Raleway, sans-serif", fontWeight: 700, fontSize: 14, cursor: pub ? "default" : "pointer" } }, pub ? React.createElement(React.Fragment, null,
                         React.createElement(Icon, { name: "valide", size: 14, style: { marginRight: 6, verticalAlign: "-2px" } }),
-                        "Publi\u00E9 au 12\u1D49 Homme \u00B7 la commu peut le juger") : React.createElement(React.Fragment, null,
+                        t("Publié au 12ᵉ Homme · la commu peut le juger")) : React.createElement(React.Fragment, null,
                         React.createElement(Icon, { name: "mic", size: 14, style: { marginRight: 6, verticalAlign: "-2px" } }),
-                        "Publier mon mercato au 12\u1D49 Homme")),
+                        t("Publier mon mercato au 12ᵉ Homme"))),
                     React.createElement("button", { onClick: () => setShowLb((v) => !v), style: { background: "rgba(255,255,255,.05)", color: "#eaf0fb", border: "1px solid rgba(255,255,255,.16)", borderRadius: 11, padding: "11px", fontFamily: "Raleway, sans-serif", fontWeight: 700, fontSize: 14, cursor: "pointer" } },
                         React.createElement(Icon, { name: "trophy", size: 15, style: { marginRight: 6, verticalAlign: "-2px" } }),
                         showLb ? "Masquer" : "Voir",
@@ -19055,13 +19058,13 @@ function SeasonEnd({ sanctions, checks, note, grade, line, bulletin, badges, rec
                                 React.createElement("span", { style: { flex: 1, color: r.me ? "#00ff6a" : "#dfe7f5", fontWeight: r.me ? 700 : 500, fontSize: 13.5 } }, r.me ? "★ Toi" : r.name),
                                 React.createElement("b", { style: { color: gc(r.note), fontSize: 14 } }, r.note.toFixed(1)),
                                 React.createElement("span", { style: { fontSize: 11, color: "#9fb0d0", width: 14, textAlign: "center" } }, r.grade)))),
-                            React.createElement("div", { style: { fontSize: 11, color: "#8b9cbe", marginTop: 6, fontStyle: "italic", lineHeight: 1.4 } }, "D\u00E9mo locale \u00B7 adversaires fictifs (stables par club). Le vrai classement en ligne viendra plus tard."));
+                            React.createElement("div", { style: { fontSize: 11, color: "#8b9cbe", marginTop: 6, fontStyle: "italic", lineHeight: 1.4 } }, t("Démo locale · adversaires fictifs (stables par club). Le vrai classement en ligne viendra plus tard.")));
                     })() : null)) : null,
             React.createElement("div", { style: { marginTop: 16 } },
                 phase < PHASES.length - 1
-                    ? React.createElement("button", { className: "se-cont", onClick: next }, phase === 3 ? "Voir mes trophées ›" : "Continuer ›")
-                    : React.createElement("button", { className: "se-cont", onClick: onClose, style: { background: "rgba(255,255,255,.06)", color: "#eaf0fb", boxShadow: "none", border: "1px solid rgba(255,255,255,.18)" } }, "Terminer"),
-                phase < PHASES.length - 1 ? React.createElement("button", { className: "se-skip", onClick: () => setPhase(PHASES.length - 1) }, "Passer au r\u00E9sum\u00E9") : null))));
+                    ? React.createElement("button", { className: "se-cont", onClick: next }, phase === 3 ? t("Voir mes trophées ›") : t("Continuer ›"))
+                    : React.createElement("button", { className: "se-cont", onClick: onClose, style: { background: "rgba(255,255,255,.06)", color: "#eaf0fb", boxShadow: "none", border: "1px solid rgba(255,255,255,.18)" } }, t("Terminer")),
+                phase < PHASES.length - 1 ? React.createElement("button", { className: "se-skip", onClick: () => setPhase(PHASES.length - 1) }, t("Passer au résumé")) : null))));
 }
 // Choix du mode de départ (3 scénarios) à l'ouverture d'une NOUVELLE partie. Écrit startMode dans le scénario du club.
 function StartModePicker({ clubId, onPick, onCancel }) {
@@ -19079,22 +19082,23 @@ function StartModePicker({ clubId, onPick, onCancel }) {
     return (React.createElement("div", { style: { minHeight: "100dvh", background: "radial-gradient(1200px 600px at 50% -10%, #16264c 0%, #0a1224 60%)", display: "flex", alignItems: "center", justifyContent: "center", padding: "max(24px, env(safe-area-inset-top)) 16px max(24px, env(safe-area-inset-bottom))", fontFamily: "Raleway, system-ui, sans-serif", boxSizing: "border-box" } },
         React.createElement("div", { style: { maxWidth: 560, width: "100%" } },
             React.createElement("div", { style: { textAlign: "center", marginBottom: 4, color: "#8b9cbe", fontSize: 12, textTransform: "uppercase", letterSpacing: ".12em" } },
-                "Nouvelle partie",
+                t("Nouvelle partie"),
                 club ? " · " + club.meta.name : ""),
-            React.createElement("h1", { style: { textAlign: "center", margin: "0 0 16px", fontFamily: "Raleway, sans-serif", color: "#eaf0fb", fontSize: 22 } }, "O\u00F9 commences-tu ton mercato ?"),
+            React.createElement("h1", { style: { textAlign: "center", margin: "0 0 16px", fontFamily: "Raleway, sans-serif", color: "#eaf0fb", fontSize: 22 } }, t("Où commences-tu ton mercato ?")),
             React.createElement("div", { style: { display: "flex", gap: 4, padding: 4, background: "rgba(255,255,255,.05)", border: "1px solid rgba(255,255,255,.12)", borderRadius: 13, marginBottom: 12, touchAction: "pan-y" }, onTouchStart: (e) => { _sw.current = { x: e.touches[0].clientX, y: e.touches[0].clientY }; }, onTouchEnd: (e) => { const st = _sw.current; if (!st)
                     return; _sw.current = null; const t = e.changedTouches[0]; const dx = t.clientX - st.x, dy = t.clientY - st.y; if (Math.abs(dx) < 40 || Math.abs(dx) < Math.abs(dy) * 1.4)
                     return; if (dx < 0 && sel < 3)
                     setSel(sel + 1);
                 else if (dx > 0 && sel > 1)
                     setSel(sel - 1); } }, MODES.map((o) => React.createElement("button", { key: o.m, type: "button", onClick: () => setSel(o.m), style: { flex: 1, background: sel === o.m ? "linear-gradient(180deg,rgba(0,255,106,.92),rgba(0,196,82,.92))" : "none", border: "none", borderRadius: 10, padding: "11px 5px", fontFamily: "Raleway,sans-serif", fontWeight: 800, fontSize: 12.5, letterSpacing: ".01em", color: sel === o.m ? "#04120a" : "#9fb0d0", cursor: "pointer", transition: "background .18s,color .18s", whiteSpace: "nowrap" } },
-                o.lab,
+                t(o.lab),
                 o.m === 3 ? " ★" : ""))),
             React.createElement("div", { style: { background: "rgba(255,255,255,.04)", border: "1px solid rgba(0,255,106,.28)", borderRadius: 14, padding: "14px 15px" } },
-                React.createElement("div", { style: { color: "#dfe7f5", fontSize: 13.5, lineHeight: 1.5, marginBottom: shown.length ? 12 : 0 } }, cur.desc),
+                React.createElement("div", { style: { color: "#dfe7f5", fontSize: 13.5, lineHeight: 1.5, marginBottom: shown.length ? 12 : 0 } }, t(cur.desc)),
                 shown.length ? React.createElement(React.Fragment, null,
                     React.createElement("div", { style: { fontSize: 11, textTransform: "uppercase", letterSpacing: ".05em", color: "#00ff6a", marginBottom: 7 } },
-                        "Mouvements d\u00E9j\u00E0 act\u00E9s (",
+                        t("Mouvements déjà actés"),
+                        " (",
                         shown.length,
                         ")"),
                     React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 6, maxHeight: 200, overflowY: "auto" } }, shown.map((m, i) => {
@@ -19102,13 +19106,13 @@ function StartModePicker({ clubId, onPick, onCancel }) {
                         const amt = isIn ? m.fee : m.price;
                         const loan = m.status === "loanOut" || m.kind === "loan";
                         return (React.createElement("div", { key: i, style: { display: "flex", alignItems: "baseline", gap: 8, background: "rgba(255,255,255,.03)", border: "1px solid rgba(255,255,255,.08)", borderRadius: 9, padding: "7px 10px" } },
-                            React.createElement("span", { style: { fontSize: 10, fontWeight: 800, textTransform: "uppercase", letterSpacing: ".04em", color: isIn ? "#00ff6a" : "#ff9aa6", flex: "0 0 auto" } }, isIn ? "Arrivée" : "Départ"),
+                            React.createElement("span", { style: { fontSize: 10, fontWeight: 800, textTransform: "uppercase", letterSpacing: ".04em", color: isIn ? "#00ff6a" : "#ff9aa6", flex: "0 0 auto" } }, isIn ? t("Arrivée") : t("Départ")),
                             React.createElement("span", { style: { color: "#eaf0fb", fontWeight: 600, fontSize: 12.5 } }, m.name),
-                            React.createElement("span", { style: { marginLeft: "auto", color: "#9fb0d0", fontSize: 11, fontWeight: 700, flex: "0 0 auto" } }, loan ? "prêt" : (amt ? Math.round(amt) + " M€" : "libre"))));
-                    }))) : React.createElement("div", { style: { color: "#7d8eae", fontSize: 12, fontStyle: "italic" } }, "Aucun transfert act\u00E9 \u00E0 ce stade \u00B7 tout est \u00E0 faire.")),
-            React.createElement("button", { onClick: () => onPick(sel), style: { width: "100%", marginTop: 14, background: "linear-gradient(180deg,#00ff6a,#00c452)", color: "#04120a", border: "none", borderRadius: 13, padding: "15px", fontFamily: "Raleway,sans-serif", fontWeight: 800, fontSize: 16, letterSpacing: ".03em", textTransform: "uppercase", cursor: "pointer", boxShadow: "0 8px 22px rgba(0,255,106,.28)" } }, "Commencer"),
+                            React.createElement("span", { style: { marginLeft: "auto", color: "#9fb0d0", fontSize: 11, fontWeight: 700, flex: "0 0 auto" } }, loan ? t("prêt") : (amt ? Math.round(amt) + " M€" : t("libre")))));
+                    }))) : React.createElement("div", { style: { color: "#7d8eae", fontSize: 12, fontStyle: "italic" } }, t("Aucun transfert acté à ce stade · tout est à faire."))),
+            React.createElement("button", { onClick: () => onPick(sel), style: { width: "100%", marginTop: 14, background: "linear-gradient(180deg,#00ff6a,#00c452)", color: "#04120a", border: "none", borderRadius: 13, padding: "15px", fontFamily: "Raleway,sans-serif", fontWeight: 800, fontSize: 16, letterSpacing: ".03em", textTransform: "uppercase", cursor: "pointer", boxShadow: "0 8px 22px rgba(0,255,106,.28)" } }, t("Commencer")),
             React.createElement("div", { style: { textAlign: "center", marginTop: 12 } },
-                React.createElement("button", { onClick: onCancel, style: { background: "transparent", border: "none", color: "#8b9cbe", fontSize: 13, cursor: "pointer", textDecoration: "underline" } }, "\u2190 Revenir")))));
+                React.createElement("button", { onClick: onCancel, style: { background: "transparent", border: "none", color: "#8b9cbe", fontSize: 13, cursor: "pointer", textDecoration: "underline" } }, t("← Revenir"))))));
 }
 // === « LE 12ᵉ HOMME » · espace communauté (PROTOTYPE LOCAL). Mercatos publiés jugés par la commu, par club × mode. ===
 // Aujourd'hui : mercatos FICTIFS à seed stable + tes publications réelles (localStorage) + votes locaux. Backend réel plus tard.
@@ -19468,20 +19472,20 @@ function Community({ onClose, onPlay, embedded, homeClub, active }) {
     const backBtn = { background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.14)", color: "#cdd8ee", borderRadius: 9, width: 38, height: 38, fontSize: 20, cursor: "pointer", flex: "none" };
     const Head = (sub, back) => React.createElement("div", { style: { position: "sticky", top: 0, zIndex: 30, margin: "0 " + (embedded ? "0" : "-14px") + " 14px", padding: embedded ? "6px 0 8px" : "calc(env(safe-area-inset-top) + 10px) 14px 10px", background: "rgba(11,17,26,.94)", backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)", borderBottom: "1px solid rgba(255,255,255,.07)" } },
         React.createElement("div", { style: { maxWidth: 640, margin: "0 auto", display: "flex", alignItems: "center", gap: 11 } },
-            back ? React.createElement("button", { onClick: back, title: "Retour (\u00C9chap)", style: backBtn }, "\u2039") : null,
+            back ? React.createElement("button", { onClick: back, title: t("Retour (Échap)"), style: backBtn }, "\u2039") : null,
             React.createElement("div", { style: { flex: 1, minWidth: 0 } },
                 React.createElement("div", { style: { fontFamily: "Raleway, sans-serif", fontSize: 21, fontWeight: 800 } },
                     React.createElement(Icon, { name: "douze", size: 20, style: { verticalAlign: "-4px", marginRight: 7 } }),
                     "Le 12\u1D49 Homme"),
                 React.createElement("div", { style: { fontSize: 12, color: "#9fb0d0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" } }, sub)),
-            React.createElement("button", { onClick: () => setFavView(true), title: "Mes favoris", style: { ...backBtn, width: "auto", padding: "0 12px", fontSize: 13, fontWeight: 700, color: commFavList().length ? "#00ff6a" : "#cdd8ee", borderColor: commFavList().length ? "rgba(0,255,106,.5)" : "rgba(255,255,255,.14)" } },
+            React.createElement("button", { onClick: () => setFavView(true), title: t("Mes favoris"), style: { ...backBtn, width: "auto", padding: "0 12px", fontSize: 13, fontWeight: 700, color: commFavList().length ? "#00ff6a" : "#cdd8ee", borderColor: commFavList().length ? "rgba(0,255,106,.5)" : "rgba(255,255,255,.14)" } },
                 React.createElement(Icon, { name: "bookmark", size: 13, style: { marginRight: 4, verticalAlign: "-2px" } }),
                 commFavList().length)));
     // --- Mes favoris ---
     if (favView) {
         const favs = commFavList();
         return React.createElement("div", { style: page },
-            Head("Mes favoris · les mercatos sauvegardés", () => setFavView(false)),
+            Head(t("Mes favoris · les mercatos sauvegardés"), () => setFavView(false)),
             React.createElement("div", { style: { maxWidth: 640, margin: "0 auto" } }, favs.length ? React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 9 } }, favs.map((m) => {
                 const c = CLUBS[m.club];
                 return React.createElement("div", { key: m.id, onClick: () => { setFavView(false); setFiche(m); }, style: { display: "flex", alignItems: "center", gap: 12, background: "rgba(255,255,255,.04)", border: "1px solid rgba(255,255,255,.09)", borderRadius: 13, padding: "11px 13px", cursor: "pointer" } },
@@ -19498,11 +19502,12 @@ function Community({ onClose, onPlay, embedded, homeClub, active }) {
                     React.createElement("div", { style: { flex: "none", color: "#00ff6a", fontSize: 18 } },
                         React.createElement(Icon, { name: "bookmark", size: 18 })));
             })) : React.createElement("div", { style: { color: "#8b9cbe", fontSize: 13, textAlign: "center", padding: "34px 14px", lineHeight: 1.6 } },
-                "Aucun favori pour l'instant.",
+                t("Aucun favori pour l'instant."),
                 React.createElement("br", null),
-                "Ouvre un mercato et touche ",
-                React.createElement("b", { style: { color: "#00ff6a" } }, "Favori"),
-                " pour le sauvegarder ici et le revoir quand tu veux.")));
+                t("Ouvre un mercato et touche "),
+                React.createElement("b", { style: { color: "#00ff6a" } }, t("Favori")),
+                " ",
+                t("pour le sauvegarder ici et le revoir quand tu veux."))));
     }
     // --- Fiche détail d'un mercato ---
     if (fiche) {
@@ -19513,14 +19518,14 @@ function Community({ onClose, onPlay, embedded, homeClub, active }) {
                 React.createElement("div", { style: { background: "rgba(255,255,255,.04)", border: "1px solid rgba(255,255,255,.1)", borderRadius: 16, padding: 18 } },
                     fiche.teamImg ? React.createElement("img", { src: fiche.teamImg, alt: "Carte d'\u00E9quipe", style: { width: "100%", borderRadius: 12, border: "1px solid rgba(255,255,255,.12)", marginBottom: 14, display: "block" } })
                         : (ficheCard && ficheCard.id === fiche.id && ficheCard.url) ? React.createElement("img", { src: ficheCard.url, alt: "Carte d'\u00E9quipe", style: { width: "100%", borderRadius: 12, border: "1px solid rgba(255,255,255,.12)", marginBottom: 14, display: "block" } })
-                            : React.createElement("div", { style: { width: "100%", aspectRatio: "1080 / 1560", borderRadius: 12, border: "1px solid rgba(255,255,255,.1)", marginBottom: 14, display: "flex", alignItems: "center", justifyContent: "center", color: "#8b9cbe", fontSize: 13, background: "rgba(255,255,255,.03)" } }, "\uD83C\uDFA8 G\u00E9n\u00E9ration de la carte d'\u00E9quipe\u2026"),
+                            : React.createElement("div", { style: { width: "100%", aspectRatio: "1080 / 1560", borderRadius: 12, border: "1px solid rgba(255,255,255,.1)", marginBottom: 14, display: "flex", alignItems: "center", justifyContent: "center", color: "#8b9cbe", fontSize: 13, background: "rgba(255,255,255,.03)" } }, t("🎨 Génération de la carte d'équipe…")),
                     React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, marginBottom: 10 } },
                         React.createElement("div", null,
                             React.createElement("div", { style: { fontWeight: 700, fontSize: 16 } }, fiche.author),
                             React.createElement("div", { style: { fontSize: 12, color: "#9fb0d0" } },
                                 c ? c.meta.name : fiche.club,
                                 " \u00B7 ",
-                                START_MODES[fiche.mode] ? START_MODES[fiche.mode].short : "mode " + fiche.mode,
+                                START_MODES[fiche.mode] ? t(START_MODES[fiche.mode].short) : "mode " + fiche.mode,
                                 fiche.mine ? " · ★ ton mercato" : "")),
                         React.createElement("div", { style: { textAlign: "center" } },
                             React.createElement("div", { style: { fontFamily: "Raleway, sans-serif", fontWeight: 800, fontSize: 30, color: gc(fiche.note) } }, fiche.grade),
@@ -19671,6 +19676,88 @@ let _LANG = "fr";
 const LANGS = [["fr", "Français"], ["en", "English"]];
 const I18N = {
     en: {
+        // — Pluriels (en-tete carte de fin) —
+        "recrue": "signing",
+        "recrues": "signings",
+        "départ": "departure",
+        "départs": "departures",
+        // — Libelles de mode (carte de fin / 12e Homme) —
+        "Jour J · à jour": "Deadline day · up to date",
+        "1ᵉʳ juillet · sans transferts": "1 July · no transfers",
+        "1ᵉʳ juillet · avant la fenêtre": "1 July · before the window",
+        // — Montants mouvements, bouton Compo, pied de page —
+        "prêt": "loan",
+        "libre": "free",
+        "Compo": "Formation",
+        "Progression sauvegardée automatiquement sur cet appareil.": "Progress saved automatically on this device.",
+        "À propos": "About",
+        "Méthodologie": "Method",
+        "Sources": "Sources",
+        "Confidentialité": "Privacy",
+        // — Ecran mode de depart —
+        "Jour J": "Deadline day",
+        "Coup d'envoi": "Kick-off",
+        "Nouvelle partie": "New game",
+        "Arrivée": "In",
+        "Départ": "Out",
+        "Effectif de départ, aucun transfert de l'été. Tout est à faire · à toi de bâtir ton mercato de zéro.": "Starting squad, no summer transfers. Everything is still to do · build your window from scratch.",
+        "Les mouvements officiels du 1er juillet sont déjà actés. Tu continues à partir de là.": "The official moves of 1 July are already done. You carry on from there.",
+        "★ Recommandé · le plus réaliste pour commencer. Tous les transferts réels de l'été 2026 sont déjà faits, tu reprends l'effectif à jour.": "★ Recommended · the most realistic way to start. Every real summer 2026 transfer is already done, you take over an up-to-date squad.",
+        // — Accueil : slogan coupe en deux (le vert porte sur le mot fort) —
+        "Le mercato imaginé ": "The transfer window, imagined by ",
+        "par les fans": "fans",
+        "Été 2026": "Summer 2026",
+        // — Terrain + ecran de fin —
+        "Touche un poste pour gérer sa profondeur. Glisse un joueur sur un autre poste (dépannage) ou au-dessus du titulaire pour le titulariser.": "Tap a position to manage its depth. Drag a player onto another position (cover) or above the starter to make him start.",
+        "Vide · glisse un joueur ici depuis un autre poste.": "Empty · drag a player here from another position.",
+        "Effectif non disponible pour ce club": "No squad available for this club",
+        "Choisis ton capitaine": "Pick your captain",
+        "aucun capitaine désigné": "no captain named",
+        "Capitaine": "Captain",
+        "Terminer le mercato · valider mon effectif & voir ma note": "Finish the window · confirm my squad & see my rating",
+        "Ta fenêtre de transferts": "Your transfer window",
+        "Ton onze idéal": "Your best XI",
+        "Passage devant les instances": "Facing the regulators",
+        "La note du board": "The board's verdict",
+        "Ta saison": "Your season",
+        "Fin du mercato": "Window closed",
+        "Passer au résumé": "Skip to the summary",
+        "Voir mes trophées ›": "See my trophies ›",
+        "Continuer ›": "Continue ›",
+        "Commencer": "Start",
+        "Terminer": "Finish",
+        "Composition de ton onze idéal…": "Building your best XI…",
+        "Aucun mouvement · tu gardes ton effectif tel quel.": "No moves · you keep your squad as it is.",
+        "Aucun transfert acté à ce stade · tout est à faire.": "No transfer done at this stage · it's all still to play for.",
+        "Tous les voyants au vert · le board validera ton mercato.": "Every light is green · the board will sign off on your window.",
+        "Tu t'exposes à une sanction en fin de saison.": "You're exposing yourself to a sanction at season's end.",
+        "Nouveau trophée !": "New trophy!",
+        " nouveaux trophées !": " new trophies!",
+        "Aucun nouveau trophée cette fois · tente un autre club ou un mercato plus tranché pour en débloquer.": "No new trophy this time · try another club or a bolder window to unlock some.",
+        "Générer ma carte à partager": "Generate my shareable card",
+        "🎨 Génération de la carte d'équipe…": "🎨 Generating the team card…",
+        "🎬 Regarde une pub → débloquer ta carte": "🎬 Watch an ad → unlock your card",
+        "Chargement de la pub…": "Loading the ad…",
+        "Publier mon mercato au 12ᵉ Homme": "Publish my window to the 12th Man",
+        "Publié au 12ᵉ Homme · la commu peut le juger": "Published to the 12th Man · the community can judge it",
+        "Mes favoris": "My favourites",
+        "Mes favoris · les mercatos sauvegardés": "My favourites · saved windows",
+        "Aucun favori pour l'instant.": "No favourites yet.",
+        "Ouvre un mercato et touche ": "Open a window and tap ",
+        "Favori": "Favourite",
+        "pour le sauvegarder ici et le revoir quand tu veux.": "to save it here and come back to it whenever you like.",
+        "Démo locale · adversaires fictifs (stables par club). Le vrai classement en ligne viendra plus tard.": "Local demo · fictional opponents (stable per club). The real online leaderboard will come later.",
+        "Fermer (Échap)": "Close (Esc)",
+        "Retour (Échap)": "Back (Esc)",
+        "Arrivée libre : zéro indemnité, du flair.": "Free arrival: no fee, pure flair.",
+        "Départ libre : la masse salariale respire.": "Free departure: the wage bill can breathe.",
+        "Un renfort de classe mondiale.": "A world-class signing.",
+        "Un gros chèque pour passer un cap.": "A big cheque to step up a level.",
+        "Un renfort crédible pour l'effectif.": "A credible addition to the squad.",
+        "Un coup pas cher qui peut rapporter gros.": "A cheap punt that could pay off big.",
+        "Une très grosse vente pour les caisses.": "A very big sale for the coffers.",
+        "Une belle vente, bien négociée.": "A good sale, well negotiated.",
+        "Un départ qui renfloue un peu les comptes.": "A departure that tops the accounts up a little.",
         // — Écran d'entrée / accueil —
         "Le mercato imaginé par les fans": "The transfer window, imagined by fans",
         "Le mercato vient d'ouvrir.": "The transfer window is open.",
