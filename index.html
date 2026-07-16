@@ -18647,30 +18647,30 @@ function Onboarding({ club, setTab }) {
     const m = club ? club.meta : null;
     const nm = m ? m.name : "", sh = m ? m.shortName : "", lg = m ? m.league : "", rule = m ? m.domesticRule : "", eu = !!(m && m.europe);
     const sd = m ? (SPORTING_DIR[m.id] || "") : "";
-    const sdName = sd || "le directeur sportif sortant";
+    const sdName = sd || t("le directeur sportif sortant");
     // Règle nationale résumée, ADAPTÉE au championnat du club choisi
     const ruleTxt = rule === "DNCG"
-        ? "En France, la DNCG contrôle tes comptes : tu dois être à l'équilibre ou couvrir ton déficit (apport du propriétaire + ventes de joueurs). Sinon elle bride ton mercato (masse salariale encadrée, voire rétrogradation)."
+        ? t("En France, la DNCG contrôle tes comptes : tu dois être à l'équilibre ou couvrir ton déficit (apport du propriétaire + ventes de joueurs). Sinon elle bride ton mercato (masse salariale encadrée, voire rétrogradation).")
         : rule === "PSR"
-            ? "En Angleterre, le Squad Cost Ratio (SCR/PSR) limite le coût de ton effectif (salaires + amortissements + agents) à 85 % de tes revenus, et encadre tes pertes sur 3 ans. Au-dessus, tu ne peux plus recruter librement."
+            ? t("En Angleterre, le Squad Cost Ratio (SCR/PSR) limite le coût de ton effectif (salaires + amortissements + agents) à 85 % de tes revenus, et encadre tes pertes sur 3 ans. Au-dessus, tu ne peux plus recruter librement.")
             : rule === "LaLiga"
-                ? "En Espagne, LaLiga t'impose un plafond de coût d'effectif (LCPD) : salaires + transferts ne peuvent pas dépasser ce que ton plafond autorise."
+                ? t("En Espagne, LaLiga t'impose un plafond de coût d'effectif (LCPD) : salaires + transferts ne peuvent pas dépasser ce que ton plafond autorise.")
                 : rule === "Serie A"
-                    ? "En Italie, la FIGC suit un indicateur de liquidité : tes actifs à court terme doivent couvrir tes dettes à court terme."
-                    : "En Allemagne, la licence DFL repose sur une preuve de liquidité : tu dois démontrer que tu peux financer ta saison (pas de plafond de masse salariale comme en France).";
-    const euTxt = eu ? " Comme le " + sh + " joue l'Europe, tu dois AUSSI respecter le ratio UEFA (coûts d'effectif ≤ 70 % des revenus) et composer une Liste UEFA de 25 joueurs, dont 8 formés localement." : "";
+                    ? t("En Italie, la FIGC suit un indicateur de liquidité : tes actifs à court terme doivent couvrir tes dettes à court terme.")
+                    : t("En Allemagne, la licence DFL repose sur une preuve de liquidité : tu dois démontrer que tu peux financer ta saison (pas de plafond de masse salariale comme en France).");
+    const euTxt = eu ? t(" Comme le ") + sh + t(" joue l'Europe, tu dois AUSSI respecter le ratio UEFA (coûts d'effectif ≤ 70 % des revenus) et composer une Liste UEFA de 25 joueurs, dont 8 formés localement.") : "";
     const natLabel = rule === "DNCG" ? "la DNCG" : rule === "PSR" ? "la Premier League (SCR/PSR)" : rule === "Bundesliga" ? "la licence DFL" : rule === "LaLiga" ? "le plafond LaLiga" : "l'indicateur FIGC";
     // Onboarding condensé : 4 étapes punchy (au lieu de 7). Le reste s'apprend en jouant ;
     // l'adjoint (bulle verte) et les ⓘ expliquent le détail à la demande. « Passer » ferme tout.
     const steps = m ? [
-        { hero: "crest", goTab: "terrain", tag: "Passation", punch: "Le fauteuil est à toi.", sig: true,
-            txt: (sd ? "Moi c'est " + sd + ", je quitte le poste de directeur sportif du " + nm + ". " : "") + "À toi de jouer au " + sh + " (" + lg + "). Ta mission : l'effectif le plus fort possible, sans faire exploser les comptes." },
-        { hero: "wallet", goTab: "compta", tag: "① Budget", punch: "Tiens les comptes.",
-            txt: ruleTxt + euTxt + " Touche un ⓘ pour comprendre un chiffre ; en haut, bascule Débutant / Pro." },
-        { hero: "mercato", goTab: "mercato", tag: "② Mercato & Terrain", punch: "Fais ton marché.",
-            txt: "Achète, vends, prête : chaque mouvement recalcule tes comptes EN DIRECT." + (eu ? " Tu y gères aussi ta Liste UEFA." : "") + " Puis file sur le Terrain poser ton onze, ta compo et ton capitaine." },
-        { hero: "douze", goTab: "douzieme", tag: "③ Le 12ᵉ Homme", punch: "À toi de jouer !", sig: true,
-            txt: "Publie ton mercato : les autres fans du " + sh + " le notent, et tu compares le tien au leur. Reste dans les clous, vise le haut du tableau · tout se sauvegarde tout seul. Mon adjoint (bulle verte) reste à tes côtés." },
+        { hero: "crest", goTab: "terrain", tag: t("Passation"), punch: t("Le fauteuil est à toi."), sig: true,
+            txt: (sd ? t("Moi c'est ") + sd + t(", je quitte le poste de directeur sportif du ") + nm + ". " : "") + t("À toi de jouer au ") + sh + " (" + lg + "). " + t("Ta mission : l'effectif le plus fort possible, sans faire exploser les comptes.") },
+        { hero: "wallet", goTab: "compta", tag: t("① Budget"), punch: t("Tiens les comptes."),
+            txt: ruleTxt + euTxt + t(" Touche un ⓘ pour comprendre un chiffre ; en haut, bascule Débutant / Pro.") },
+        { hero: "mercato", goTab: "mercato", tag: t("② Mercato & Terrain"), punch: t("Fais ton marché."),
+            txt: t("Achète, vends, prête : chaque mouvement recalcule tes comptes EN DIRECT.") + (eu ? t(" Tu y gères aussi ta Liste UEFA.") : "") + t(" Puis file sur le Terrain poser ton onze, ta compo et ton capitaine.") },
+        { hero: "douze", goTab: "douzieme", tag: t("③ Le 12ᵉ Homme"), punch: t("À toi de jouer !"), sig: true,
+            txt: t("Publie ton mercato : les autres fans du ") + sh + t(" le notent, et tu compares le tien au leur. Reste dans les clous, vise le haut du tableau · tout se sauvegarde tout seul. Mon adjoint (bulle verte) reste à tes côtés.") },
     ] : [];
     const last = step === steps.length - 1;
     const done = () => { try {
@@ -18727,10 +18727,10 @@ function Onboarding({ club, setTab }) {
                 s.sig ? React.createElement("div", { className: "ob-sig" },
                     "\u00B7 ",
                     sdName) : null),
-            React.createElement("div", { className: "ob-dots" }, steps.map((_, i) => React.createElement("button", { key: i, onClick: () => setStep(i), className: "ob-dot" + (i === step ? " on" : "") + (i < step ? " past" : ""), "aria-label": "étape " + (i + 1) }))),
+            React.createElement("div", { className: "ob-dots" }, steps.map((_, i) => React.createElement("button", { key: i, onClick: () => setStep(i), className: "ob-dot" + (i === step ? " on" : "") + (i < step ? " past" : ""), "aria-label": t("étape ") + (i + 1) }))),
             React.createElement("div", { className: "ob-actions" },
-                React.createElement("button", { onClick: done, className: "ob-skip" }, "Passer"),
-                React.createElement("button", { onClick: next, className: "ob-next" }, last ? "Prends les clés" : "Suivant →")))));
+                React.createElement("button", { onClick: done, className: "ob-skip" }, t("Passer")),
+                React.createElement("button", { onClick: next, className: "ob-next" }, last ? t("Prends les clés") : t("Suivant →"))))));
 }
 const OB_CSS = `
 .ob-ov{ position:fixed; inset:0; z-index:1000; display:flex; align-items:center; justify-content:center; padding:20px; background:rgba(5,9,16,.62); animation:obFade .3s ease both; }
@@ -19676,6 +19676,37 @@ let _LANG = "fr";
 const LANGS = [["fr", "Français"], ["en", "English"]];
 const I18N = {
     en: {
+        "Passer": "Skip",
+        "Suivant →": "Next →",
+        "Prends les clés": "Take the keys",
+        "étape ": "step ",
+        // — Ecran de passation / onboarding (textes concatenes : traduits par morceaux) —
+        "En France, la DNCG contrôle tes comptes : tu dois être à l'équilibre ou couvrir ton déficit (apport du propriétaire + ventes de joueurs). Sinon elle bride ton mercato (masse salariale encadrée, voire rétrogradation).": "In France, the DNCG audits your accounts: you must break even or cover your deficit (owner injection + player sales). Otherwise it restricts your window (capped wage bill, or even relegation).",
+        "En Angleterre, le Squad Cost Ratio (SCR/PSR) limite le coût de ton effectif (salaires + amortissements + agents) à 85 % de tes revenus, et encadre tes pertes sur 3 ans. Au-dessus, tu ne peux plus recruter librement.": "In England, the Squad Cost Ratio (SCR/PSR) caps your squad cost (wages + amortisation + agents) at 85% of revenue, and limits your losses over 3 years. Above that, you can no longer sign freely.",
+        "En Espagne, LaLiga t'impose un plafond de coût d'effectif (LCPD) : salaires + transferts ne peuvent pas dépasser ce que ton plafond autorise.": "In Spain, LaLiga sets you a squad cost limit (LCPD): wages + transfers cannot exceed what your limit allows.",
+        "En Italie, la FIGC suit un indicateur de liquidité : tes actifs à court terme doivent couvrir tes dettes à court terme.": "In Italy, the FIGC tracks a liquidity indicator: your short-term assets must cover your short-term debts.",
+        "En Allemagne, la licence DFL repose sur une preuve de liquidité : tu dois démontrer que tu peux financer ta saison (pas de plafond de masse salariale comme en France).": "In Germany, the DFL licence rests on proof of liquidity: you must show you can fund your season (no wage-bill cap like in France).",
+        " Comme le ": " Since ",
+        " joue l'Europe, tu dois AUSSI respecter le ratio UEFA (coûts d'effectif ≤ 70 % des revenus) et composer une Liste UEFA de 25 joueurs, dont 8 formés localement.": " are in Europe, you must ALSO meet the UEFA squad cost ratio (squad costs ≤ 70% of revenue) and name a 25-man UEFA List, including 8 locally trained players.",
+        "Passation": "Handover",
+        "Le fauteuil est à toi.": "The chair is yours.",
+        "Moi c'est ": "I'm ",
+        ", je quitte le poste de directeur sportif du ": ", and I'm leaving the sporting director job at ",
+        "À toi de jouer au ": "Over to you at ",
+        "Ta mission : l'effectif le plus fort possible, sans faire exploser les comptes.": "Your mission: the strongest squad you can build, without blowing up the accounts.",
+        "le directeur sportif sortant": "the outgoing sporting director",
+        "① Budget": "① Budget",
+        "Tiens les comptes.": "Keep the books straight.",
+        " Touche un ⓘ pour comprendre un chiffre ; en haut, bascule Débutant / Pro.": " Tap an ⓘ to understand a figure; up top, switch between Beginner and Pro.",
+        "② Mercato & Terrain": "② Transfers & Pitch",
+        "Fais ton marché.": "Do your business.",
+        "Achète, vends, prête : chaque mouvement recalcule tes comptes EN DIRECT.": "Buy, sell, loan: every move recalculates your accounts LIVE.",
+        " Tu y gères aussi ta Liste UEFA.": " That's also where you manage your UEFA List.",
+        " Puis file sur le Terrain poser ton onze, ta compo et ton capitaine.": " Then head to the Pitch to set your XI, your formation and your captain.",
+        "③ Le 12ᵉ Homme": "③ The 12th Man",
+        "À toi de jouer !": "Over to you!",
+        "Publie ton mercato : les autres fans du ": "Publish your window: other ",
+        " le notent, et tu compares le tien au leur. Reste dans les clous, vise le haut du tableau · tout se sauvegarde tout seul. Mon adjoint (bulle verte) reste à tes côtés.": " fans rate it, and you compare yours to theirs. Stay within the rules, aim for the top of the table · everything saves by itself. My assistant (the green bubble) stays by your side.",
         // — Pluriels (en-tete carte de fin) —
         "recrue": "signing",
         "recrues": "signings",
