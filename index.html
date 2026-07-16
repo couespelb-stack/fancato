@@ -12693,7 +12693,7 @@ const BACKOFFICE = (function () {
                     years: [y("1:1 / partiel", "Selon conformité LCPD.", "off"), y("1:1 / partiel", "Selon conformité.", "est"), y("1:1 / partiel", "Selon ton mercato.", "est")] },
             ] },
         seriea: { name: "Serie A", org: "FIGC / COVISOC · Italie", ic: "", tag: "Italie",
-            intro: "Contrôle FIGC/COVISOC (licence nationale). Le verrou = l'Indicatore di Liquidità qui BLOQUE le mercato (ex-ante, façon LaLiga). Deux modulateurs : le CLA (coût du travail élargi ≤ 0,7) et l'Indebitamento (≤ 1,2). Compo 2026-27 (Frosinone/Monza/Venezia promus).",
+            intro: "Contrôle FIGC/COVISOC (licence nationale). DEUX verrous ex-ante (façon LaLiga) : l'Indicatore di Liquidità (≥ 0,8) ET le CLA (≤ 0,7 dès l'été 2026) — chacun impose le solde zéro s'il est franchi. L'Indebitamento (≤ 1,2) module la recapitalisation exigée. Compo 2026-27 (Frosinone/Monza/Venezia promus).",
             criteria: [
                 { n: "①", title: "Indicatore di Liquidità", sub: "Actifs courants sur passifs courants", thr: "≥ 0,8",
                     what: "Capacité à honorer les dettes court terme. En dessous du seuil → mercato bloqué (ex-ante, façon LaLiga).",
@@ -12743,7 +12743,7 @@ const BACKOFFICE = (function () {
         "laliga/0": "Dépasser ton plafond de coût = <b>blocage d'inscription</b> : impossible d'enregistrer une recrue tant que tu n'es pas repassé sous le plafond (règle 1:1). Verrou <b>immédiat</b> · Barcelone en a fait les frais pour inscrire ses recrues.",
         "laliga/1": "La règle 1:1 / partielle limite ce que tu peux réinvestir de tes ventes selon ta santé : hors des clous, LaLiga <b>réduit ta capacité d'inscription</b> · tu dois vendre AVANT d'acheter.",
         "seriea/0": "Sous le seuil → <b>BLOCAGE du marché des transferts</b> : tu ne peux inscrire une recrue qu'en la finançant par une vente. Verrou <b>immédiat</b> (ex-ante), comme la Juventus contrainte de vendre avant d'acheter.",
-        "seriea/1": "Coût du travail élargi > 0,7 → <b>mercato bloqué en ENTRÉE</b> : tu ne peux acheter qu'à <b>solde zéro</b> (financer par des ventes/économies), sauf à couvrir l'excédent (apport). En plus, un CLA > 0,7 <b>majore de +15 %</b> la recapitalisation exigée par l'indice de liquidité.",
+        "seriea/1": "Coût du travail élargi > 0,7 → <b>mercato bloqué en ENTRÉE</b> : tu ne peux acheter qu'à <b>solde zéro</b> (financer par des ventes/économies), sauf à couvrir l'excédent : apport, ou <b>réserves de bénéfices distribuables</b> bloquées en assemblée (voie ouverte par la FIGC pour l'été 2026). En plus, un CLA > 0,7 <b>majore de +15 %</b> la recapitalisation exigée par l'indice de liquidité.",
         "bundesliga/0": "Liquidité insuffisante = <b>refus de licence</b> par la DFL = pas le droit de jouer la saison en pro. Sanction lourde mais rare (la preuve de trésorerie est la condition n°1 de la licence).",
         "bundesliga/1": "Fonds propres négatifs → la DFL impose un <b>plan de réduction</b> (≥ 5 %/an) ; à défaut, <b>retrait de points</b> ou refus de licence. Se corrige par un <b>apport en capital</b> (le cas de Schalke).",
         "bundesliga/2": "Ratio indicatif (pas encore sanctionné en soi par la DFL) mais aligné sur l'UEFA : au-dessus de 70 %, c'est le signal que ta masse met l'équilibre en péril · et si tu joues l'Europe, c'est le SCR UEFA qui sanctionne pour de vrai.",
@@ -13160,7 +13160,7 @@ const BACKOFFICE = (function () {
     };
     const TREE_CLA = {
         label: "Costo del Lavoro Allargato (CLA/R)", op: "÷",
-        src: "<b>Coût du travail élargi ÷ ricavi.</b> Poids de la masse salariale élargie (salaires + amort. des cartellini + honoraires d'agents) sur les revenus. Seuil <b>abaissé de 0,8 → 0,7 dès l'été 2026</b>. Exclut les coûts des U23 sélectionnables en azzurro. Ne bloque pas seul : s'il dépasse 0,7, il <b>majore de 15 %</b> le montant à recapitaliser exigé par la Liquidité.",
+        src: "<b>Coût du travail élargi ÷ ricavi.</b> Poids de la masse salariale élargie (salaires + amort. des cartellini + honoraires d'agents) sur les revenus. Seuil <b>abaissé de 0,8 → 0,7 dès le mercato d'été 2026</b> (CU FIGC du 23/03/2026, sur les données au 31/03/2026). Exclut les coûts et amortissements des U23 sélectionnables en azzurro. <b>Au-delà de 0,7 → mercato bloqué en ENTRÉE</b> : tu n'achètes qu'à <b>solde zéro</b> (financé par des ventes), sauf à couvrir l'excédent — apport, ou <b>nouveauté été 2026</b> : réserves de bénéfices distribuables, bloquées par l'assemblée des actionnaires (le correctif du « paradoxe Napoli » de janvier 2026). Il majore EN PLUS de 15 % la recapitalisation exigée par la Liquidité.",
         kids: [
             { label: "Coût du travail élargi", op: "( +",
                 src: "Salaires (joueurs + staff) + amortissement des transferts + honoraires d'agents.",
