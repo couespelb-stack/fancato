@@ -16616,7 +16616,7 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
                 React.createElement("button", { className: `tab tab-douze ${tab === "douzieme" ? "on" : ""}`, onClick: () => setTab("douzieme") },
                     React.createElement("span", { className: "tic" },
                         React.createElement(Icon, { name: "douze", size: 22 })),
-                    "12\u1D49")),
+                    t("12ᵉ"))),
             tab === "terrain" && (() => {
                 const f = FORMATIONS[formation] || FORMATIONS["433d"];
                 const { cols, colsByKey, keyOfGi, keysByPos } = reconcileSlots(f, seedBase(f));
@@ -19264,23 +19264,23 @@ function commMock(clubId, mode) {
             note -= 1.2; // fuite en avant
         note += (rnd() - 0.5) * 1.2; // part d'appréciation
         note = Math.round(Math.max(3.2, Math.min(9.4, note)) * 10) / 10;
-        const bulletin = [["⚽", "Sportif", covered * 1.6 + 4.6], ["💰", "Financier", balance >= 0 ? 7.6 : 4.4],
-            ["🧠", "Malin", note], ["❤️", "Fans", spend > earn ? 7.4 : 5.2]]
+        const bulletin = [["⚽", t("Sportif"), covered * 1.6 + 4.6], ["💰", t("Financier"), balance >= 0 ? 7.6 : 4.4],
+            ["🧠", t("Malin"), note], ["❤️", t("Fans"), spend > earn ? 7.4 : 5.2]]
             .map((b) => ({ e: b[0], k: b[1], n: Math.round(Math.max(1, Math.min(10, b[2] + (rnd() - 0.5) * 1.6)) * 10) / 10 }));
         const badges = [];
         if (balance > purse0 * 0.5)
-            badges.push({ e: "💰", lab: "Vendeur malin" });
+            badges.push({ e: "💰", lab: t("Vendeur malin") });
         if (spend > rev * 0.25)
-            badges.push({ e: "👑", lab: "Mercato de patron" });
+            badges.push({ e: "👑", lab: t("Mercato de patron") });
         if (covered >= 2)
-            badges.push({ e: "🎣", lab: "Dénicheur" });
+            badges.push({ e: "🎣", lab: t("Dénicheur") });
         if (note >= 8.2)
-            badges.push({ e: "🌟", lab: "Coup de génie" });
+            badges.push({ e: "🌟", lab: t("Coup de génie") });
         // La phrase colle au mercato réellement fait.
-        const line = ctx.mustSell && balance > 0 ? "Gestion prudente, on assainit les comptes."
-            : spend > rev * 0.25 ? "Du lourd, on vise l'Europe."
-                : covered >= 2 ? "On bouche les trous, poste par poste."
-                    : COMM_LINES[Math.floor(rnd() * COMM_LINES.length)];
+        const line = ctx.mustSell && balance > 0 ? t("Gestion prudente, on assainit les comptes.")
+            : spend > rev * 0.25 ? t("Du lourd, on vise l'Europe.")
+                : covered >= 2 ? t("On bouche les trous, poste par poste.")
+                    : t(COMM_LINES[Math.floor(rnd() * COMM_LINES.length)]);
         rows.push({
             id: "k_" + clubId + "_" + mode + "_" + i, club: clubId, mode: mode, author: a,
             note: note, grade: lbGrade(note), votes: Math.floor(rnd() * 180) + 3,
@@ -19476,7 +19476,7 @@ function Community({ onClose, onPlay, embedded, homeClub, active }) {
             React.createElement("div", { style: { flex: 1, minWidth: 0 } },
                 React.createElement("div", { style: { fontFamily: "Raleway, sans-serif", fontSize: 21, fontWeight: 800 } },
                     React.createElement(Icon, { name: "douze", size: 20, style: { verticalAlign: "-4px", marginRight: 7 } }),
-                    "Le 12\u1D49 Homme"),
+                    t("Le 12ᵉ Homme")),
                 React.createElement("div", { style: { fontSize: 12, color: "#9fb0d0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" } }, sub)),
             React.createElement("button", { onClick: () => setFavView(true), title: t("Mes favoris"), style: { ...backBtn, width: "auto", padding: "0 12px", fontSize: 13, fontWeight: 700, color: commFavList().length ? "#00ff6a" : "#cdd8ee", borderColor: commFavList().length ? "rgba(0,255,106,.5)" : "rgba(255,255,255,.14)" } },
                 React.createElement(Icon, { name: "bookmark", size: 13, style: { marginRight: 4, verticalAlign: "-2px" } }),
@@ -19513,11 +19513,11 @@ function Community({ onClose, onPlay, embedded, homeClub, active }) {
     if (fiche) {
         const c = CLUBS[fiche.club], voted = !!votes[fiche.id];
         return React.createElement("div", { style: page },
-            Head("Le mercato de " + fiche.author + " · " + (c ? c.meta.name : fiche.club), () => setFiche(null)),
+            Head(t("Le mercato de ") + fiche.author + " · " + (c ? c.meta.name : fiche.club), () => setFiche(null)),
             React.createElement("div", { style: { maxWidth: 560, margin: "0 auto" } },
                 React.createElement("div", { style: { background: "rgba(255,255,255,.04)", border: "1px solid rgba(255,255,255,.1)", borderRadius: 16, padding: 18 } },
-                    fiche.teamImg ? React.createElement("img", { src: fiche.teamImg, alt: "Carte d'\u00E9quipe", style: { width: "100%", borderRadius: 12, border: "1px solid rgba(255,255,255,.12)", marginBottom: 14, display: "block" } })
-                        : (ficheCard && ficheCard.id === fiche.id && ficheCard.url) ? React.createElement("img", { src: ficheCard.url, alt: "Carte d'\u00E9quipe", style: { width: "100%", borderRadius: 12, border: "1px solid rgba(255,255,255,.12)", marginBottom: 14, display: "block" } })
+                    fiche.teamImg ? React.createElement("img", { src: fiche.teamImg, alt: t("Carte d'équipe"), style: { width: "100%", borderRadius: 12, border: "1px solid rgba(255,255,255,.12)", marginBottom: 14, display: "block" } })
+                        : (ficheCard && ficheCard.id === fiche.id && ficheCard.url) ? React.createElement("img", { src: ficheCard.url, alt: t("Carte d'équipe"), style: { width: "100%", borderRadius: 12, border: "1px solid rgba(255,255,255,.12)", marginBottom: 14, display: "block" } })
                             : React.createElement("div", { style: { width: "100%", aspectRatio: "1080 / 1560", borderRadius: 12, border: "1px solid rgba(255,255,255,.1)", marginBottom: 14, display: "flex", alignItems: "center", justifyContent: "center", color: "#8b9cbe", fontSize: 13, background: "rgba(255,255,255,.03)" } }, t("🎨 Génération de la carte d'équipe…")),
                     React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, marginBottom: 10 } },
                         React.createElement("div", null,
@@ -19526,7 +19526,7 @@ function Community({ onClose, onPlay, embedded, homeClub, active }) {
                                 c ? c.meta.name : fiche.club,
                                 " \u00B7 ",
                                 START_MODES[fiche.mode] ? t(START_MODES[fiche.mode].short) : "mode " + fiche.mode,
-                                fiche.mine ? " · ★ ton mercato" : "")),
+                                fiche.mine ? t(" · ★ ton mercato") : "")),
                         React.createElement("div", { style: { textAlign: "center" } },
                             React.createElement("div", { style: { fontFamily: "Raleway, sans-serif", fontWeight: 800, fontSize: 30, color: gc(fiche.note) } }, fiche.grade),
                             React.createElement("div", { style: { fontSize: 11, color: "#9fb0d0" } },
@@ -19536,7 +19536,7 @@ function Community({ onClose, onPlay, embedded, homeClub, active }) {
                         "\u00AB ",
                         fiche.line,
                         " \u00BB"),
-                    (fiche.spend != null || fiche.earn != null) ? React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(3,minmax(0,1fr))", gap: 6, marginBottom: 12 } }, [["Dépensé", fiche.spend || 0, "#ff96a6"], ["Encaissé", fiche.earn || 0, "#00ff6a"], ["Solde", fiche.balance || 0, (fiche.balance || 0) >= 0 ? "#00ff6a" : "#ff96a6"]].map((b, i) => (React.createElement("div", { key: i, style: { background: "rgba(255,255,255,.05)", border: "1px solid rgba(255,255,255,.1)", borderRadius: 10, padding: "7px 9px", textAlign: "center" } },
+                    (fiche.spend != null || fiche.earn != null) ? React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(3,minmax(0,1fr))", gap: 6, marginBottom: 12 } }, [[t("Dépensé"), fiche.spend || 0, "#ff96a6"], [t("Encaissé"), fiche.earn || 0, "#00ff6a"], [t("Solde"), fiche.balance || 0, (fiche.balance || 0) >= 0 ? "#00ff6a" : "#ff96a6"]].map((b, i) => (React.createElement("div", { key: i, style: { background: "rgba(255,255,255,.05)", border: "1px solid rgba(255,255,255,.1)", borderRadius: 10, padding: "7px 9px", textAlign: "center" } },
                         React.createElement("div", { style: { fontSize: 10, textTransform: "uppercase", letterSpacing: ".06em", color: "#8b9cbe" } }, b[0]),
                         React.createElement("div", { style: { fontWeight: 800, fontSize: 15, color: b[2] } },
                             (b[1] > 0 && i === 2 ? "+" : "") + b[1],
@@ -19554,7 +19554,7 @@ function Community({ onClose, onPlay, embedded, homeClub, active }) {
                         b.lab))) : null,
                     React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 } },
                         React.createElement("div", null,
-                            React.createElement("div", { style: { fontSize: 11, textTransform: "uppercase", letterSpacing: ".06em", color: "#00ff6a", marginBottom: 5 } }, "Arriv\u00E9es"),
+                            React.createElement("div", { style: { fontSize: 11, textTransform: "uppercase", letterSpacing: ".06em", color: "#00ff6a", marginBottom: 5 } }, t("Arrivées")),
                             (fiche.arrivals || []).length ? fiche.arrivals.map((n, i) => React.createElement("div", { key: i, style: { fontSize: 13, color: "#dfe7f5", padding: "2px 0" } },
                                 React.createElement(Icon, { name: "plus", size: 11, style: { verticalAlign: "-1px", marginRight: 3 } }),
                                 n,
@@ -19563,7 +19563,7 @@ function Community({ onClose, onPlay, embedded, homeClub, active }) {
                                     fiche.feesIn[n],
                                     " M\u20AC") : null)) : React.createElement("div", { style: { fontSize: 12.5, color: "#6b7d9c" } }, "aucune")),
                         React.createElement("div", null,
-                            React.createElement("div", { style: { fontSize: 11, textTransform: "uppercase", letterSpacing: ".06em", color: "#ff96a6", marginBottom: 5 } }, "D\u00E9parts"),
+                            React.createElement("div", { style: { fontSize: 11, textTransform: "uppercase", letterSpacing: ".06em", color: "#ff96a6", marginBottom: 5 } }, t("Départs")),
                             (fiche.departures || []).length ? fiche.departures.map((n, i) => React.createElement("div", { key: i, style: { fontSize: 13, color: "#dfe7f5", padding: "2px 0" } },
                                 React.createElement(Icon, { name: "minus", size: 11, style: { verticalAlign: "-1px", marginRight: 3 } }),
                                 n,
@@ -19572,19 +19572,19 @@ function Community({ onClose, onPlay, embedded, homeClub, active }) {
                                     fiche.feesOut[n],
                                     " M\u20AC") : null)) : React.createElement("div", { style: { fontSize: 12.5, color: "#6b7d9c" } }, "aucun"))),
                     React.createElement("div", { style: { display: "flex", gap: 8, marginTop: 16 } },
-                        React.createElement("button", { onClick: () => { commToggleFav(fiche); force((x) => x + 1); }, title: commIsFav(fiche.id) ? "Retirer des favoris" : "Mettre en favori", style: { flex: "none", width: 48, background: commIsFav(fiche.id) ? "rgba(0,255,106,.2)" : "rgba(255,255,255,.05)", border: "1px solid " + (commIsFav(fiche.id) ? "#00ff6a" : "rgba(255,255,255,.16)"), color: commIsFav(fiche.id) ? "#00ff6a" : "#9fb0d0", borderRadius: 11, padding: "11px 0", fontSize: 18, cursor: "pointer" } },
+                        React.createElement("button", { onClick: () => { commToggleFav(fiche); force((x) => x + 1); }, title: commIsFav(fiche.id) ? t("Retirer des favoris") : t("Mettre en favori"), style: { flex: "none", width: 48, background: commIsFav(fiche.id) ? "rgba(0,255,106,.2)" : "rgba(255,255,255,.05)", border: "1px solid " + (commIsFav(fiche.id) ? "#00ff6a" : "rgba(255,255,255,.16)"), color: commIsFav(fiche.id) ? "#00ff6a" : "#9fb0d0", borderRadius: 11, padding: "11px 0", fontSize: 18, cursor: "pointer" } },
                             React.createElement(Icon, { name: "bookmark", size: 18 })),
                         React.createElement("button", { onClick: () => { commToggleVote(fiche.id); force((x) => x + 1); }, style: { flex: 1, background: voted ? "rgba(0,255,106,.2)" : "rgba(255,255,255,.05)", border: "1px solid " + (voted ? "#00ff6a" : "rgba(255,255,255,.16)"), color: voted ? "#00ff6a" : "#eaf0fb", borderRadius: 11, padding: "11px", fontWeight: 700, fontSize: 14, cursor: "pointer" } },
                             React.createElement(Icon, { name: "thumb", size: 13, style: { marginRight: 4, verticalAlign: "-2px" } }),
-                            voted ? "Voté" : "J'aime",
+                            voted ? t("Voté") : t("J'aime"),
                             " \u00B7 ",
                             vCount(fiche)),
                         React.createElement("button", { onClick: () => { let has = false; try {
                                 const s = JSON.parse(localStorage.getItem("sm_scn_" + fiche.club) || "null");
                                 has = !!(s && (s.recruits && s.recruits.length || s.playersOv && Object.keys(s.playersOv).length));
                             }
-                            catch (e) { } if (has && !window.confirm("Reprendre ce mercato comme point de départ remplacera ta partie en cours sur " + (c ? c.meta.name : fiche.club) + ". Continuer ?"))
-                                return; commInspire(fiche); onPlay(fiche.club); }, style: { flex: 1, background: "#00ff6a", color: "#14213c", border: "none", borderRadius: 11, padding: "11px", fontFamily: "Raleway, sans-serif", fontWeight: 700, fontSize: 14, cursor: "pointer" } }, "M'en inspirer \u2192 jouer")))));
+                            catch (e) { } if (has && !window.confirm(t("Reprendre ce mercato comme point de départ remplacera ta partie en cours sur ") + (c ? c.meta.name : fiche.club) + t(". Continuer ?")))
+                                return; commInspire(fiche); onPlay(fiche.club); }, style: { flex: 1, background: "#00ff6a", color: "#14213c", border: "none", borderRadius: 11, padding: "11px", fontFamily: "Raleway, sans-serif", fontWeight: 700, fontSize: 14, cursor: "pointer" } }, t("M'en inspirer → jouer"))))));
     }
     // --- Liste des mercatos d'un club (par mode) ---
     if (club) {
@@ -19593,7 +19593,7 @@ function Community({ onClose, onPlay, embedded, homeClub, active }) {
         return React.createElement("div", { style: page },
             Head(c ? c.meta.name : club, () => setClub(null)),
             React.createElement("div", { style: { maxWidth: 640, margin: "0 auto" } },
-                React.createElement("div", { style: { display: "flex", gap: 4, margin: "0 0 12px", padding: 4, background: "rgba(255,255,255,.04)", border: "1px solid rgba(255,255,255,.1)", borderRadius: 13 } }, [3, 2, 1].map((mk) => React.createElement("button", { key: mk, type: "button", onClick: () => setMode(mk), style: { flex: 1, background: mode === mk ? "linear-gradient(180deg,rgba(0,255,106,.9),rgba(0,196,82,.9))" : "none", border: "none", borderRadius: 10, padding: "9px 6px", fontFamily: "Raleway,sans-serif", fontWeight: 800, fontSize: 12, letterSpacing: ".04em", textTransform: "uppercase", color: mode === mk ? "#04120a" : "#8b9cbe", cursor: "pointer", transition: "background .18s,color .18s" } }, mk === 3 ? "Jour J" : mk === 2 ? "Coup d'envoi" : "Sans transf."))),
+                React.createElement("div", { style: { display: "flex", gap: 4, margin: "0 0 12px", padding: 4, background: "rgba(255,255,255,.04)", border: "1px solid rgba(255,255,255,.1)", borderRadius: 13 } }, [3, 2, 1].map((mk) => React.createElement("button", { key: mk, type: "button", onClick: () => setMode(mk), style: { flex: 1, background: mode === mk ? "linear-gradient(180deg,rgba(0,255,106,.9),rgba(0,196,82,.9))" : "none", border: "none", borderRadius: 10, padding: "9px 6px", fontFamily: "Raleway,sans-serif", fontWeight: 800, fontSize: 12, letterSpacing: ".04em", textTransform: "uppercase", color: mode === mk ? "#04120a" : "#8b9cbe", cursor: "pointer", transition: "background .18s,color .18s" } }, mk === 3 ? t("Jour J") : mk === 2 ? t("Coup d'envoi") : t("Sans transf.")))),
                 React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 9, touchAction: "pan-y" }, onTouchStart: (e) => { _modeSw.current = { x: e.touches[0].clientX, y: e.touches[0].clientY }; }, onTouchEnd: (e) => { const sw = _modeSw.current; if (!sw)
                         return; _modeSw.current = null; const t = e.changedTouches[0]; const dx = t.clientX - sw.x, dy = t.clientY - sw.y; if (Math.abs(dx) < 45 || Math.abs(dx) < Math.abs(dy) * 1.4)
                         return; const arr = [3, 2, 1], i = arr.indexOf(mode); if (dx < 0 && i < 2)
@@ -19623,11 +19623,12 @@ function Community({ onClose, onPlay, embedded, homeClub, active }) {
     const leagues = Object.keys(byLeague).sort((a, b) => { const ia = LEAGUE_ORDER.indexOf(a), ib = LEAGUE_ORDER.indexOf(b); return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib); });
     const LEAGUE_EMO = { "Ligue 1": "🇫🇷", "Premier League": "🏴", "LaLiga": "🇪🇸", "Serie A": "🇮🇹", "Bundesliga": "🇩🇪" };
     return React.createElement("div", { style: page },
-        Head("Découvre et note les mercatos de la communauté", onClose),
+        Head(t("Découvre et note les mercatos de la communauté"), onClose),
         React.createElement("div", { style: { maxWidth: 640, margin: "0 auto" } },
             React.createElement("div", { style: { fontSize: 12.5, color: "#9fb0d0", marginBottom: 14, lineHeight: 1.5 } },
-                "Choisis un club pour voir comment les autres l'ont g\u00E9r\u00E9 \u00B7 leurs transferts, leur strat\u00E9gie, leur note. Vote pour tes pr\u00E9f\u00E9r\u00E9s, inspire-toi. ",
-                React.createElement("span", { style: { color: "#8b9cbe", fontStyle: "italic" } }, "(d\u00E9mo locale \u00B7 mercatos fictifs + les tiens ; le vrai partage en ligne viendra.)")),
+                t("Choisis un club pour voir comment les autres l'ont géré · leurs transferts, leur stratégie, leur note. Vote pour tes préférés, inspire-toi."),
+                " ",
+                React.createElement("span", { style: { color: "#8b9cbe", fontStyle: "italic" } }, t("(démo locale · mercatos fictifs + les tiens ; le vrai partage en ligne viendra.)"))),
             embedded && homeClub && CLUBS[homeClub] ? React.createElement("button", { onClick: () => { setMode(3); setClub(homeClub); }, style: { width: "100%", display: "flex", alignItems: "center", gap: 10, background: "rgba(0,255,106,.1)", border: "1px solid rgba(0,255,106,.4)", borderRadius: 12, padding: "11px 13px", cursor: "pointer", color: "#eaf0fb", marginBottom: 16 } },
                 React.createElement("span", { style: { fontSize: 18 } }, "\u26A1"),
                 React.createElement("span", { style: { flex: 1, textAlign: "left" } },
@@ -19635,7 +19636,7 @@ function Community({ onClose, onPlay, embedded, homeClub, active }) {
                         "Ton club \u00B7 ",
                         CLUBS[homeClub].meta.name),
                     React.createElement("br", null),
-                    React.createElement("span", { style: { fontSize: 11.5, color: "#9fb0d0" } }, "les mercatos de la communaut\u00E9 sur ton club")),
+                    React.createElement("span", { style: { fontSize: 11.5, color: "#9fb0d0" } }, t("les mercatos de la communauté sur ton club"))),
                 React.createElement("span", { style: { color: "#00ff6a", fontSize: 18 } }, "\u203A")) : null,
             (() => {
                 const nrm = (x) => (x || "").normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
@@ -19647,8 +19648,8 @@ function Community({ onClose, onPlay, embedded, homeClub, active }) {
                     React.createElement("span", { style: { fontFamily: "Raleway,sans-serif", fontWeight: 700, fontSize: 11.5, textAlign: "center", lineHeight: 1.2 } }, c.meta.name));
                 const grid3 = { display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 9 };
                 return React.createElement(React.Fragment, null,
-                    React.createElement("input", { value: q, onChange: (e) => setQ(e.target.value), placeholder: "Cherche un club\u2026", style: { width: "100%", boxSizing: "border-box", background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.15)", borderRadius: 10, padding: "11px 13px", color: "#e7edf8", fontSize: 14, marginBottom: 14, outline: "none" } }),
-                    results ? (results.length ? React.createElement("div", { style: grid3 }, results.map(ccard)) : React.createElement("div", { style: { color: "#8b9cbe", fontSize: 13, padding: 12 } }, "Aucun club trouv\u00E9")) : React.createElement(React.Fragment, null,
+                    React.createElement("input", { value: q, onChange: (e) => setQ(e.target.value), placeholder: t("Cherche un club…"), style: { width: "100%", boxSizing: "border-box", background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.15)", borderRadius: 10, padding: "11px 13px", color: "#e7edf8", fontSize: 14, marginBottom: 14, outline: "none" } }),
+                    results ? (results.length ? React.createElement("div", { style: grid3 }, results.map(ccard)) : React.createElement("div", { style: { color: "#8b9cbe", fontSize: 13, padding: 12 } }, t("Aucun club trouvé"))) : React.createElement(React.Fragment, null,
                         React.createElement("div", { style: { display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 5, marginBottom: 14, padding: 4, background: "rgba(255,255,255,.04)", border: "1px solid rgba(255,255,255,.1)", borderRadius: 12 } }, leagues.map((lg) => { const a = lg === actLg; return React.createElement("button", { key: lg, type: "button", onClick: () => setOpenLeague(lg), style: { flex: "0 0 auto", background: a ? "linear-gradient(180deg,rgba(0,255,106,.92),rgba(0,196,82,.92))" : "none", border: "none", borderRadius: 9, color: a ? "#04120a" : "#8b9cbe", fontFamily: "Raleway,sans-serif", fontWeight: 800, fontSize: 12, letterSpacing: ".03em", textTransform: "uppercase", padding: "8px 13px", cursor: "pointer", whiteSpace: "nowrap" } }, lg); })),
                         React.createElement("div", { onTouchStart: (e) => { _pickSw.current = { x: e.touches[0].clientX, y: e.touches[0].clientY }; }, onTouchEnd: (e) => { const sw = _pickSw.current; if (!sw)
                                 return; _pickSw.current = null; const t = e.changedTouches[0]; const dx = t.clientX - sw.x, dy = t.clientY - sw.y; if (Math.abs(dx) < 45 || Math.abs(dx) < Math.abs(dy) * 1.4)
@@ -19676,8 +19677,44 @@ let _LANG = "fr";
 const LANGS = [["fr", "Français"], ["en", "English"]];
 const I18N = {
     en: {
-        "Passer": "Skip",
-        "Suivant →": "Next →",
+        // — 12e Homme : strategie, badges, bulletin —
+        "Priorité à la jeunesse et aux plus-values.": "Youth first, and profit on sales.",
+        "Du lourd offensivement, on vise l'Europe.": "Big money up front, we're going for Europe.",
+        "Gestion prudente, on assainit les comptes.": "Careful management, we're cleaning up the books.",
+        "On mise sur les titis du club.": "We're backing the academy kids.",
+        "Coups malins et joueurs libres.": "Smart deals and free agents.",
+        "On garde l'ossature, quelques retouches ciblées.": "We keep the spine, with a few targeted tweaks.",
+        "Du lourd, on vise l'Europe.": "Big spending, we're going for Europe.",
+        "On bouche les trous, poste par poste.": "We're filling the gaps, position by position.",
+        "Vendeur malin": "Shrewd seller",
+        "Mercato de patron": "Boss window",
+        "Dénicheur": "Bargain hunter",
+        "Coup de génie": "Masterstroke",
+        "Sportif": "Sporting",
+        "Financier": "Financial",
+        "Malin": "Shrewd",
+        "Fans": "Fans",
+        "Solde": "Balance",
+        "12ᵉ": "12th",
+        ". Continuer ?": ". Continue?",
+        // — 12e Homme (communaute) —
+        "Arrivées": "Ins",
+        "M'en inspirer → jouer": "Take inspiration → play",
+        "Choisis un club pour voir comment les autres l'ont géré · leurs transferts, leur stratégie, leur note. Vote pour tes préférés, inspire-toi.": "Pick a club to see how others ran it · their transfers, their strategy, their rating. Vote for your favourites, take inspiration.",
+        "(démo locale · mercatos fictifs + les tiens ; le vrai partage en ligne viendra.)": "(local demo · fictional windows plus your own; real online sharing is coming.)",
+        "les mercatos de la communauté sur ton club": "the community's windows for your club",
+        "Le mercato de ": "The window of ",
+        "Carte d'équipe": "Team card",
+        " · ★ ton mercato": " · ★ your window",
+        "Dépensé": "Spent",
+        "Encaissé": "Received",
+        "Retirer des favoris": "Remove from favourites",
+        "Mettre en favori": "Add to favourites",
+        "Voté": "Voted",
+        "J'aime": "Like",
+        "Reprendre ce mercato comme point de départ remplacera ta partie en cours sur ": "Using this window as your starting point will replace your game in progress on ",
+        "Sans transf.": "No transfers",
+        "Découvre et note les mercatos de la communauté": "Discover and rate the community's windows",
         "Prends les clés": "Take the keys",
         "étape ": "step ",
         // — Ecran de passation / onboarding (textes concatenes : traduits par morceaux) —
@@ -19717,17 +19754,8 @@ const I18N = {
         "1ᵉʳ juillet · sans transferts": "1 July · no transfers",
         "1ᵉʳ juillet · avant la fenêtre": "1 July · before the window",
         // — Montants mouvements, bouton Compo, pied de page —
-        "prêt": "loan",
-        "libre": "free",
         "Compo": "Formation",
-        "Progression sauvegardée automatiquement sur cet appareil.": "Progress saved automatically on this device.",
-        "À propos": "About",
-        "Méthodologie": "Method",
-        "Sources": "Sources",
-        "Confidentialité": "Privacy",
         // — Ecran mode de depart —
-        "Jour J": "Deadline day",
-        "Coup d'envoi": "Kick-off",
         "Nouvelle partie": "New game",
         "Arrivée": "In",
         "Départ": "Out",
@@ -19745,18 +19773,7 @@ const I18N = {
         "Choisis ton capitaine": "Pick your captain",
         "aucun capitaine désigné": "no captain named",
         "Capitaine": "Captain",
-        "Terminer le mercato · valider mon effectif & voir ma note": "Finish the window · confirm my squad & see my rating",
-        "Ta fenêtre de transferts": "Your transfer window",
-        "Ton onze idéal": "Your best XI",
-        "Passage devant les instances": "Facing the regulators",
         "La note du board": "The board's verdict",
-        "Ta saison": "Your season",
-        "Fin du mercato": "Window closed",
-        "Passer au résumé": "Skip to the summary",
-        "Voir mes trophées ›": "See my trophies ›",
-        "Continuer ›": "Continue ›",
-        "Commencer": "Start",
-        "Terminer": "Finish",
         "Composition de ton onze idéal…": "Building your best XI…",
         "Aucun mouvement · tu gardes ton effectif tel quel.": "No moves · you keep your squad as it is.",
         "Aucun transfert acté à ce stade · tout est à faire.": "No transfer done at this stage · it's all still to play for.",
@@ -19765,11 +19782,9 @@ const I18N = {
         "Nouveau trophée !": "New trophy!",
         " nouveaux trophées !": " new trophies!",
         "Aucun nouveau trophée cette fois · tente un autre club ou un mercato plus tranché pour en débloquer.": "No new trophy this time · try another club or a bolder window to unlock some.",
-        "Générer ma carte à partager": "Generate my shareable card",
         "🎨 Génération de la carte d'équipe…": "🎨 Generating the team card…",
         "🎬 Regarde une pub → débloquer ta carte": "🎬 Watch an ad → unlock your card",
         "Chargement de la pub…": "Loading the ad…",
-        "Publier mon mercato au 12ᵉ Homme": "Publish my window to the 12th Man",
         "Publié au 12ᵉ Homme · la commu peut le juger": "Published to the 12th Man · the community can judge it",
         "Mes favoris": "My favourites",
         "Mes favoris · les mercatos sauvegardés": "My favourites · saved windows",
@@ -19838,7 +19853,7 @@ const I18N = {
         "Non formé localement": "Not locally trained",
         // — Mercato —
         "RECRUTER": "SIGN", "EFFECTIF": "SQUAD", "DÉPARTS": "OUT",
-        "Recruter": "Sign", "Effectif": "Squad", "Départs": "Outgoings",
+        "Recruter": "Sign", "Effectif": "Squad", "Départs": "Outs",
         "Vendre": "Sell", "Prêter": "Loan out", "Récupérer": "Keep",
         "Ton point faible :": "Your weak spot:",
         "RECHERCHE CIBLÉE": "TARGETED SEARCH",
@@ -19868,7 +19883,6 @@ const I18N = {
         // — Divers —
         "Passer": "Skip", "Suivant →": "Next →", "Fermer": "Close", "Retour": "Back",
         "Ton club tient": "Your club is holding up",
-        "Tu peux encore dépenser": "You can still spend",
         "MODE PRO ›": "PRO MODE ›",
         // — Budget / conformité (termes officiels UEFA & comptables) —
         "Sous surveillance": "Under monitoring",
