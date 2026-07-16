@@ -1333,12 +1333,12 @@ function InfoDot({ title, what, why, how, impact }) {
         if (intro)
             lines.push({ t: intro });
         if (how)
-            lines.push({ h: "Comment on l'obtient : ", t: how });
+            lines.push({ h: t("Comment on l'obtient : "), t: how });
         if (impact)
-            lines.push({ h: "Concrètement : ", t: impact });
+            lines.push({ h: t("Concrètement : "), t: impact });
         setExplain({ title: title || "", kind: "info", lines });
     };
-    return React.createElement("button", { className: "idot", onClick: open, title: "L'adjoint t'explique", "aria-label": "Explication de l'adjoint" }, "i");
+    return React.createElement("button", { className: "idot", onClick: open, title: t("L'adjoint t'explique"), "aria-label": t("Explication de l'adjoint") }, "i");
 }
 // Salaire d'une recrue : au clic, l'adjoint explique d'où vient le chiffre.
 // mode="kept" → on a gardé son salaire d'avant (nouveau salaire non communiqué) ;
@@ -15550,29 +15550,29 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
         const tips = [];
         let mult = 1.0;
         if (p.ext)
-            tips.push({ ic: "🌍", txt: (p.club || "Ce club") + " (" + (p.league || "hors championnats modélisés") + ") : joueur hors de nos championnats · son salaire n'est pas connu, à toi de fixer une offre salariale crédible." });
+            tips.push({ ic: "🌍", txt: (p.club || t("Ce club")) + " (" + (p.league || t("hors championnats modélisés")) + t(") : joueur hors de nos championnats · son salaire n'est pas connu, à toi de fixer une offre salariale crédible.") });
         if (free) {
             mult = 0.55;
-            tips.push({ ic: "🆓", txt: "En fin de contrat (juin " + p.end + ") : gros levier · négocie très bas, voire attends-le libre l'été prochain." });
+            tips.push({ ic: "🆓", txt: t("En fin de contrat (juin ") + p.end + t(") : gros levier · négocie très bas, voire attends-le libre l'été prochain.") });
         }
         else if (ctx.mustSell) {
             mult = 0.9;
-            tips.push({ ic: "📉", txt: (p.club || "Ce club") + " est sous contrainte financière et doit vendre · une offre un peu SOUS sa valeur peut passer." });
+            tips.push({ ic: "📉", txt: (p.club || t("Ce club")) + t(" est sous contrainte financière et doit vendre · une offre un peu SOUS sa valeur peut passer.") });
         }
         else if (ctx.cashRich || big) {
             mult = big ? 1.15 : 1.1;
-            tips.push({ ic: "💪", txt: (p.club || "Ce club") + " n'a pas besoin de vendre · il faudra sans doute proposer ~" + Math.round((mult - 1) * 100) + " % de plus que sa valeur pour avoir une chance." });
+            tips.push({ ic: "💪", txt: (p.club || t("Ce club")) + t(" n'a pas besoin de vendre · il faudra sans doute proposer ~") + Math.round((mult - 1) * 100) + t(" % de plus que sa valeur pour avoir une chance.") });
         }
         else {
             mult = 1.0;
-            tips.push({ ic: "🎯", txt: "Offre proche de sa valeur marchande pour rester crédible." });
+            tips.push({ ic: "🎯", txt: t("Offre proche de sa valeur marchande pour rester crédible.") });
         }
         if (dna === "trader" && !free)
-            tips.push({ ic: "📈", txt: (p.club || "Ce club") + " achète jeune et revend cher (modèle trader) : prévois une prime sur ses pépites." });
+            tips.push({ ic: "📈", txt: (p.club || t("Ce club")) + t(" achète jeune et revend cher (modèle trader) : prévois une prime sur ses pépites.") });
         if (expiring && !free)
-            tips.push({ ic: "⏳", txt: "Contrat qui se termine en " + p.end + " : tu peux tenter de tirer le prix vers le bas." });
+            tips.push({ ic: "⏳", txt: t("Contrat qui se termine en ") + p.end + t(" : tu peux tenter de tirer le prix vers le bas.") });
         const suggest = Math.max(1, Math.round(mkt * mult));
-        return { tips, suggest, mult, mkt, ctxLabel: STANCE_LABEL[ctx.stance] || "", dna: DNA_LABEL[dna] || "" };
+        return { tips, suggest, mult, mkt, ctxLabel: t(STANCE_LABEL[ctx.stance] || ""), dna: t(DNA_LABEL[dna] || "") };
     };
     // --- Base de joueurs réels (autres clubs) : autocomplétion + assistant ---
     const _signedNames = new Set(recruits.map((r) => r.name)); // déjà achetés / pris en prêt → retirés du marché (pas de doublon)
@@ -16738,7 +16738,7 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
                     React.createElement("div", { className: "objblock-head" },
                         React.createElement(Icon, { name: "objectifs", size: 17, style: { marginRight: 1 } }),
                         "Mes objectifs \u00B7 2026-27 ",
-                        React.createElement(InfoDot, { title: "Mes objectifs \u00B7 2026-27", what: "Choisis jusqu'o\u00F9 ton club va dans chaque comp\u00E9tition 2026-27 \u00B7 ces menus pilotent tes revenus : le r\u00E9sultat et les comptes s'ajustent automatiquement en dessous. Les super-coupes n'apparaissent que si le club y est qualifi\u00E9 d'apr\u00E8s ses r\u00E9sultats 2025-26." })),
+                        React.createElement(InfoDot, { title: t("Mes objectifs · 2026-27"), what: t("Choisis jusqu'où ton club va dans chaque compétition 2026-27 · ces menus pilotent tes revenus : le résultat et les comptes s'ajustent automatiquement en dessous. Les super-coupes n'apparaissent que si le club y est qualifié d'après ses résultats 2025-26.") })),
                     (() => {
                         const selStyle = { width: "100%", background: "#0e1830", color: "#fff", border: "1px solid rgba(0,255,106,.45)", borderRadius: 8, padding: "7px 4px", fontSize: 11, fontWeight: 600, cursor: "pointer", boxSizing: "border-box" };
                         const c2 = CUP2_SCN[club.meta.country];
@@ -16952,7 +16952,7 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
                     React.createElement("div", { className: "marge-bar-main", style: { flex: 1 } },
                         React.createElement("span", { className: "marge-bar-lab" },
                             t("Marge d'invest."),
-                            React.createElement(InfoDot, { title: "Marge d'investissement", what: "Ce que tu peux ENCORE investir (indemnit\u00E9s + salaires) avant de d\u00E9passer la contrainte financi\u00E8re de ton club. Ce n'est PAS ta tr\u00E9sorerie.", why: "Elle te dit d'un coup d'\u0153il si tu as les moyens de recruter \u00B7 l'outil de d\u00E9cision n\u00B01 du directeur sportif au mercato.", how: "C'est ta distance à la règle qui te LIMITE en ce moment (ici : " + bindingRule + "). Vendre l'augmente ; acheter ou monter les salaires la réduit. Données : dérivée EN DIRECT de ton mercato et des contraintes calibrées de ton club. Décomposition : tes ventes " + (levVentes >= 0 ? "+" : "") + fmt(levVentes) + ", tes achats −" + fmt(levAchats) + ", masse salariale " + (levMasse >= 0 ? "−" : "+") + fmt(Math.abs(levMasse)) + ".", impact: "Positive \u2192 tu peux recruter ou monter un salaire. N\u00E9gative \u2192 vends, d\u00E9graisse, ou fais apporter le propri\u00E9taire." })),
+                            React.createElement(InfoDot, { title: t("Marge d'investissement"), what: t("Ce que tu peux ENCORE investir (indemnités + salaires) avant de dépasser la contrainte financière de ton club. Ce n'est PAS ta trésorerie."), why: t("Elle te dit d'un coup d'œil si tu as les moyens de recruter · l'outil de décision n°1 du directeur sportif au mercato."), how: t("C'est ta distance à la règle qui te LIMITE en ce moment (ici : ") + bindingRule + t("). Vendre l'augmente ; acheter ou monter les salaires la réduit. Données : dérivée EN DIRECT de ton mercato et des contraintes calibrées de ton club. Décomposition : tes ventes ") + (levVentes >= 0 ? "+" : "") + fmt(levVentes) + t(", tes achats −") + fmt(levAchats) + t(", masse salariale ") + (levMasse >= 0 ? "−" : "+") + fmt(Math.abs(levMasse)) + ".", impact: t("Positive → tu peux recruter ou monter un salaire. Négative → vends, dégraisse, ou fais apporter le propriétaire.") })),
                         React.createElement("span", { className: "marge-bar-val" + (cashFx ? " margePulse" : ""), style: { color: investRoom >= 0 ? "#00ff6a" : "#ff96a6" } },
                             investRoom >= 0 ? "+" : "",
                             fmt(investRoom)),
@@ -17068,7 +17068,7 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
                                     " ",
                                     React.createElement(Icon, { name: "uefa", size: 15, style: { marginRight: 5 } }),
                                     "Liste UEFA \u00B7 joueurs form\u00E9s localement"),
-                                React.createElement(InfoDot, { title: "Liste UEFA \u00B7 joueurs form\u00E9s localement", what: "La r\u00E8gle d'inscription de ton effectif pour la Coupe d'Europe.", how: "Max 25 inscrits (Liste A), dont \u2265 8 form\u00E9s localement (au club + au pays) et \u2265 4 form\u00E9s au club. \u00AB Form\u00E9 localement \u00BB = inscrit \u2265 3 saisons entre 15 et 21 ans (au club, ou dans un club du m\u00EAme pays), d'apr\u00E8s le PARCOURS R\u00C9EL, pas la nationalit\u00E9. Les places de Liste A laiss\u00E9es vides comptent : en inscrivant moins de 25, le manque est couvert. La Liste B (jeunes n\u00E9s en 2005+, form\u00E9s au club) joue HORS des 25.", impact: "Non conforme \u2192 retire des non-form\u00E9s localement de la Liste A (vends/pr\u00EAte, ou bascule des jeunes form\u00E9s au club en Liste B), ou ajoute des form\u00E9s locaux. Le statut de chaque joueur est indiqu\u00E9 dans le tableau Effectif." })),
+                                React.createElement(InfoDot, { title: t("Liste UEFA · joueurs formés localement"), what: t("La règle d'inscription de ton effectif pour la Coupe d'Europe."), how: t("Max 25 inscrits (Liste A), dont ≥ 8 formés localement (au club + au pays) et ≥ 4 formés au club. « Formé localement » = inscrit ≥ 3 saisons entre 15 et 21 ans (au club, ou dans un club du même pays), d'après le PARCOURS RÉEL, pas la nationalité. Les places de Liste A laissées vides comptent : en inscrivant moins de 25, le manque est couvert. La Liste B (jeunes nés en 2005+, formés au club) joue HORS des 25."), impact: t("Non conforme → retire des non-formés localement de la Liste A (vends/prête, ou bascule des jeunes formés au club en Liste B), ou ajoute des formés locaux. Le statut de chaque joueur est indiqué dans le tableau Effectif.") })),
                             uefaMOpen && (React.createElement(React.Fragment, null,
                                 [[React.createElement(React.Fragment, null,
                                             React.createElement(Icon, { name: "m_listea", size: 13, style: { marginRight: 5 } }),
@@ -17484,7 +17484,7 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
                             React.createElement("h3", { style: { margin: 0 } },
                                 React.createElement(Icon, { name: "leviers", size: 15, style: { marginRight: 5 } }),
                                 "R\u00E9investir le cash",
-                                React.createElement(InfoDot, { title: "Simulateur transfert \u2194 salaire", what: "Quand tes ventes d\u00E9gagent du cash, ce curseur simule COMMENT tu le r\u00E9investis sur une recrue : plut\u00F4t en indemnit\u00E9 de transfert (pay\u00E9e une seule fois), ou plut\u00F4t en salaire (pay\u00E9 chaque ann\u00E9e).", why: "Les deux ne p\u00E8sent PAS pareil sur tes comptes : un gros transfert sort beaucoup de cash tout de suite mais s'amortit sur 5 ans (charge annuelle l\u00E9g\u00E8re) ; un gros salaire ne co\u00FBte rien en cash imm\u00E9diat mais alourdit tes charges CHAQUE saison (et ton ratio UEFA). Bien arbitrer entre les deux, c'est le c\u0153ur du m\u00E9tier de directeur sportif.", how: "L'enveloppe = le cash disponible de tes ventes (calcul\u00E9 en direct). Le curseur la r\u00E9partit : X % en indemnit\u00E9 de transfert (cash) / le reste en salaire annuel. Co\u00FBt annuel = amortissement du transfert (montant \u00F7 5) + salaire charg\u00E9. Donn\u00E9es : 100 % calcul\u00E9 depuis ton mercato.", impact: "Vers le transfert = grosse sortie de cash maintenant, mais co\u00FBt annuel l\u00E9ger. Vers le salaire = z\u00E9ro cash imm\u00E9diat, mais charges plus lourdes chaque ann\u00E9e (et ratio UEFA plus haut)." })),
+                                React.createElement(InfoDot, { title: t("Simulateur transfert ↔ salaire"), what: t("Quand tes ventes dégagent du cash, ce curseur simule COMMENT tu le réinvestis sur une recrue : plutôt en indemnité de transfert (payée une seule fois), ou plutôt en salaire (payé chaque année)."), why: t("Les deux ne pèsent PAS pareil sur tes comptes : un gros transfert sort beaucoup de cash tout de suite mais s'amortit sur 5 ans (charge annuelle légère) ; un gros salaire ne coûte rien en cash immédiat mais alourdit tes charges CHAQUE saison (et ton ratio UEFA). Bien arbitrer entre les deux, c'est le cœur du métier de directeur sportif."), how: t("L'enveloppe = le cash disponible de tes ventes (calculé en direct). Le curseur la répartit : X % en indemnité de transfert (cash) / le reste en salaire annuel. Coût annuel = amortissement du transfert (montant ÷ 5) + salaire chargé. Données : 100 % calculé depuis ton mercato."), impact: t("Vers le transfert = grosse sortie de cash maintenant, mais coût annuel léger. Vers le salaire = zéro cash immédiat, mais charges plus lourdes chaque année (et ratio UEFA plus haut).") })),
                             arbEnv > 0.5 && React.createElement("span", { className: "s", style: { color: "#7b3dff" } },
                                 "enveloppe ",
                                 fmt(arbEnv))),
@@ -17521,7 +17521,7 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
                                 " ",
                                 React.createElement(Icon, { name: "fin", size: 14, style: { marginRight: 5 } }),
                                 "Partent gratuitement si tu ne fais rien",
-                                React.createElement(InfoDot, { title: "Partent gratuitement", what: "Les joueurs en fin de contrat (juin 2026) et les pr\u00EAts re\u00E7us qui repartent.", how: "Fin de contrat : par d\u00E9faut le joueur part libre (salaire + amortissement \u00E9conomis\u00E9s, 0 indemnit\u00E9) ; \u00AB Prolonger \u00BB le garde dans l'effectif et la masse salariale. Pr\u00EAt re\u00E7u : \u00AB Acheter \u00BB (il entre dans l'effectif, amorti), \u00AB Renouveler \u00BB (reste pr\u00EAt\u00E9 1 an) ou \u00AB Lib\u00E9rer \u00BB (il repart, plus aucun co\u00FBt).", impact: "Agis ici pour ne pas perdre un joueur utile gratuitement, ou au contraire all\u00E9ger tes comptes." })),
+                                React.createElement(InfoDot, { title: t("Partent gratuitement"), what: t("Les joueurs en fin de contrat (juin 2026) et les prêts reçus qui repartent."), how: t("Fin de contrat : par défaut le joueur part libre (salaire + amortissement économisés, 0 indemnité) ; « Prolonger » le garde dans l'effectif et la masse salariale. Prêt reçu : « Acheter » (il entre dans l'effectif, amorti), « Renouveler » (reste prêté 1 an) ou « Libérer » (il repart, plus aucun coût)."), impact: t("Agis ici pour ne pas perdre un joueur utile gratuitement, ou au contraire alléger tes comptes.") })),
                             React.createElement("span", { className: "s", style: { color: (freeLeavers.length + loanIn.length) > 0 ? "#5fd6a6" : "#7d8eae" } },
                                 freeLeavers.length,
                                 " fin",
@@ -18099,7 +18099,7 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
                         React.createElement("div", { className: "vrow", style: { borderTop: "1px solid rgba(255,255,255,.18)", marginTop: 2 } },
                             React.createElement("span", null,
                                 React.createElement("b", null, "Effet sur ton r\u00E9sultat 2026-27"),
-                                React.createElement(InfoDot, { title: "Ce que la vente rapporte \u00E0 tes comptes", what: "L'effet total de cette vente sur ton r\u00E9sultat net projet\u00E9 2026-27.", how: "Plus-value comptable (prix \u2212 valeur comptable nette) + salaire charg\u00E9 que tu ne paies plus + amortissement qui s'arr\u00EAte. Le cash encaiss\u00E9, lui, alimente ta tr\u00E9sorerie de mercato.", impact: "Plus la plus-value est haute (joueur tr\u00E8s amorti ou form\u00E9 au club, VCN basse), plus la vente redresse tes comptes \u00B7 c'est le meilleur levier pour \u00E9quilibrer un club d\u00E9ficitaire." })),
+                                React.createElement(InfoDot, { title: t("Ce que la vente rapporte à tes comptes"), what: t("L'effet total de cette vente sur ton résultat net projeté 2026-27."), how: t("Plus-value comptable (prix − valeur comptable nette) + salaire chargé que tu ne paies plus + amortissement qui s'arrête. Le cash encaissé, lui, alimente ta trésorerie de mercato."), impact: t("Plus la plus-value est haute (joueur très amorti ou formé au club, VCN basse), plus la vente redresse tes comptes · c'est le meilleur levier pour équilibrer un club déficitaire.") })),
                             React.createElement("b", { style: { color: resImpact >= 0 ? "#00ff6a" : "#ff96a6", fontSize: 15 } }, sign(resImpact)))),
                     React.createElement(ImpactBox, { imp: impactOf(-salEco, -amortEco, pv, 0) }),
                     pv < 0 && React.createElement("div", { className: "mini", style: { textTransform: "none", color: "#ffb0b0", padding: "4px 2px 0", lineHeight: 1.4 } },
@@ -18200,7 +18200,7 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
                         React.createElement("div", { className: "vrow", style: { borderTop: "1px solid rgba(255,255,255,.18)", marginTop: 2 } },
                             React.createElement("span", null,
                                 React.createElement("b", null, "Effet sur ton r\u00E9sultat 2026-27"),
-                                React.createElement(InfoDot, { title: "Ce que le pr\u00EAt rapporte \u00E0 tes comptes", what: "L'effet de ce pr\u00EAt sur ton r\u00E9sultat net projet\u00E9 2026-27.", how: "Salaire charg\u00E9 que le club preneur prend \u00E0 sa place + prime de pr\u00EAt encaiss\u00E9e. L'amortissement, lui, RESTE \u00E0 ta charge (le joueur t'appartient toujours) \u00B7 un pr\u00EAt n'efface pas la valeur comptable, contrairement \u00E0 une vente.", impact: "Un pr\u00EAt all\u00E8ge la masse salariale sans perdre le joueur, mais rapporte moins qu'une vente (pas de plus-value). Id\u00E9al pour faire jouer un jeune ailleurs ou d\u00E9graisser sans brader." })),
+                                React.createElement(InfoDot, { title: t("Ce que le prêt rapporte à tes comptes"), what: t("L'effet de ce prêt sur ton résultat net projeté 2026-27."), how: t("Salaire chargé que le club preneur prend à sa place + prime de prêt encaissée. L'amortissement, lui, RESTE à ta charge (le joueur t'appartient toujours) · un prêt n'efface pas la valeur comptable, contrairement à une vente."), impact: t("Un prêt allège la masse salariale sans perdre le joueur, mais rapporte moins qu'une vente (pas de plus-value). Idéal pour faire jouer un jeune ailleurs ou dégraisser sans brader.") })),
                             React.createElement("b", { style: { color: resImpact >= 0 ? "#00ff6a" : "#ff96a6", fontSize: 15 } }, sign(resImpact)))),
                     React.createElement(ImpactBox, { imp: impactOf(-salEco, 0, fee, 0) }),
                     loanDraft.type !== "sec" && React.createElement("div", { className: "mini", style: { textTransform: "none", color: "#9ad0ff", padding: "4px 2px 0", lineHeight: 1.4 } },
@@ -19676,6 +19676,62 @@ let _LANG = "fr";
 const LANGS = [["fr", "Français"], ["en", "English"]];
 const I18N = {
     en: {
+        "Simulateur transfert ↔ salaire": "Fee ↔ wage simulator",
+        "Quand tes ventes dégagent du cash, ce curseur simule COMMENT tu le réinvestis sur une recrue : plutôt en indemnité de transfert (payée une seule fois), ou plutôt en salaire (payé chaque année).": "When your sales free up cash, this slider simulates HOW you reinvest it in a signing: more into the transfer fee (paid once), or more into wages (paid every year).",
+        "Les deux ne pèsent PAS pareil sur tes comptes : un gros transfert sort beaucoup de cash tout de suite mais s'amortit sur 5 ans (charge annuelle légère) ; un gros salaire ne coûte rien en cash immédiat mais alourdit tes charges CHAQUE saison (et ton ratio UEFA). Bien arbitrer entre les deux, c'est le cœur du métier de directeur sportif.": "The two do NOT weigh the same on your accounts: a big fee takes a lot of cash out straight away but is amortised over 5 years (a light annual charge); a big wage costs nothing in immediate cash but weighs on your charges EVERY season (and on your UEFA ratio). Getting that trade-off right is the heart of the sporting director's job.",
+        "L'enveloppe = le cash disponible de tes ventes (calculé en direct). Le curseur la répartit : X % en indemnité de transfert (cash) / le reste en salaire annuel. Coût annuel = amortissement du transfert (montant ÷ 5) + salaire chargé. Données : 100 % calculé depuis ton mercato.": "The pot = the cash available from your sales (calculated live). The slider splits it: X% into the transfer fee (cash) / the rest into annual wages. Annual cost = amortisation of the fee (amount ÷ 5) + loaded wage. Data: 100% calculated from your own window.",
+        "Vers le transfert = grosse sortie de cash maintenant, mais coût annuel léger. Vers le salaire = zéro cash immédiat, mais charges plus lourdes chaque année (et ratio UEFA plus haut).": "Towards the fee = a big cash outflow now, but a light annual cost. Towards wages = zero immediate cash, but heavier charges every year (and a higher UEFA ratio).",
+        "Non conforme → retire des non-formés localement de la Liste A (vends/prête, ou bascule des jeunes formés au club en Liste B), ou ajoute des formés localement.": "Not compliant → remove non-locally-trained players from List A (sell/loan out, or move club-trained youngsters to List B), or add locally trained players.",
+        "Liste UEFA · joueurs formés localement": "UEFA List · locally trained players",
+        "La règle d'inscription de ton effectif pour la Coupe d'Europe.": "The rule for registering your squad in European competition.",
+        "Max 25 inscrits (Liste A), dont ≥ 8 formés localement (au club + au pays) et ≥ 4 formés au club. « Formé localement » = inscrit ≥ 3 saisons entre 15 et 21 ans (au club, ou dans un club du même pays), d'après le PARCOURS RÉEL, pas la nationalité. Les places de Liste A laissées vides comptent : en inscrivant moins de 25, le manque est couvert. La Liste B (jeunes nés en 2005+, formés au club) joue HORS des 25.": "Max 25 registered (List A), of which ≥ 8 locally trained (club + association) and ≥ 4 club-trained. \"Locally trained\" = registered for ≥ 3 seasons between 15 and 21 (at the club, or at a club in the same country), based on the ACTUAL CAREER PATH, not nationality. Unused List A places count: registering fewer than 25 covers the shortfall. List B (players born 2005 or later, club-trained) plays OUTSIDE the 25.",
+        "Partent gratuitement": "Leaving for free",
+        "Les joueurs en fin de contrat (juin 2026) et les prêts reçus qui repartent.": "Players out of contract (June 2026) and incoming loans going back.",
+        "Fin de contrat : par défaut le joueur part libre (salaire + amortissement économisés, 0 indemnité) ; « Prolonger » le garde dans l'effectif et la masse salariale. Prêt reçu : « Acheter » (il entre dans l'effectif, amorti), « Renouveler » (reste prêté 1 an) ou « Libérer » (il repart, plus aucun coût).": "Out of contract: by default the player leaves free (wage + amortisation saved, no fee); \"Extend\" keeps him in the squad and on the wage bill. Incoming loan: \"Buy\" (he joins the squad and is amortised), \"Renew\" (stays on loan another year) or \"Release\" (he goes back, no cost at all).",
+        "Agis ici pour ne pas perdre un joueur utile gratuitement, ou au contraire alléger tes comptes.": "Act here so you don't lose a useful player for nothing, or conversely to lighten your accounts.",
+        "Ce que la vente rapporte à tes comptes": "What the sale brings to your accounts",
+        "L'effet total de cette vente sur ton résultat net projeté 2026-27.": "The total effect of this sale on your projected 2026-27 net result.",
+        "Plus-value comptable (prix − valeur comptable nette) + salaire chargé que tu ne paies plus + amortissement qui s'arrête. Le cash encaissé, lui, alimente ta trésorerie de mercato.": "Accounting profit on disposal (price − net book value) + loaded wage you no longer pay + amortisation that stops. The cash received, meanwhile, feeds your transfer kitty.",
+        "Plus la plus-value est haute (joueur très amorti ou formé au club, VCN basse), plus la vente redresse tes comptes · c'est le meilleur levier pour équilibrer un club déficitaire.": "The higher the profit on disposal (a heavily amortised or club-trained player, low net book value), the more the sale repairs your accounts · it's the best lever to balance a loss-making club.",
+        "Ce que le prêt rapporte à tes comptes": "What the loan brings to your accounts",
+        "L'effet de ce prêt sur ton résultat net projeté 2026-27.": "The effect of this loan on your projected 2026-27 net result.",
+        "Salaire chargé que le club preneur prend à sa place + prime de prêt encaissée. L'amortissement, lui, RESTE à ta charge (le joueur t'appartient toujours) · un prêt n'efface pas la valeur comptable, contrairement à une vente.": "The loaded wage the receiving club takes on instead of you + the loan fee received. The amortisation, however, STAYS on your books (the player is still yours) · a loan does not clear the book value, unlike a sale.",
+        "Un prêt allège la masse salariale sans perdre le joueur, mais rapporte moins qu'une vente (pas de plus-value). Idéal pour faire jouer un jeune ailleurs ou dégraisser sans brader.": "A loan lightens the wage bill without losing the player, but brings in less than a sale (no profit on disposal). Ideal to get a youngster playing elsewhere, or to trim the squad without selling cheap.",
+        // — Info-bulles ⓘ —
+        "Comment on l'obtient : ": "How it's worked out: ",
+        "Concrètement : ": "In practice: ",
+        "Mes objectifs · 2026-27": "My targets · 2026-27",
+        "Choisis jusqu'où ton club va dans chaque compétition 2026-27 · ces menus pilotent tes revenus : le résultat et les comptes s'ajustent automatiquement en dessous. Les super-coupes n'apparaissent que si le club y est qualifié d'après ses résultats 2025-26.": "Choose how far your club goes in each 2026-27 competition · these menus drive your revenue: the result and the accounts adjust automatically below. Super cups only appear if the club has qualified for them based on its 2025-26 results.",
+        "Marge d'investissement": "Investment headroom",
+        "Ce que tu peux ENCORE investir (indemnités + salaires) avant de dépasser la contrainte financière de ton club. Ce n'est PAS ta trésorerie.": "What you can STILL invest (fees + wages) before breaching your club's binding financial constraint. This is NOT your cash balance.",
+        "Elle te dit d'un coup d'œil si tu as les moyens de recruter · l'outil de décision n°1 du directeur sportif au mercato.": "It tells you at a glance whether you can afford to sign · the sporting director's number one decision tool in the window.",
+        "C'est ta distance à la règle qui te LIMITE en ce moment (ici : ": "It's your distance to the rule that is BINDING right now (here: ",
+        "). Vendre l'augmente ; acheter ou monter les salaires la réduit. Données : dérivée EN DIRECT de ton mercato et des contraintes calibrées de ton club. Décomposition : tes ventes ": "). Selling increases it; buying or raising wages reduces it. Data: derived LIVE from your window and your club's calibrated constraints. Breakdown: your sales ",
+        ", tes achats −": ", your purchases −",
+        ", masse salariale ": ", wage bill ",
+        "Positive → tu peux recruter ou monter un salaire. Négative → vends, dégraisse, ou fais apporter le propriétaire.": "Positive → you can sign or raise a wage. Negative → sell, trim the squad, or get the owner to inject funds.",
+        // — Adjoint : conseils d'offre de transfert (const de module traduites A L'USAGE) —
+        "Ce club": "This club",
+        "hors championnats modélisés": "outside our modelled leagues",
+        ") : joueur hors de nos championnats · son salaire n'est pas connu, à toi de fixer une offre salariale crédible.": "): a player outside our leagues · his wage isn't known, it's up to you to set a credible wage offer.",
+        "En fin de contrat (juin ": "Out of contract (June ",
+        ") : gros levier · négocie très bas, voire attends-le libre l'été prochain.": "): big leverage · negotiate very low, or even wait and take him free next summer.",
+        " est sous contrainte financière et doit vendre · une offre un peu SOUS sa valeur peut passer.": " are under financial pressure and need to sell · an offer slightly BELOW his value could get through.",
+        " n'a pas besoin de vendre · il faudra sans doute proposer ~": " don't need to sell · you'll probably have to offer around ",
+        " % de plus que sa valeur pour avoir une chance.": "% above his value to stand a chance.",
+        "Offre proche de sa valeur marchande pour rester crédible.": "Offer close to his market value to stay credible.",
+        " achète jeune et revend cher (modèle trader) : prévois une prime sur ses pépites.": " buy young and sell high (a trader model): expect to pay a premium for their gems.",
+        "Contrat qui se termine en ": "Contract expiring in ",
+        " : tu peux tenter de tirer le prix vers le bas.": ": you can try to push the price down.",
+        "doit vendre pour équilibrer": "must sell to balance the books",
+        "pas besoin de vendre (riche / apport)": "no need to sell (wealthy / owner-funded)",
+        "situation stable": "stable position",
+        "achète des stars": "buys stars",
+        "forme et fait grandir ses jeunes": "develops and grows its youngsters",
+        "achète jeune, revend cher": "buys young, sells high",
+        "gestion équilibrée": "balanced management",
+        "L'adjoint t'explique": "Your assistant explains",
+        "Explication de l'adjoint": "Assistant's explanation",
         "Voir le classement de ce club": "See this club's leaderboard",
         "Masquer le classement de ce club": "Hide this club's leaderboard",
         "Salle des trophées": "Trophy room",
