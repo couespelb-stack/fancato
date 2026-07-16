@@ -13,6 +13,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png" />
 <link rel="manifest" href="manifest.webmanifest" />
 <title>FANCATO — Le mercato imaginé par les fans</title>
+<meta name="description" content="Refais le mercato de ton club et vois si tes transferts passent les règles financières : DNCG, PSR anglais, LaLiga, Serie A, Bundesliga, UEFA. 96 clubs, comptes réels 2024-25, projection 2026-27." />
 <script async src="https://fundingchoicesmessages.google.com/i/pub-4018730850191392?ers=1" nonce=""></script>
 <script nonce="">(function(){function signalGooglefcPresent(){if(!window.frames.googlefcPresent){if(document.body){const iframe=document.createElement("iframe");iframe.style="width:0;height:0;border:none;z-index:-1000;left:-1000px;top:-1000px;";iframe.style.display="none";iframe.name="googlefcPresent";document.body.appendChild(iframe);}else{setTimeout(signalGooglefcPresent,0);}}}signalGooglefcPresent();})();</script>
 <script async data-ad-frequency-hint="60s"
@@ -20386,6 +20387,26 @@ function App() {
         localStorage.setItem("sm_lang", l);
     }
     catch (e) { } setLang(l); };
+    // La PAGE elle-meme doit parler la langue du joueur : sinon <html lang="fr"> fait lire l'anglais
+    // avec une voix francaise (lecteurs d'ecran), Google indexe le site comme francais, et l'onglet
+    // du navigateur reste en francais. Le HTML statique reste FR (le site est francais d'abord).
+    const PAGE_META = {
+        fr: { t: "FANCATO — Le mercato imaginé par les fans",
+            d: "Refais le mercato de ton club et vois si tes transferts passent les règles financières : DNCG, PSR anglais, LaLiga, Serie A, Bundesliga, UEFA. 96 clubs, comptes réels 2024-25, projection 2026-27." },
+        en: { t: "FANCATO — The transfer window, imagined by fans",
+            d: "Run your club's transfer window and see if your signings pass the financial rules: Premier League PSR, LaLiga, Serie A, Bundesliga, France's DNCG, UEFA. 96 clubs, real 2024-25 accounts, projected to 2026-27." }
+    };
+    useEffect(() => {
+        const m = PAGE_META[lang] || PAGE_META.fr;
+        try {
+            document.documentElement.lang = lang;
+            document.title = m.t;
+            const md = document.querySelector('meta[name="description"]');
+            if (md)
+                md.setAttribute("content", m.d);
+        }
+        catch (e) { }
+    }, [lang]);
     // Un « slot » = une PARTIE = { uid (unique), clubId, mode }. On peut donc avoir plusieurs parties sur le MÊME club.
     const [splash, setSplash] = useState(true); // écran d'entrée (connexion) avant l'accueil
     const [cur, setCur] = useState(null); // slot courant (partie ouverte) ou null = accueil
