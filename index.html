@@ -13580,7 +13580,7 @@ const BACKOFFICE = (function () {
                 byNode = _liveCol2(byNode, clubSel, { "Règle de réinvestissement": (_liveVal.capRoom >= 0 ? "1:1 (conforme LCPD)" : "réinvest. partiel (excedido)") });
             } // LaLiga ② réinvestissement : racine live selon le statut LCPD (capRoom)
             return `<div class="crit">
-        <div class="crit-h"><span class="crit-n">${c.n}</span><h2>${t(c.title)}</h2>${(c.what || c.formula || _sanc) ? `${(function () { _niMap["c" + ci] = { label: c.title, src: (c.what || "") + (c.formula ? ("<br><br><b>Formule&nbsp;:</b> " + c.formula) : "") + (_sanc ? ("<br><br><b> Si tu dépasses :</b> " + _sanc) : "") }; return ''; })()}<button class="tni l3" data-ni="c${ci}" title="L'adjoint t'explique cet indicateur">i</button>` : ''}<span class="thr">${t(c.thr)}</span></div>
+        <div class="crit-h"><span class="crit-n">${c.n}</span><h2>${t(c.title)}</h2>${(c.what || c.formula || _sanc) ? `${(function () { _niMap["c" + ci] = { label: c.title, src: (c.what || "") + (c.formula ? ("<br><br><b>" + t("Formule :") + "</b> " + c.formula) : "") + (_sanc ? ("<br><br><b> " + t("Si tu dépasses :") + "</b> " + _sanc) : "") }; return ''; })()}<button class="tni l3" data-ni="c${ci}" title="L'adjoint t'explique cet indicateur">i</button>` : ''}<span class="thr">${t(c.thr)}</span></div>
         <div class="years single">
           ${[2].map((i) => {
                 var yr = c.years[i] || c.years[c.years.length - 1];
@@ -13615,8 +13615,8 @@ const BACKOFFICE = (function () {
                 var st = cr && cr.stat ? cr.stat[i] : yr.r;
                 var badge = cr ? (cr.own ? `<span class="rl own">Estim. maison</span>` : `<span class="rl ${st}">${RL[st]}</span>`) : `<span class="rl ${yr.r}">${RL[yr.r]}</span>`;
                 var valCls = (cr && cr.own) ? 'ownval' : ((/à (définir|affiner|préciser|confirmer|évaluer)|projeter|abrogé/i.test(cellVal)) ? 'todo' : (/✓/.test(cellVal) ? 'ok' : (/✗/.test(cellVal) ? 'ko' : '')));
-                return `<div class="yr"><div class="yr-h"><span>${YLAB[i]}</span></div><div class="val ${valCls}">${cellVal}</div>${c.sub ? `<div class="yr-sub">${c.sub}</div>` : ''}${(i === 2) ? `<div class="segwrap"><input type="radio" id="sg${cur}${ci}n" class="segr segr1" name="sg${cur}${ci}" checked><input type="radio" id="sg${cur}${ci}c" class="segr segr2" name="sg${cur}${ci}"><input type="radio" id="sg${cur}${ci}r" class="segr segr3" name="sg${cur}${ci}"><div class="segbtns"><label for="sg${cur}${ci}n" class="segbtn">Ta situation</label><label for="sg${cur}${ci}c" class="segbtn">C'est quoi&nbsp;?</label><label for="sg${cur}${ci}r" class="segbtn">Si tu dépasses</label></div><div class="segpanels"><div class="segp segp1"><div class="now-mini">${(function () { var L = _liveVal || {}; var _lv = ('' + cellVal).replace(/·\s*live/gi, '').replace(/[✓✗]/g, '').replace(/\s+/g, ' ').trim(); var _hasV = /✓|✗|excedido|excédé|échec|conforme/i.test(cellVal); var _ok = /✓|conforme/i.test(cellVal) && !/✗|excedido|excédé|échec/i.test(cellVal); var _ex = _nat && _nat.cls === "exante"; var _anc = L.anchorLbl ? (' (comptes ' + L.anchorLbl + ')') : ''; var o = ''; if (/\d/.test(_lv))
-                    o += '<b>Aujourd\'hui : ' + _lv + '</b><br>'; if (!_hasV)
+                return `<div class="yr"><div class="yr-h"><span>${YLAB[i]}</span></div><div class="val ${valCls}">${cellVal}</div>${c.sub ? `<div class="yr-sub">${c.sub}</div>` : ''}${(i === 2) ? `<div class="segwrap"><input type="radio" id="sg${cur}${ci}n" class="segr segr1" name="sg${cur}${ci}" checked><input type="radio" id="sg${cur}${ci}c" class="segr segr2" name="sg${cur}${ci}"><input type="radio" id="sg${cur}${ci}r" class="segr segr3" name="sg${cur}${ci}"><div class="segbtns"><label for="sg${cur}${ci}n" class="segbtn">${t("Ta situation")}</label><label for="sg${cur}${ci}c" class="segbtn">${t("C'est quoi ?")}</label><label for="sg${cur}${ci}r" class="segbtn">${t("Si tu dépasses")}</label></div><div class="segpanels"><div class="segp segp1"><div class="now-mini">${(function () { var L = _liveVal || {}; var _lv = ('' + cellVal).replace(/·\s*live/gi, '').replace(/[✓✗]/g, '').replace(/\s+/g, ' ').trim(); var _hasV = /✓|✗|excedido|excédé|échec|conforme/i.test(cellVal); var _ok = /✓|conforme/i.test(cellVal) && !/✗|excedido|excédé|échec/i.test(cellVal); var _ex = _nat && _nat.cls === "exante"; var _anc = L.anchorLbl ? (' (comptes ' + L.anchorLbl + ')') : ''; var o = ''; if (/\d/.test(_lv))
+                    o += '<b>' + t("Aujourd'hui : ") + _lv + '</b><br>'; if (!_hasV)
                     return o + 'Ça dépend de ton mercato : fais tes transferts et regarde ce chiffre bouger en direct.'; o += _ok ? (_ex ? 'Conforme : tu peux inscrire tes recrues normalement.' : 'Tu es dans les clous : recrute librement.') : (_ex ? 'Bloqué : tu ne peux pas inscrire de nouvelle recrue tant que tu n\'es pas repassé sous le seuil. Finance-la d\'abord par une vente ou un apport.' : 'Rien d\'immédiat : c\'est jugé en fin de saison. Si tu ne couvres pas le dépassement (apport du proprio ou ventes), tu t\'exposes à une sanction au bilan.'); if (!_ok) {
                     o += L.touched ? '<br><br><b>D\'où ça vient :</b> ton mercato n\'a pas encore redressé ce chiffre. Vends, prête, ou fais apporter le propriétaire pour le faire redescendre.' : '<br><br><b>D\'où ça vient :</b> c\'est l\'<b>héritage du club</b>' + _anc + ', pas ta faute. À toi de le redresser au mercato.';
                 }
@@ -19676,6 +19676,10 @@ let _LANG = "fr";
 const LANGS = [["fr", "Français"], ["en", "English"]];
 const I18N = {
     en: {
+        // — Tables d'indicateurs (gabarits HTML du back-office) —
+        "Aujourd'hui : ": "Today: ",
+        "Formule :": "Formula:",
+        "Si tu dépasses :": "If you breach it:",
         "Simulateur transfert ↔ salaire": "Fee ↔ wage simulator",
         "Quand tes ventes dégagent du cash, ce curseur simule COMMENT tu le réinvestis sur une recrue : plutôt en indemnité de transfert (payée une seule fois), ou plutôt en salaire (payé chaque année).": "When your sales free up cash, this slider simulates HOW you reinvest it in a signing: more into the transfer fee (paid once), or more into wages (paid every year).",
         "Les deux ne pèsent PAS pareil sur tes comptes : un gros transfert sort beaucoup de cash tout de suite mais s'amortit sur 5 ans (charge annuelle légère) ; un gros salaire ne coûte rien en cash immédiat mais alourdit tes charges CHAQUE saison (et ton ratio UEFA). Bien arbitrer entre les deux, c'est le cœur du métier de directeur sportif.": "The two do NOT weigh the same on your accounts: a big fee takes a lot of cash out straight away but is amortised over 5 years (a light annual charge); a big wage costs nothing in immediate cash but weighs on your charges EVERY season (and on your UEFA ratio). Getting that trade-off right is the heart of the sporting director's job.",
@@ -19732,7 +19736,6 @@ const I18N = {
         "gestion équilibrée": "balanced management",
         "L'adjoint t'explique": "Your assistant explains",
         "Explication de l'adjoint": "Assistant's explanation",
-        "Voir le classement de ce club": "See this club's leaderboard",
         "Masquer le classement de ce club": "Hide this club's leaderboard",
         "Salle des trophées": "Trophy room",
         "Débloqué avec ": "Unlocked with ",
