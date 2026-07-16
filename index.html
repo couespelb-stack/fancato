@@ -13407,7 +13407,7 @@ const BACKOFFICE = (function () {
                 : (_hasVal ? '<span class="tval est">Estimé</span>' : '');
         let h = `<div class="tnode"><div class="trow${node.own ? ' own' : ''}" data-p="${path}">
     <span class="tcaret ${open ? 'o' : ''}">${clickable ? '▸' : '·'}</span>
-    <span class="tlw"><span class="tlabel">${node.label}</span>${src ? `<button class="tni" data-ni="${path}" title="L'adjoint t'explique cette ligne">i</button>` : ''}</span>
+    <span class="tlw"><span class="tlabel">${t(node.label)}</span>${src ? `<button class="tni" data-ni="${path}" title="L'adjoint t'explique cette ligne">i</button>` : ''}</span>
     ${_valHtml}
     ${_flagHtml}
   </div>`;
@@ -13489,7 +13489,7 @@ const BACKOFFICE = (function () {
         const b = BODIES[cur];
         var _nat = REG_NATURE[cur];
         var _natHTML = _nat ? (function () { _niMap["nature"] = { label: "Ex-ante ou ex-post ?", src: REG_NATURE_HELP }; return `<details class="reg-fold"><summary>${_icHTML("doc")} Comment tes comptes sont contrôlés · ${_nat.cls === "exante" ? "blocage AVANT le mercato" : "jugé en fin de saison"}</summary><div class="reg-nature ${_nat.cls}"><span class="reg-nat-ic">${SVG_ICONS[_nat.icon]}</span><div class="reg-nat-tx"><b>${_nat.title}</b><span>${_nat.sub}</span></div><button class="tni reg-nat-i" data-ni="nature" title="L'adjoint t'explique la différence">i</button></div></details>`; })() : "";
-        return `<div class="bo-league"><div class="bo-lh"><span class="bo-ic">${TOUR_EMO[b.ic] ? _icHTML(TOUR_EMO[b.ic]) : b.ic}</span> <b>${b.name}</b> <span class="bo-org">${b.org}</span></div>
+        return `<div class="bo-league"><div class="bo-lh"><span class="bo-ic">${TOUR_EMO[b.ic] ? _icHTML(TOUR_EMO[b.ic]) : b.ic}</span> <b>${t(b.name)}</b> <span class="bo-org">${t(b.org)}</span></div>
     ${'' /* intro + note « base 2026-27 » retirées du rendu JEU ; l'essentiel (base avant mercato + cascade des années) est déplacé dans l'aide « Pour info » du détail */}
     ${'' /* 🔎 Vérification documentaire : retirée du rendu JEU (le joueur s'en fiche) ; reste dans le back-office calcul-criteres.html */}
     ${b.criteria.map((c, ci) => {
@@ -13615,7 +13615,7 @@ const BACKOFFICE = (function () {
                 var st = cr && cr.stat ? cr.stat[i] : yr.r;
                 var badge = cr ? (cr.own ? `<span class="rl own">Estim. maison</span>` : `<span class="rl ${st}">${RL[st]}</span>`) : `<span class="rl ${yr.r}">${RL[yr.r]}</span>`;
                 var valCls = (cr && cr.own) ? 'ownval' : ((/à (définir|affiner|préciser|confirmer|évaluer)|projeter|abrogé/i.test(cellVal)) ? 'todo' : (/✓/.test(cellVal) ? 'ok' : (/✗/.test(cellVal) ? 'ko' : '')));
-                return `<div class="yr"><div class="yr-h"><span>${YLAB[i]}</span></div><div class="val ${valCls}">${cellVal}</div>${c.sub ? `<div class="yr-sub">${c.sub}</div>` : ''}${(i === 2) ? `<div class="segwrap"><input type="radio" id="sg${cur}${ci}n" class="segr segr1" name="sg${cur}${ci}" checked><input type="radio" id="sg${cur}${ci}c" class="segr segr2" name="sg${cur}${ci}"><input type="radio" id="sg${cur}${ci}r" class="segr segr3" name="sg${cur}${ci}"><div class="segbtns"><label for="sg${cur}${ci}n" class="segbtn">${t("Ta situation")}</label><label for="sg${cur}${ci}c" class="segbtn">${t("C'est quoi ?")}</label><label for="sg${cur}${ci}r" class="segbtn">${t("Si tu dépasses")}</label></div><div class="segpanels"><div class="segp segp1"><div class="now-mini">${(function () { var L = _liveVal || {}; var _lv = ('' + cellVal).replace(/·\s*live/gi, '').replace(/[✓✗]/g, '').replace(/\s+/g, ' ').trim(); var _hasV = /✓|✗|excedido|excédé|échec|conforme/i.test(cellVal); var _ok = /✓|conforme/i.test(cellVal) && !/✗|excedido|excédé|échec/i.test(cellVal); var _ex = _nat && _nat.cls === "exante"; var _anc = L.anchorLbl ? (' (comptes ' + L.anchorLbl + ')') : ''; var o = ''; if (/\d/.test(_lv))
+                return `<div class="yr"><div class="yr-h"><span>${YLAB[i]}</span></div><div class="val ${valCls}">${cellVal}</div>${c.sub ? `<div class="yr-sub">${t(c.sub)}</div>` : ''}${(i === 2) ? `<div class="segwrap"><input type="radio" id="sg${cur}${ci}n" class="segr segr1" name="sg${cur}${ci}" checked><input type="radio" id="sg${cur}${ci}c" class="segr segr2" name="sg${cur}${ci}"><input type="radio" id="sg${cur}${ci}r" class="segr segr3" name="sg${cur}${ci}"><div class="segbtns"><label for="sg${cur}${ci}n" class="segbtn">${t("Ta situation")}</label><label for="sg${cur}${ci}c" class="segbtn">${t("C'est quoi ?")}</label><label for="sg${cur}${ci}r" class="segbtn">${t("Si tu dépasses")}</label></div><div class="segpanels"><div class="segp segp1"><div class="now-mini">${(function () { var L = _liveVal || {}; var _lv = ('' + cellVal).replace(/·\s*live/gi, '').replace(/[✓✗]/g, '').replace(/\s+/g, ' ').trim(); var _hasV = /✓|✗|excedido|excédé|échec|conforme/i.test(cellVal); var _ok = /✓|conforme/i.test(cellVal) && !/✗|excedido|excédé|échec/i.test(cellVal); var _ex = _nat && _nat.cls === "exante"; var _anc = L.anchorLbl ? (' (comptes ' + L.anchorLbl + ')') : ''; var o = ''; if (/\d/.test(_lv))
                     o += '<b>' + t("Aujourd'hui : ") + _lv + '</b><br>'; if (!_hasV)
                     return o + 'Ça dépend de ton mercato : fais tes transferts et regarde ce chiffre bouger en direct.'; o += _ok ? (_ex ? 'Conforme : tu peux inscrire tes recrues normalement.' : 'Tu es dans les clous : recrute librement.') : (_ex ? 'Bloqué : tu ne peux pas inscrire de nouvelle recrue tant que tu n\'es pas repassé sous le seuil. Finance-la d\'abord par une vente ou un apport.' : 'Rien d\'immédiat : c\'est jugé en fin de saison. Si tu ne couvres pas le dépassement (apport du proprio ou ventes), tu t\'exposes à une sanction au bilan.'); if (!_ok) {
                     o += L.touched ? '<br><br><b>D\'où ça vient :</b> ton mercato n\'a pas encore redressé ce chiffre. Vends, prête, ou fais apporter le propriétaire pour le faire redescendre.' : '<br><br><b>D\'où ça vient :</b> c\'est l\'<b>héritage du club</b>' + _anc + ', pas ta faute. À toi de le redresser au mercato.';
@@ -13625,7 +13625,7 @@ const BACKOFFICE = (function () {
                 }
                 else if (!L.startInRed) {
                     o += '<br><br><b>D\'où ça vient :</b> point de départ sain' + _anc + ' · à toi de préserver l\'équilibre.';
-                } o += '<br><br><span style="color:#93a4c4">Ce chiffre bouge en direct à chaque transfert.</span>'; return o; })()}</div></div><div class="segp segp2"><div class="plain-mini">${(c.sub ? '<b>' + c.sub + '</b>' : '') + (c.plain ? ((c.sub ? '<br><br>' : '') + c.plain) : (c.what ? ((c.sub ? '<br><br>' : '') + c.what) : ''))}</div></div><div class="segp segp3"><div class="sanction-mini">${(_nat ? ('<b>' + _nat.title + '</b><br>' + _nat.sub) : '') + (_sanc ? ((_nat ? '<br><br>' : '') + '<b style=\'color:#ffcf6e\'>Ce que tu risques concrètement :</b> ' + _sanc) : '') + (function () { var _lv = ('' + cellVal).replace(/·\s*live/gi, '').replace(/[✓✗]/g, '').replace(/\s+/g, ' ').trim(); if (!/\d/.test(_lv))
+                } o += '<br><br><span style="color:#93a4c4">Ce chiffre bouge en direct à chaque transfert.</span>'; return o; })()}</div></div><div class="segp segp2"><div class="plain-mini">${(c.sub ? '<b>' + t(c.sub) + '</b>' : '') + (c.plain ? ((c.sub ? '<br><br>' : '') + c.plain) : (c.what ? ((c.sub ? '<br><br>' : '') + c.what) : ''))}</div></div><div class="segp segp3"><div class="sanction-mini">${(_nat ? ('<b>' + _nat.title + '</b><br>' + _nat.sub) : '') + (_sanc ? ((_nat ? '<br><br>' : '') + '<b style=\'color:#ffcf6e\'>Ce que tu risques concrètement :</b> ' + _sanc) : '') + (function () { var _lv = ('' + cellVal).replace(/·\s*live/gi, '').replace(/[✓✗]/g, '').replace(/\s+/g, ' ').trim(); if (!/\d/.test(_lv))
                     return ''; var _t = '<br><br><b>Dans ton cas :</b> tu es à <b>' + _lv + '</b>'; if (cur === 'ligue1' && ci === 0 && _liveVal && _liveVal.fp != null) {
                     _t += (_liveVal.fp >= 0 ? ', et tes fonds propres sont positifs. Tant que tu couvres le dépassement (apport ou ventes), ça reste une mise sous surveillance, pas une sanction.' : '. Attention : tes fonds propres sont négatifs, c\'est là que les vraies mesures tombent.');
                 }
@@ -13648,7 +13648,7 @@ const BACKOFFICE = (function () {
         }).join("")}
     </div>`;
     }
-    return { render: renderCrit, has: function (k) { return !!(BODIES[k] && LEAGUE[k]); }, inUefa: function (id) { return LEAGUE.uefa.clubs.some(function (c) { return c[0] === id; }); }, criteria: function (k) { return (BODIES[k] && BODIES[k].criteria) ? BODIES[k].criteria.map(function (c) { return { n: c.n, title: c.title }; }) : []; }, ownerPanel: OWNER_PANEL, nodeInfo: function (p) { return _niMap[p]; } };
+    return { render: renderCrit, has: function (k) { return !!(BODIES[k] && LEAGUE[k]); }, inUefa: function (id) { return LEAGUE.uefa.clubs.some(function (c) { return c[0] === id; }); }, criteria: function (k) { return (BODIES[k] && BODIES[k].criteria) ? BODIES[k].criteria.map(function (c) { return { n: c.n, title: t(c.title) }; }) : []; }, ownerPanel: OWNER_PANEL, nodeInfo: function (p) { return _niMap[p]; } };
 })();
 const BO_LK = { "Ligue 1": "ligue1", "Premier League": "premier", "LaLiga": "laliga", "Serie A": "seriea", "Bundesliga": "bundesliga" };
 function BoTable({ leagueKey, clubId, live, onlyCi }) {
@@ -13661,7 +13661,7 @@ function BoTable({ leagueKey, clubId, live, onlyCi }) {
             const p = ni.dataset.ni;
             const info = BACKOFFICE.nodeInfo(p);
             if (info && setExplain)
-                setExplain({ title: info.label || "", kind: "info", lines: [{ t: info.src, html: true }] });
+                setExplain({ title: t(info.label || ""), kind: "info", lines: [{ t: info.src, html: true }] });
             return;
         }
         const db = e.target.closest ? e.target.closest("[data-drill]") : null;
@@ -19676,6 +19676,226 @@ let _LANG = "fr";
 const LANGS = [["fr", "Français"], ["en", "English"]];
 const I18N = {
     en: {
+        // — BODIES : instances, criteres, seuils (termes officiels locaux CONSERVES) —
+        "Ligue 1": "Ligue 1",
+        "Premier League": "Premier League",
+        "LaLiga": "LaLiga",
+        "Serie A": "Serie A",
+        "Bundesliga": "Bundesliga",
+        "UEFA": "UEFA",
+        "DNCG · Direction Nationale du Contrôle de Gestion (LFP)": "DNCG · French national financial control body (LFP)",
+        "Premier League · PSR / SCR / SSR": "Premier League · PSR / SCR / SSR",
+        "LaLiga · Control Económico (LCPD)": "LaLiga · Control Económico (LCPD)",
+        "FIGC / COVISOC · Italie": "FIGC / COVISOC · Italy",
+        "DFL · Lizenzierungsordnung (Allemagne)": "DFL · Lizenzierungsordnung (Germany)",
+        "DFL · Procédure de licence": "DFL · Licensing procedure",
+        "UEFA · Règlement financier (Football Sustainability)": "UEFA · Financial regulations (Football Sustainability)",
+        "Contrôle EX-POST · jugé en fin de saison": "EX-POST control · judged at season's end",
+        "Contrôle EX-POST · jugé sur 3 ans": "EX-POST control · judged over 3 years",
+        "Contrôle EX-POST · règlement UEFA": "EX-POST control · UEFA regulations",
+        "Coûts d'effectif (alignement UEFA)": "Squad costs (UEFA alignment)",
+        "Fonds propres (Eigenkapital)": "Equity (Eigenkapital)",
+        "Indebitamento": "Indebitamento",
+        "LCPD · Límite de Coste de Plantilla Deportiva": "LCPD · Límite de Coste de Plantilla Deportiva",
+        "Licence · liquidité / continuité": "Licence · liquidity / going concern",
+        "PSR · Profitability & Sustainability Rules": "PSR · Profitability & Sustainability Rules",
+        "Personalaufwandsquote (indicatif · non-DFL)": "Personalaufwandsquote (indicative · non-DFL)",
+        "Règle de réinvestissement (1:1 conforme · partielle si excedido)": "Reinvestment rule (1:1 if compliant · partial if excedido)",
+        "SSR · Sustainability & Systemic Resilience": "SSR · Sustainability & Systemic Resilience",
+        "SSR · Système de résilience": "SSR · Resilience system",
+        "Verrou EX-ANTE · bloque AVANT le mercato": "EX-ANTE lock · blocks BEFORE the window",
+        "Verrou EX-ANTE · licence avant la saison": "EX-ANTE lock · licence before the season",
+        "(coût du travail + amort.) sur revenus": "(labour cost + amortisation) to revenue",
+        "(salaires + amort. + agents) sur revenus": "(wages + amortisation + agents) to revenue",
+        "Actifs courants sur passifs courants": "Current assets to current liabilities",
+        "Actifs sur passifs court terme": "Assets to short-term liabilities",
+        "Capitaux propres positifs": "Positive equity",
+        "Ce que tu peux ré-injecter": "What you can reinvest",
+        "Coût du travail sur revenus": "Labour cost to revenue",
+        "Coût effectif ≤ plafond du club": "Squad cost ≤ the club's limit",
+        "Dette sur revenus": "Debt to revenue",
+        "Dettes sur actifs": "Liabilities to assets",
+        "Fonds propres positifs": "Positive equity",
+        "Masse salariale sur revenus": "Wage bill to revenue",
+        "Pertes cumulées sur 3 ans": "Cumulative losses over 3 years",
+        "Résultat cumulé sur 3 ans": "Cumulative result over 3 years",
+        "Solidité du bilan": "Balance sheet strength",
+        "Trésorerie ≥ engagements saison": "Cash ≥ season commitments",
+        "L'UEFA ne bloque pas tes inscriptions nationales : elle sanctionne APRÈS coup (amende, accord de règlement) si ton ratio de coûts dépasse le seuil. C'est un risque, pas un mur.": "UEFA does not block your domestic registrations: it sanctions AFTER the fact (a fine, a settlement agreement) if your cost ratio exceeds the threshold. It's a risk, not a wall.",
+        "La DFL délivre la licence sur preuve que tu peux financer la saison (liquidité). Le contrôle est en amont : sans licence, pas d'engagement · ce n'est pas un verdict de fin d'année.": "The DFL grants the licence on proof that you can fund the season (liquidity). The check comes first: no licence, no entry · it isn't an end-of-year verdict.",
+        "La FIGC contrôle ta liquidité (et le CLA) avant chaque fenêtre. Sous le seuil → mercato bloqué : tu n'inscris qu'à solde zéro, financé par des ventes.": "The FIGC checks your liquidity (and the CLA) before each window. Below the threshold → transfers blocked: you can only register at zero net cost, funded by sales.",
+        "LaLiga fixe ton plafond de coût d'effectif (LCPD) à l'avance. Tu ne peux PAS inscrire une recrue qui le dépasse : il faut d'abord vendre ou faire apporter le propriétaire.": "LaLiga sets your squad cost limit (LCPD) in advance. You CANNOT register a signing that breaches it: you must sell first, or have the owner inject funds.",
+        "Tu recrutes librement ; la DNCG juge tes comptes APRÈS la saison. Un dépassement se règle au prochain passage · sauf club déjà sanctionné / sous surveillance (là, contraintes immédiates).": "You sign freely; the DNCG judges your accounts AFTER the season. A breach is settled at your next hearing · unless the club is already sanctioned / under supervision (then the constraints are immediate).",
+        "Tu recrutes librement ; le PSR/SCR juge le cumul de tes pertes sur 3 saisons à la fin. Dépasser expose à des points de pénalité (Everton, Forest…).": "You sign freely; PSR/SCR judges your cumulative losses over 3 seasons at the end. A breach exposes you to points deductions (Everton, Forest…).",
+        "Allemagne": "Germany",
+        "Angleterre": "England",
+        "Espagne": "Spain",
+        "Europe": "Europe",
+        "France": "France",
+        "Italie": "Italy",
+        "coût ≤ límite (par club)": "cost ≤ límite (per club)",
+        "dettes ÷ actifs ≤ 90 %": "liabilities ÷ assets ≤ 90%",
+        "equity ≤ 90 % · liquidité": "equity ≤ 90% · liquidity",
+        "going concern": "going concern",
+        "pertes ≤ 105 M£ / 3 ans": "losses ≤ £105m / 3 years",
+        "plafond par club": "cap per club",
+        "sain <55 % · UEFA 70 % si Europe": "healthy <55% · UEFA 70% if in Europe",
+        "selon conformité LCPD": "depending on LCPD compliance",
+        "selon situation": "depending on your position",
+        "verrou licence · solde ≥ 0": "licence lock · balance ≥ 0",
+        "−5 / −60 / −90 M€": "−€5m / −€60m / −€90m",
+        "≤ 0,7": "≤ 0.7",
+        "≤ 0,7 des revenus": "≤ 0.7 of revenue",
+        "≤ 1,2": "≤ 1.2",
+        "≤ 70 %": "≤ 70%",
+        "≤ 70 % (UEFA)": "≤ 70% (UEFA)",
+        "≤ 70 % (à terme)": "≤ 70% (ultimately)",
+        "≤ 85 % (70 % si Europe)": "≤ 85% (70% if in Europe)",
+        "≤ 85 % des revenus": "≤ 85% of revenue",
+        "≥ 0 (sinon réduction)": "≥ 0 (otherwise a reduction)",
+        "≥ 0 ou réduction ≥5%/an (3 ans)": "≥ 0 or cut by ≥5%/year (3 years)",
+        "≥ 0,8": "≥ 0.8",
+        "≥ 0,8 (bloque le mercato)": "≥ 0.8 (blocks transfers)",
+        "≥ 100 %": "≥ 100%",
+        // — Libelles des arbres d'indicateurs (termes officiels locaux CONSERVES) —
+        "+ Produits d'exploitation": "+ Operating revenue",
+        "+ Retraitements UEFA (add-backs)": "+ UEFA adjustments (add-backs)",
+        "+ Résultat des mutations": "+ Result on transfers",
+        "+ Résultat exceptionnel": "+ Exceptional result",
+        "+ Résultat financier": "+ Financial result",
+        "= Football earnings de la saison": "= Football earnings for the season",
+        "= Résultat d'exploitation": "= Operating result",
+        "= Résultat net": "= Net result",
+        "Académie / développement des jeunes": "Academy / youth development",
+        "Actifs ajustés": "Adjusted assets",
+        "Add-backs (dépenses exclues)": "Add-backs (excluded spending)",
+        "Amort. cartellini (transferts)": "Cartellini amortisation (transfers)",
+        "Amort. transferts (si publié)": "Transfer amortisation (if published)",
+        "Amortissement des mutations (+ provisions / dépréciations)": "Transfer amortisation (+ provisions / write-downs)",
+        "Amortissement des transferts (+ impairment)": "Transfer amortisation (+ impairment)",
+        "Amortissement des transferts (plafonné 5 saisons)": "Transfer amortisation (capped at 5 seasons)",
+        "Attività correnti (actifs courants)": "Attività correnti (current assets)",
+        "Autres produits d'exploitation (HORS CA)": "Other operating income (OUTSIDE turnover)",
+        "Autres revenus commerciaux (dans le CA)": "Other commercial revenue (within turnover)",
+        "Base du ratio (onglet national)": "Ratio base (domestic tab)",
+        "Bilanzsumme (total bilan)": "Bilanzsumme (balance sheet total)",
+        "Billetterie / matchday": "Ticketing / matchday",
+        "Billetterie / recettes de matches": "Ticketing / matchday revenue",
+        "Capitaux propres (bilan, périmètre combiné)": "Equity (balance sheet, combined scope)",
+        "Chiffre d'affaires": "Turnover",
+        "Club conforme (dans le LCPD) → 1:1": "Compliant club (within the LCPD) → 1:1",
+        "Club excedido → réinvestissement partiel": "Excedido club → partial reinvestment",
+        "Commercial / sponsors": "Commercial / sponsors",
+        "Community": "Community",
+        "Comptes courants NON bloqués": "Shareholder loans NOT locked in",
+        "Comptes courants d'associés BLOQUÉS": "Shareholder loans LOCKED IN",
+        "Coste de Plantilla Deportiva (CPD)": "Coste de Plantilla Deportiva (CPD)",
+        "Costo del Lavoro Allargato (CLA/R)": "Costo del Lavoro Allargato (CLA/R)",
+        "Costo del personale (salaires)": "Costo del personale (wages)",
+        "Coût d'effectif vs Límite (LCPD)": "Squad cost vs Límite (LCPD)",
+        "Coût du travail élargi": "Extended labour cost",
+        "Debiti (dette TOTALE au bilan)": "Debiti (TOTAL balance sheet debt)",
+        "Dettes financières": "Financial debt",
+        "Dettes sur mutations (EXCLUES)": "Transfer payables (EXCLUDED)",
+        "Droits TV / broadcast": "TV / broadcast rights",
+        "Droits audiovisuels (TV + primes UEFA)": "Broadcast rights (TV + UEFA prize money)",
+        "Droits à l'image": "Image rights",
+        "Droits à l'image (brut, NON chargé)": "Image rights (gross, NOT loaded)",
+        "DÉNOMINATEUR · Recettes éligibles": "DENOMINATOR · Eligible revenue",
+        "DÉNOMINATEUR · revenus ajustés": "DENOMINATOR · adjusted revenue",
+        "DÉNOMINATEUR · revenus ajustés + transferts (Annexe K.2)": "DENOMINATOR · adjusted revenue + transfers (Annex K.2)",
+        "Dépenses non-sportives": "Non-sporting spending",
+        "Eigenkapital (fonds propres)": "Eigenkapital (equity)",
+        "Eigenkapitalquote": "Eigenkapitalquote",
+        "FONDS PROPRES": "EQUITY",
+        "Football féminin": "Women's football",
+        "Frais d'agents & acquisition": "Agent & acquisition fees",
+        "Honoraires d'agents": "Agents' fees",
+        "Honoraires d'intermédiaires (agents)": "Intermediaries' fees (agents)",
+        "Indicatore di Indebitamento": "Indicatore di Indebitamento",
+        "Indicatore di Liquidità": "Indicatore di Liquidità",
+        "Infrastructures / stade": "Infrastructure / stadium",
+        "Liquiditätsnachweis (preuve de liquidité)": "Liquiditätsnachweis (proof of liquidity)",
+        "Límite de Coste de Plantilla (LCPD)": "Límite de Coste de Plantilla (LCPD)",
+        "NUMÉRATEUR · coût d'effectif (Annexe K.1)": "NUMERATOR · squad cost (Annex K.1)",
+        "NUMÉRATEUR · coûts d'effectif": "NUMERATOR · squad costs",
+        "NUMÉRATEUR · coûts d'effectif sportifs": "NUMERATOR · sporting squad costs",
+        "Non-DFL · sain <55 % · UEFA 70 % si Europe (avec amort)": "Non-DFL · healthy <55% · UEFA 70% if in Europe (incl. amortisation)",
+        "Normalisation charges sociales (× multiplicateur 2,16)": "Social charges normalisation (× 2.16 multiplier)",
+        "PASSIF ÉLIGIBLE": "ELIGIBLE LIABILITIES",
+        "Palancas & apports": "Palancas & injections",
+        "Passif total ajusté": "Adjusted total liabilities",
+        "Passività correnti (passifs courants)": "Passività correnti (current liabilities)",
+        "Personalaufwand (masse salariale)": "Personalaufwand (wage bill)",
+        "Personalaufwandsquote (indicatif)": "Personalaufwandsquote (indicative)",
+        "Pertes cumulées sur 3 ans (PSR)": "Cumulative losses over 3 years (PSR)",
+        "Pertes à combler / impôt": "Losses to cover / tax",
+        "Plancher : LCPD ≥ 30 % de l'INCN (Primera)": "Floor: LCPD ≥ 30% of INCN (Primera)",
+        "Plus-values de ventes → 20 % (30-35 % si cadre)": "Profit on sales → 20% (30-35% under a plan)",
+        "Primes collectives / options d'achat": "Team bonuses / purchase options",
+        "Produits d'exploitation": "Operating revenue",
+        "Produits de mutation (plus-values)": "Transfer income (profit on disposals)",
+        "Profit net sur ventes de joueurs": "Net profit on player sales",
+        "Ratio coûts d'effectif (SCR)": "Squad cost ratio (SCR)",
+        "Revenus budgétés (INCN)": "Budgeted revenue (INCN)",
+        "Revenus football": "Football revenue",
+        "Ricavi": "Ricavi",
+        "Ricavi (moyenne 3 ans)": "Ricavi (3-year average)",
+        "Règle de réinvestissement": "Reinvestment rule",
+        "Règle des fonds propres (Eigenkapital)": "Equity rule (Eigenkapital)",
+        "Réf. officielle : rémunération TOTALE chargée": "Official ref.: TOTAL loaded remuneration",
+        "Rémunération SPORTIVE (chargée)": "SPORTING remuneration (loaded)",
+        "Résilience financière (SSR)": "Financial resilience (SSR)",
+        "Résultat T (PBT ajusté)": "Result T (adjusted PBT)",
+        "Résultat T−1 (PBT ajusté)": "Result T−1 (adjusted PBT)",
+        "Résultat T−2 (PBT ajusté)": "Result T−2 (adjusted PBT)",
+        "Résultat football (Football Earnings)": "Football Earnings",
+        "Résultat football cumulé (3 ans)": "Cumulative football earnings (3 years)",
+        "Résultat net (comptable)": "Net result (accounting)",
+        "Salaire du head coach": "Head coach's salary",
+        "Salaire entraîneur (brut)": "Manager's salary (gross)",
+        "Salaires joueurs": "Player wages",
+        "Salaires joueurs (brut)": "Player wages (gross)",
+        "Salaires joueurs + techniciens (fixes + variables)": "Player + technical staff wages (fixed + variable)",
+        "Salaires sportifs (brut)": "Sporting wages (gross)",
+        "Saldo Disponible (LCPD − CPD)": "Saldo Disponible (LCPD − CPD)",
+        "Sanction = blocage d'inscription (Art. 77)": "Sanction = registration block (Art. 77)",
+        "Service de la dette": "Debt service",
+        "Seuil = 85 % (hors Europe) / 70 % (UEFA) · plafond red 115 %": "Threshold = 85% (outside Europe) / 70% (UEFA) · red cap 115%",
+        "Seuil = −105 M£ / 3 ans (35 M£ par saison PL + 13 M£ par saison Championship)": "Threshold = −£105m / 3 years (£35m per PL season + £13m per Championship season)",
+        "Seuil ≤ 0,7 (abaissé de 0,8)": "Threshold ≤ 0.7 (lowered from 0.8)",
+        "Seuil ≤ 1,2 · modulateur du déficit liquidité": "Threshold ≤ 1.2 · modulates the liquidity shortfall",
+        "Seuil ≥ 0,8 · sinon mercato bloqué": "Threshold ≥ 0.8 · otherwise transfers blocked",
+        "Si négatif : réduire ≥5%/an (3 ans) sinon −3 pts": "If negative: cut by ≥5%/year (3 years) or −3 pts",
+        "Solvabilité (trésorerie sur la saison)": "Solvency (cash over the season)",
+        "Sponsors / partenariats": "Sponsors / partnerships",
+        "Statut UEFA (football earnings)": "UEFA status (football earnings)",
+        "Statut licence 2026-27": "Licence status 2026-27",
+        "Subventions d'investissement / réévaluations (exclues)": "Investment grants / revaluations (excluded)",
+        "Trou de trésorerie non comblé → −2 pts": "Unfilled cash gap → −2 pts",
+        "Trésorerie (déduite)": "Cash (deducted)",
+        "Umsatz (revenus)": "Umsatz (revenue)",
+        "Verdict UEFA (contrôle année civile 2025)": "UEFA verdict (2025 calendar-year assessment)",
+        "charges patronales": "employer's contributions",
+        "· Amortissements des transferts": "· Transfer amortisation",
+        "· Autres charges": "· Other charges",
+        "· Autres produits": "· Other income",
+        "· Communautaire": "· Community",
+        "· Droits TV & audiovisuels": "· TV & broadcast rights",
+        "· Football féminin": "· Women's football",
+        "· Formation (centre)": "· Academy (training centre)",
+        "· Honoraires d'agents": "· Agents' fees",
+        "· Infrastructures": "· Infrastructure",
+        "· Recettes de matches (billetterie)": "· Matchday revenue (ticketing)",
+        "· Rémunération chargée (salaires)": "· Loaded remuneration (wages)",
+        "· Sponsors & publicité": "· Sponsors & advertising",
+        "Économies de salaire → 60 % (70 % si cadre ≥5 % masse)": "Wage savings → 60% (70% under a plan ≥5% of the bill)",
+        "↓ Détail du calcul de la saison": "↓ Season calculation breakdown",
+        "− Charges d'exploitation": "− Operating charges",
+        "− Impôt": "− Tax",
+        "① Test fonds propres positifs : passif sur actifs ajustés ≤ 90 %": "① Positive equity test: liabilities to adjusted assets ≤ 90%",
+        "② Test liquidité : ≥ 0 après stress test de 85 M£": "② Liquidity test: ≥ 0 after an £85m stress test",
+        "③ Test working capital : ressources court terme ≥ ~12,5 M£": "③ Working capital test: short-term resources ≥ ~£12.5m",
         // — Tables d'indicateurs (gabarits HTML du back-office) —
         "Aujourd'hui : ": "Today: ",
         "Formule :": "Formula:",
