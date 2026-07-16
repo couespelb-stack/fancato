@@ -15054,41 +15054,41 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
         const gros = breachSev > 0.55, moyen = breachSev > 0.25;
         const S = [];
         if (F.scr || F.ssr)
-            S.push({ org: "Premier League", verdict: "Retrait de " + (gros ? 8 : moyen ? 6 : 4) + " points", detail: "Commission indépendante : coûts d'effectif au-delà du plafond. Précédents réels : Everton −8 pts, Nottingham Forest −4 pts.", hard: true });
+            S.push({ org: "Premier League", verdict: t("Retrait de ") + (gros ? 8 : moyen ? 6 : 4) + t(" points"), detail: t("Commission indépendante : coûts d'effectif au-delà du plafond. Précédents réels : Everton −8 pts, Nottingham Forest −4 pts."), hard: true });
         if (F.dncg)
             S.push(gros
-                ? { org: "DNCG", verdict: "Interdiction de recruter + masse salariale encadrée", detail: "Comptes jugés insoutenables. Dans les cas extrêmes, la DNCG peut aller jusqu'à la rétrogradation administrative (menace réelle à Lyon, Bordeaux).", hard: true }
-                : { org: "DNCG", verdict: "Masse salariale encadrée", detail: "Tu passes, mais sous surveillance : masse salariale gelée et recrutements contrôlés la saison prochaine.", hard: false });
+                ? { org: "DNCG", verdict: t("Interdiction de recruter + masse salariale encadrée"), detail: t("Comptes jugés insoutenables. Dans les cas extrêmes, la DNCG peut aller jusqu'à la rétrogradation administrative (menace réelle à Lyon, Bordeaux)."), hard: true }
+                : { org: "DNCG", verdict: t("Masse salariale encadrée"), detail: t("Tu passes, mais sous surveillance : masse salariale gelée et recrutements contrôlés la saison prochaine."), hard: false });
         if (F.liga)
-            S.push({ org: "LaLiga", verdict: "Blocage d'inscription", detail: "Impossible d'enregistrer tes recrues tant que tu n'es pas repassé sous ton plafond de coût d'effectif (règle 1:1). Le Barça en a fait les frais.", hard: true });
+            S.push({ org: "LaLiga", verdict: t("Blocage d'inscription"), detail: t("Impossible d'enregistrer tes recrues tant que tu n'es pas repassé sous ton plafond de coût d'effectif (règle 1:1). Le Barça en a fait les frais."), hard: true });
         if (F.seriea)
-            S.push({ org: "Serie A", verdict: "Mercato bloqué en entrée", detail: "Indicateur de liquidité insuffisant : tu ne peux inscrire une recrue qu'en la finançant par une vente.", hard: true });
+            S.push({ org: "Serie A", verdict: t("Mercato bloqué en entrée"), detail: t("Indicateur de liquidité insuffisant : tu ne peux inscrire une recrue qu'en la finançant par une vente."), hard: true });
         if (F.dfl)
-            S.push({ org: "DFL", verdict: "Licence refusée", detail: "Preuve de liquidité insuffisante. Sans licence, le club ne joue pas la saison en pro : c'est la condition n°1 de la Bundesliga.", hard: true });
+            S.push({ org: "DFL", verdict: t("Licence refusée"), detail: t("Preuve de liquidité insuffisante. Sans licence, le club ne joue pas la saison en pro : c'est la condition n°1 de la Bundesliga."), hard: true });
         if (F.uefa)
-            S.push({ org: "UEFA", verdict: "Amende " + (gros ? 25 : moyen ? 15 : 5) + " M€ + Liste A réduite à " + (gros ? 21 : 23) + " joueurs", detail: "Ratio coûts d'effectif au-dessus de la limite : amende proportionnelle au dépassement et moins de joueurs inscriptibles en Coupe d'Europe.", hard: true });
+            S.push({ org: "UEFA", verdict: t("Amende ") + (gros ? 25 : moyen ? 15 : 5) + t(" M€ + Liste A réduite à ") + (gros ? 21 : 23) + t(" joueurs"), detail: t("Ratio coûts d'effectif au-dessus de la limite : amende proportionnelle au dépassement et moins de joueurs inscriptibles en Coupe d'Europe."), hard: true });
         if (F.r3)
             S.push(gros
-                ? { org: "UEFA", verdict: "Exclusion de la Coupe d'Europe", detail: "Pertes cumulées sur 3 ans très au-delà du plafond, non couvertes par un apport en capital. La sanction la plus lourde du règlement.", hard: true }
-                : { org: "UEFA", verdict: "Accord de règlement (settlement)", detail: "Plan de retour à l'équilibre sur plusieurs saisons, avec amendes conditionnelles et restrictions d'inscription si les paliers ne sont pas tenus.", hard: false });
+                ? { org: "UEFA", verdict: t("Exclusion de la Coupe d'Europe"), detail: t("Pertes cumulées sur 3 ans très au-delà du plafond, non couvertes par un apport en capital. La sanction la plus lourde du règlement."), hard: true }
+                : { org: "UEFA", verdict: t("Accord de règlement (settlement)"), detail: t("Plan de retour à l'équilibre sur plusieurs saisons, avec amendes conditionnelles et restrictions d'inscription si les paliers ne sont pas tenus."), hard: false });
         if (F.sanc)
-            S.push({ org: club.meta.domesticRule, verdict: "Sanction en cours non respectée", detail: "Tu as recruté malgré une mesure déjà prononcée contre ton club : elle est immédiatement durcie.", hard: true });
+            S.push({ org: club.meta.domesticRule, verdict: t("Sanction en cours non respectée"), detail: t("Tu as recruté malgré une mesure déjà prononcée contre ton club : elle est immédiatement durcie."), hard: true });
         return S;
     })();
     const bulletin = [
-        { k: "sport", emo: "⚽", lab: "Sportif", sub: _holes.length ? (_holes.length + " poste(s) sans titulaire !") : _noBackup.length ? (_noBackup.length + " poste(s) sans remplaçant") : "effectif complet à chaque poste", n: Math.round(axSport * 10) / 10, g: gradeA(axSport) },
-        { k: "fin", emo: "💰", lab: "Financier", sub: "conformité & santé des comptes", n: Math.round(axFin * 10) / 10, g: gradeA(axFin) },
-        { k: "malin", emo: "🧠", lab: "Malin", sub: "plus-values, jeunes, coups pas chers", n: Math.round(axMalin * 10) / 10, g: gradeA(axMalin) },
-        { k: "fans", emo: "❤️", lab: "Fans", sub: _stars ? (_stars + (_stars > 1 ? " stars signées" : " star signée") + " · les tribunes jubilent") : (_grosCoups ? (_grosCoups + " belle" + (_grosCoups > 1 ? "s recrues" : " recrue")) : "aucune grosse signature"), n: Math.round(axFans * 10) / 10, g: gradeA(axFans) },
-        { k: "real", emo: "🎯", lab: "Réalisme", sub: _worstReal ? _worstReal.msg : (_allR.length ? "mercato crédible" : "aucun mouvement"), n: Math.round(axReal * 10) / 10, g: gradeA(axReal) },
+        { k: "sport", emo: "⚽", lab: t("Sportif"), sub: _holes.length ? (_holes.length + t(" poste(s) sans titulaire !")) : _noBackup.length ? (_noBackup.length + t(" poste(s) sans remplaçant")) : t("effectif complet à chaque poste"), n: Math.round(axSport * 10) / 10, g: gradeA(axSport) },
+        { k: "fin", emo: "💰", lab: t("Financier"), sub: t("conformité & santé des comptes"), n: Math.round(axFin * 10) / 10, g: gradeA(axFin) },
+        { k: "malin", emo: "🧠", lab: t("Malin"), sub: t("plus-values, jeunes, coups pas chers"), n: Math.round(axMalin * 10) / 10, g: gradeA(axMalin) },
+        { k: "fans", emo: "❤️", lab: t("Fans"), sub: _stars ? (_stars + t(_stars > 1 ? " stars signées" : " star signée") + t(" · les tribunes jubilent")) : (_grosCoups ? (_grosCoups + t(_grosCoups > 1 ? " belles recrues" : " belle recrue")) : t("aucune grosse signature")), n: Math.round(axFans * 10) / 10, g: gradeA(axFans) },
+        { k: "real", emo: "🎯", lab: t("Réalisme"), sub: _worstReal ? _worstReal.msg : (_allR.length ? t("mercato crédible") : t("aucun mouvement")), n: Math.round(axReal * 10) / 10, g: gradeA(axReal) },
     ];
     const _worst = bulletin.slice().sort((a, b) => a.n - b.n)[0], _fansAx = bulletin.find((x) => x.k === "fans");
     const boardLine = nBreach > 0
-        ? (nBreach >= 2 ? "Le board voit rouge : plusieurs règles pas tenues. On va devoir en reparler…" : "Un voyant rouge à régler : le board ne validera pas un mercato hors des clous.")
-        : boardNote >= 8.5 ? "Le président t'embrasserait : saison de patron, sur tous les tableaux."
-            : _fansAx && _fansAx.n >= 8 ? "Les tribunes t'adorent · tu as parlé au cœur des supporters."
-                : _worst.n < 4.5 ? "Solide dans l'ensemble, mais ton point faible c'est le " + _worst.lab.toLowerCase() + " · le board a l'œil dessus."
-                    : "Mercato équilibré, le board est satisfait.";
+        ? (nBreach >= 2 ? t("Le board voit rouge : plusieurs règles pas tenues. On va devoir en reparler…") : t("Un voyant rouge à régler : le board ne validera pas un mercato hors des clous."))
+        : boardNote >= 8.5 ? t("Le président t'embrasserait : saison de patron, sur tous les tableaux.")
+            : _fansAx && _fansAx.n >= 8 ? t("Les tribunes t'adorent · tu as parlé au cœur des supporters.")
+                : _worst.n < 4.5 ? t("Solide dans l'ensemble, mais ton point faible c'est le ") + _worst.lab.toLowerCase() + t(" · le board a l'œil dessus.")
+                    : t("Mercato équilibré, le board est satisfait.");
     // BADGES débloqués + stats de la fenêtre (récap fin de saison animé)
     const badges = [];
     if (nBreach === 0 && boardNote >= 8.5)
@@ -18239,7 +18239,7 @@ function TrophyRoom({ onClose }) {
     }
     catch (e) { }
     const total = TROPHIES.length, got = Object.keys(store).length;
-    const fams = [...new Set(TROPHIES.map((t) => t.fam))];
+    const fams = [...new Set(TROPHIES.map((tr) => tr.fam))];
     useEffect(() => { const onKey = (e) => { if (e.key === "Escape")
         onClose(); }; document.addEventListener("keydown", onKey); return () => document.removeEventListener("keydown", onKey); }, []);
     return (React.createElement("div", { style: { position: "fixed", inset: 0, zIndex: 950, background: "rgba(6,10,20,.93)", overflowY: "auto", overflowX: "hidden", padding: "max(3vh, env(safe-area-inset-top)) 14px max(4vh, env(safe-area-inset-bottom))" }, onClick: onClose },
@@ -18247,7 +18247,7 @@ function TrophyRoom({ onClose }) {
             React.createElement("div", { style: { display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 } },
                 React.createElement("div", { style: { fontFamily: "Raleway,sans-serif", fontWeight: 800, fontSize: 20, color: "#f2d891" } },
                     React.createElement(Icon, { name: "trophy", size: 19, style: { marginRight: 7, verticalAlign: "-3px" } }),
-                    "Salle des troph\u00E9es"),
+                    t("Salle des trophées")),
                 React.createElement("button", { onClick: onClose, title: t("Fermer (Échap)"), style: { background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.14)", color: "#cdd8ee", width: 32, height: 32, borderRadius: 9, fontSize: 18, cursor: "pointer", lineHeight: 1 } }, "\u2715")),
             React.createElement("div", { style: { color: "#9fb0d0", fontSize: 13, marginBottom: 6 } },
                 React.createElement("b", { style: { color: "#f2d891" } }, got),
@@ -18257,19 +18257,19 @@ function TrophyRoom({ onClose }) {
             React.createElement("div", { style: { height: 8, borderRadius: 5, background: "rgba(255,255,255,.08)", overflow: "hidden", marginBottom: 16 } },
                 React.createElement("div", { style: { width: (total ? (got / total * 100) : 0) + "%", height: "100%", background: "linear-gradient(90deg,#e8c46a,#00ff6a)" } })),
             fams.map((fam) => React.createElement("div", { key: fam, style: { marginBottom: 15 } },
-                React.createElement("div", { style: { fontSize: 11, textTransform: "uppercase", letterSpacing: ".1em", color: "#8b9cbe", marginBottom: 8, fontWeight: 700 } }, fam),
-                React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8 } }, TROPHIES.filter((t) => t.fam === fam).map((t) => {
-                    const u = store[t.id];
-                    return (React.createElement("div", { key: t.id, style: { display: "flex", alignItems: "center", gap: 11, padding: "10px 12px", borderRadius: 12, background: u ? "rgba(232,196,106,.09)" : "rgba(255,255,255,.03)", border: "1px solid " + (u ? "rgba(232,196,106,.32)" : "rgba(255,255,255,.07)") } },
+                React.createElement("div", { style: { fontSize: 11, textTransform: "uppercase", letterSpacing: ".1em", color: "#8b9cbe", marginBottom: 8, fontWeight: 700 } }, t(fam)),
+                React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8 } }, TROPHIES.filter((tr) => tr.fam === fam).map((tr) => {
+                    const u = store[tr.id];
+                    return (React.createElement("div", { key: tr.id, style: { display: "flex", alignItems: "center", gap: 11, padding: "10px 12px", borderRadius: 12, background: u ? "rgba(232,196,106,.09)" : "rgba(255,255,255,.03)", border: "1px solid " + (u ? "rgba(232,196,106,.32)" : "rgba(255,255,255,.07)") } },
                         React.createElement("span", { style: { flex: "0 0 auto", color: u ? "#f2d891" : "#8b9cbe", opacity: u ? 1 : .55 } },
-                            React.createElement(Icon, { name: t.emo, size: 26 })),
+                            React.createElement(Icon, { name: tr.emo, size: 26 })),
                         React.createElement("div", { style: { minWidth: 0, flex: 1 } },
                             React.createElement("div", { style: { fontFamily: "Raleway,sans-serif", fontWeight: 800, fontSize: 14.5, color: u ? "#f2d891" : "#aeb9cc" } },
                                 u ? null : React.createElement(Icon, { name: "lock", size: 12, style: { marginRight: 5, verticalAlign: "-1px", opacity: .7 } }),
-                                t.name),
-                            React.createElement("div", { style: { fontSize: 12, color: "#9fb0d0", lineHeight: 1.4 } }, u ? t.desc : t.hint),
+                                t(tr.name)),
+                            React.createElement("div", { style: { fontSize: 12, color: "#9fb0d0", lineHeight: 1.4 } }, u ? t(tr.desc) : t(tr.hint)),
                             u && u.clubName ? React.createElement("div", { style: { fontSize: 10.5, color: "#7d8eae", marginTop: 2 } },
-                                "D\u00E9bloqu\u00E9 avec ",
+                                t("Débloqué avec "),
                                 u.clubName,
                                 u.date ? " · " + u.date : "") : null)));
                 })))))));
@@ -18448,7 +18448,7 @@ function Home({ slots, onResume, onEnter, onRemove, onCommunity }) {
     }
     catch (e) { }
     const trCount = Object.keys(trStore).length, trTotal = TROPHIES.length;
-    const trNext = TROPHIES.filter((t) => !trStore[t.id] && (t.fam === "Exploration" || t.fam === "Gestion" || t.fam === "Malin"))[0];
+    const trNext = TROPHIES.filter((tr) => !trStore[tr.id] && (tr.fam === "Exploration" || tr.fam === "Gestion" || tr.fam === "Malin"))[0];
     const page = { minHeight: "100dvh", background: STADIUM_BG, color: "#e7edf8", fontFamily: "Raleway, system-ui, sans-serif", padding: "max(22px, env(safe-area-inset-top)) 16px max(34px, env(safe-area-inset-bottom))", boxSizing: "border-box", display: "flex", flexDirection: "column", justifyContent: "safe center", overflowY: "auto", overscrollBehavior: "none" };
     const badge = (c) => ({ width: 40, height: 40, flex: "0 0 40px", borderRadius: 9, background: (c.meta.colors && c.meta.colors.primary) || "#26324d", color: badgeTextColor(c.meta.colors), border: "1px solid " + ((c.meta.colors && c.meta.colors.accent) || "rgba(255,255,255,.2)"), display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "Raleway, sans-serif", fontWeight: 700, fontSize: 12.5 });
     return (React.createElement("div", { style: page },
@@ -18506,10 +18506,10 @@ function Home({ slots, onResume, onEnter, onRemove, onCommunity }) {
                             "/",
                             trTotal)),
                     trNext ? React.createElement("span", { style: { display: "block", fontSize: 11, color: "#b7a76a", marginTop: 1, lineHeight: 1.3 } },
-                        "\u00C0 port\u00E9e : ",
-                        trNext.name,
+                        t("À portée : "),
+                        t(trNext.name),
                         " \u00B7 ",
-                        trNext.hint) : React.createElement("span", { style: { display: "block", fontSize: 11, color: "#b7a76a", marginTop: 1 } }, "Change de club pour en d\u00E9bloquer d'autres !")),
+                        t(trNext.hint)) : React.createElement("span", { style: { display: "block", fontSize: 11, color: "#b7a76a", marginTop: 1 } }, "Change de club pour en d\u00E9bloquer d'autres !")),
                 React.createElement("span", { style: { fontSize: 18, color: "#c8b06a" } }, "\u203A")),
             React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 12 } },
                 React.createElement("button", { onClick: onCommunity, style: { display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 6, background: "rgba(123,61,255,.12)", border: "1px solid rgba(123,61,255,.4)", color: "#b79bff", borderRadius: 14, padding: "16px 10px", cursor: "pointer", fontFamily: "Raleway,sans-serif" } },
@@ -18995,12 +18995,12 @@ function SeasonEnd({ sanctions, checks, note, grade, line, bulletin, badges, rec
             phase === 4 ? React.createElement("div", { className: "se-phase", key: "p4" },
                 newTrophies && newTrophies.length > 0 ? React.createElement("div", { style: { marginBottom: 16, padding: "15px", borderRadius: 14, background: "linear-gradient(180deg,rgba(232,196,106,.12),rgba(123,61,255,.06))", border: "1px solid rgba(232,196,106,.4)", textAlign: "center" } },
                     React.createElement("div", { style: { fontSize: 11, textTransform: "uppercase", letterSpacing: ".12em", color: "#e8c46a", marginBottom: 10 } }, newTrophies.length > 1 ? newTrophies.length + t(" nouveaux trophées !") : t("Nouveau trophée !")),
-                    newTrophies.map((t, i) => React.createElement("div", { key: t.id, style: { display: "flex", alignItems: "center", gap: 11, textAlign: "left", padding: "8px 4px", animation: "seSlideIn .45s var(--ease) both " + (0.1 + i * 0.16) + "s" } },
+                    newTrophies.map((tr, i) => React.createElement("div", { key: tr.id, style: { display: "flex", alignItems: "center", gap: 11, textAlign: "left", padding: "8px 4px", animation: "seSlideIn .45s var(--ease) both " + (0.1 + i * 0.16) + "s" } },
                         React.createElement("span", { style: { flex: "0 0 auto", color: "#f2d891" } },
-                            React.createElement(Icon, { name: t.emo, size: 30 })),
+                            React.createElement(Icon, { name: tr.emo, size: 30 })),
                         React.createElement("div", { style: { minWidth: 0 } },
-                            React.createElement("div", { style: { fontFamily: "Raleway,sans-serif", fontWeight: 800, fontSize: 15.5, color: "#f2d891" } }, t.name),
-                            React.createElement("div", { style: { fontSize: 12, color: "#c8d3e8", lineHeight: 1.4 } }, t.desc))))) : React.createElement("div", { style: { marginBottom: 14, fontSize: 12.5, color: "#9fb0d0", textAlign: "center", fontStyle: "italic" } }, t("Aucun nouveau trophée cette fois · tente un autre club ou un mercato plus tranché pour en débloquer.")),
+                            React.createElement("div", { style: { fontFamily: "Raleway,sans-serif", fontWeight: 800, fontSize: 15.5, color: "#f2d891" } }, t(tr.name)),
+                            React.createElement("div", { style: { fontSize: 12, color: "#c8d3e8", lineHeight: 1.4 } }, t(tr.desc)))))) : React.createElement("div", { style: { marginBottom: 14, fontSize: 12.5, color: "#9fb0d0", textAlign: "center", fontStyle: "italic" } }, t("Aucun nouveau trophée cette fois · tente un autre club ou un mercato plus tranché pour en débloquer.")),
                 React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8 } },
                     imgs.length > 0 ? (dlLocked ? (React.createElement(React.Fragment, null,
                         React.createElement("button", { onClick: () => {
@@ -19021,12 +19021,12 @@ function SeasonEnd({ sanctions, checks, note, grade, line, bulletin, badges, rec
                                     a.click();
                                 }
                                 catch (e) { }
-                            } }, style: { display: "block", width: "100%", textAlign: "center", background: "#00ff6a", color: "#04120a", border: "none", borderRadius: 11, padding: "13px", fontFamily: "Raleway, sans-serif", fontWeight: 800, fontSize: 15, cursor: "pointer", boxShadow: "0 6px 18px rgba(0,255,106,.26)" } }, "\uD83D\uDCF2 Partager ma carte"),
+                            } }, style: { display: "block", width: "100%", textAlign: "center", background: "#00ff6a", color: "#04120a", border: "none", borderRadius: 11, padding: "13px", fontFamily: "Raleway, sans-serif", fontWeight: 800, fontSize: 15, cursor: "pointer", boxShadow: "0 6px 18px rgba(0,255,106,.26)" } }, t("📲 Partager ma carte")),
                         React.createElement("div", { style: { display: "flex", gap: 8 } }, imgs.map((im, i) => {
                             const fn = "Fancato" + (im.label === "Bilan" ? "-Bilan" : "") + ".png";
                             return (React.createElement("a", { key: i, href: im.url, download: fn, style: { flex: 1, textAlign: "center", background: "rgba(255,255,255,.05)", color: "#eaf0fb", border: "1px solid rgba(255,255,255,.16)", borderRadius: 11, padding: "10px", fontFamily: "Raleway, sans-serif", fontWeight: 700, fontSize: 12.5, textDecoration: "none" } },
                                 React.createElement(Icon, { name: "save", size: 13, style: { marginRight: 5, verticalAlign: "-2px" } }),
-                                im.label));
+                                t(im.label)));
                         }))))) : React.createElement("button", { onClick: () => { setGen(true); onGenerate(); }, style: { background: "#00ff6a", color: "#14213c", border: "none", borderRadius: 11, padding: "12px", fontFamily: "Raleway,sans-serif", fontWeight: 700, fontSize: 15, cursor: "pointer" } },
                         React.createElement(Icon, { name: "generer", size: 16, style: { filter: "brightness(0)", marginRight: 7, verticalAlign: "-3px" } }),
                         t("Générer ma carte à partager")),
@@ -19037,8 +19037,7 @@ function SeasonEnd({ sanctions, checks, note, grade, line, bulletin, badges, rec
                         t("Publier mon mercato au 12ᵉ Homme"))),
                     React.createElement("button", { onClick: () => setShowLb((v) => !v), style: { background: "rgba(255,255,255,.05)", color: "#eaf0fb", border: "1px solid rgba(255,255,255,.16)", borderRadius: 11, padding: "11px", fontFamily: "Raleway, sans-serif", fontWeight: 700, fontSize: 14, cursor: "pointer" } },
                         React.createElement(Icon, { name: "trophy", size: 15, style: { marginRight: 6, verticalAlign: "-2px" } }),
-                        showLb ? "Masquer" : "Voir",
-                        " le classement de ce club"),
+                        showLb ? t("Masquer le classement de ce club") : t("Voir le classement de ce club")),
                     showLb ? (() => {
                         const gc = (n) => n >= 8 ? "#00ff6a" : n >= 6 ? "#9ad0ff" : n >= 5 ? "#ffd76b" : "#ff96a6";
                         const board = lbBoard(seedKey, note), myRank = board.findIndex((r) => r.me) + 1;
@@ -19677,6 +19676,138 @@ let _LANG = "fr";
 const LANGS = [["fr", "Français"], ["en", "English"]];
 const I18N = {
     en: {
+        "Voir le classement de ce club": "See this club's leaderboard",
+        "Masquer le classement de ce club": "Hide this club's leaderboard",
+        "Salle des trophées": "Trophy room",
+        "Débloqué avec ": "Unlocked with ",
+        "À portée : ": "Within reach: ",
+        // — Export d'images : `label` reste la CLE (find/nom de fichier), traduit a l'affichage —
+        "Équipe": "Team",
+        "Bilan": "Balance sheet",
+        // — Trophees (25) : noms adaptes, pas traduits mot a mot —
+        "Découverte": "Discovery",
+        "Exploration": "Exploration",
+        "Gestion": "Management",
+        "Maîtrise": "Mastery",
+        "Style": "Style",
+        "Premier mercato": "First window",
+        "Boucle ton tout premier mercato.": "Complete your very first window.",
+        "Termine un mercato.": "Finish a window.",
+        "Note A": "A grade",
+        "Décroche un A du board sur un mercato.": "Earn an A from the board on a window.",
+        "Vise un mercato noté A.": "Aim for an A-rated window.",
+        "Sans faute": "Flawless",
+        "Note A ET tous les voyants au vert.": "An A grade AND every light green.",
+        "A du board + zéro règle enfreinte.": "An A from the board + zero rules broken.",
+        "Équilibriste": "Tightrope walker",
+        "Tous les voyants au vert sans apport du proprio.": "Every light green with no owner injection.",
+        "Finis dans les clous sans injection du propriétaire.": "Finish within the rules without an owner injection.",
+        "Sauveur": "Rescuer",
+        "Un club parti dans le rouge, remis dans les clous.": "A club starting in the red, brought back within the rules.",
+        "Redresse un club dont la situation héritée était rouge.": "Turn around a club whose inherited position was in the red.",
+        "À l'équilibre": "Break-even",
+        "Mercato bouclé avec un solde cash positif.": "Window closed with a positive cash balance.",
+        "Encaisse plus que tu ne dépenses (avec au moins un mouvement).": "Bring in more than you spend (with at least one move).",
+        "Grand ménage": "Big clear-out",
+        "Vends 4 joueurs ou plus sur un mercato.": "Sell 4 or more players in one window.",
+        "Dégraisse : 4 départs.": "Trim the squad: 4 departures.",
+        "3 recrues à moins de 5 M€.": "3 signings under €5m.",
+        "Trouve 3 bonnes affaires.": "Find 3 bargains.",
+        "Vendeur en or": "Golden seller",
+        "+50 M€ de plus-values sur un mercato.": "+€50m of profit on sales in one window.",
+        "Vends des joueurs très amortis.": "Sell heavily amortised players.",
+        "Formateur": "Academy builder",
+        "Fais monter 3 jeunes de ton centre.": "Promote 3 youngsters from your academy.",
+        "Crée et intègre 3 jeunes du centre.": "Create and bring through 3 academy youngsters.",
+        "Malin du marché": "Market operator",
+        "2 recrues arrivées libres (sans indemnité).": "2 signings arriving free (no fee).",
+        "Recrute 2 joueurs en fin de contrat.": "Sign 2 players out of contract.",
+        "Bâtisseur d'avenir": "Building for the future",
+        "5 recrues de 21 ans ou moins.": "5 signings aged 21 or under.",
+        "Mise sur la jeunesse : 5 jeunes recrues.": "Back youth: 5 young signings.",
+        "Recrute une star à plus de 80 M€.": "Sign a star for over €80m.",
+        "Signe un joueur à +80 M€.": "Sign a player for €80m+.",
+        "Marchand d'étoiles": "Star trader",
+        "Vends un joueur à plus de 50 M€.": "Sell a player for over €50m.",
+        "Cède une vedette à +50 M€.": "Sell a star for €50m+.",
+        "Le Fidèle": "The Loyalist",
+        "Aucun départ : effectif conservé.": "No departures: squad kept intact.",
+        "Ne vends ni ne prête personne.": "Don't sell or loan out anyone.",
+        "L'ascète": "The Ascetic",
+        "Finis tous voyants verts sans aucune recrue.": "Finish with every light green and no signings at all.",
+        "Zéro recrue et pourtant dans les clous.": "Zero signings and still within the rules.",
+        "Ambition européenne": "European ambition",
+        "Mercato valide avec un club qualifié en Coupe d'Europe.": "A valid window with a club qualified for Europe.",
+        "Réussis le mercato d'un club européen.": "Pull off the window of a club in Europe.",
+        "Petit Poucet": "Giant killer",
+        "Sauve un petit club du rouge.": "Save a small club from the red.",
+        "Redresse un club modeste parti dans le rouge.": "Turn around a modest club starting in the red.",
+        "Hipster": "Hipster",
+        "Réussis le mercato d'un club hors des cadors.": "Pull off the window of a club outside the big guns.",
+        "Fais un mercato valide avec un petit club.": "Complete a valid window with a small club.",
+        "Découvreur": "Explorer",
+        "Essaie le mercato de 10 clubs différents.": "Try the window of 10 different clubs.",
+        "Joue 10 clubs différents.": "Play 10 different clubs.",
+        "Tour de France": "Tour de France",
+        "Le mercato des 18 clubs de Ligue 1.": "The window of all 18 Ligue 1 clubs.",
+        "Joue les 18 clubs de Ligue 1.": "Play all 18 Ligue 1 clubs.",
+        "Globe-trotter": "Globetrotter",
+        "Un mercato dans les 5 grands championnats.": "A window in all 5 major leagues.",
+        "Joue au moins un club de chaque championnat.": "Play at least one club from each league.",
+        "Perfectionniste": "Perfectionist",
+        "La note A avec 5 clubs différents.": "An A grade with 5 different clubs.",
+        "Décroche un A avec 5 clubs différents.": "Earn an A with 5 different clubs.",
+        "Collectionneur": "Collector",
+        "Débloque 15 trophées.": "Unlock 15 trophies.",
+        "Continue à jouer, ils viendront.": "Keep playing, they'll come.",
+        "Vétéran": "Veteran",
+        "Boucle 20 mercatos.": "Complete 20 windows.",
+        "Joue 20 mercatos.": "Play 20 windows.",
+        // — Bulletin du board + sanctions des instances —
+        "Retrait de ": "A ",
+        " points": "-point deduction",
+        "Commission indépendante : coûts d'effectif au-delà du plafond. Précédents réels : Everton −8 pts, Nottingham Forest −4 pts.": "Independent commission: squad costs above the limit. Real precedents: Everton −8 pts, Nottingham Forest −4 pts.",
+        "Interdiction de recruter + masse salariale encadrée": "Transfer ban + capped wage bill",
+        "Comptes jugés insoutenables. Dans les cas extrêmes, la DNCG peut aller jusqu'à la rétrogradation administrative (menace réelle à Lyon, Bordeaux).": "Accounts judged unsustainable. In extreme cases the DNCG can go as far as administrative relegation (a real threat at Lyon and Bordeaux).",
+        "Masse salariale encadrée": "Capped wage bill",
+        "Tu passes, mais sous surveillance : masse salariale gelée et recrutements contrôlés la saison prochaine.": "You pass, but under supervision: wage bill frozen and signings controlled next season.",
+        "Blocage d'inscription": "Registration blocked",
+        "Impossible d'enregistrer tes recrues tant que tu n'es pas repassé sous ton plafond de coût d'effectif (règle 1:1). Le Barça en a fait les frais.": "You cannot register your signings until you are back under your squad cost limit (the 1:1 rule). Barcelona learned this the hard way.",
+        "Mercato bloqué en entrée": "Incoming transfers blocked",
+        "Indicateur de liquidité insuffisant : tu ne peux inscrire une recrue qu'en la finançant par une vente.": "Liquidity indicator too low: you can only register a signing by funding it with a sale.",
+        "Licence refusée": "Licence refused",
+        "Preuve de liquidité insuffisante. Sans licence, le club ne joue pas la saison en pro : c'est la condition n°1 de la Bundesliga.": "Insufficient proof of liquidity. Without a licence the club does not play the season professionally: it is the Bundesliga's number one condition.",
+        "Amende ": "€",
+        " M€ + Liste A réduite à ": "m fine + List A cut to ",
+        " joueurs": " players",
+        "Ratio coûts d'effectif au-dessus de la limite : amende proportionnelle au dépassement et moins de joueurs inscriptibles en Coupe d'Europe.": "Squad cost ratio above the limit: a fine proportional to the overrun, and fewer players registrable in Europe.",
+        "Exclusion de la Coupe d'Europe": "Exclusion from European competition",
+        "Pertes cumulées sur 3 ans très au-delà du plafond, non couvertes par un apport en capital. La sanction la plus lourde du règlement.": "Three-year cumulative losses far beyond the limit, not covered by a capital injection. The heaviest sanction in the regulations.",
+        "Accord de règlement (settlement)": "Settlement agreement",
+        "Plan de retour à l'équilibre sur plusieurs saisons, avec amendes conditionnelles et restrictions d'inscription si les paliers ne sont pas tenus.": "A multi-season plan back to break-even, with conditional fines and registration restrictions if the targets are missed.",
+        "Sanction en cours non respectée": "Existing sanction breached",
+        "Tu as recruté malgré une mesure déjà prononcée contre ton club : elle est immédiatement durcie.": "You signed players despite a measure already imposed on your club: it is tightened immediately.",
+        " poste(s) sans titulaire !": " position(s) with no starter!",
+        " poste(s) sans remplaçant": " position(s) with no backup",
+        "effectif complet à chaque poste": "a full squad in every position",
+        "conformité & santé des comptes": "compliance & financial health",
+        "plus-values, jeunes, coups pas chers": "profit on sales, youth, bargains",
+        " stars signées": " stars signed",
+        " star signée": " star signed",
+        " · les tribunes jubilent": " · the stands are buzzing",
+        " belles recrues": " quality signings",
+        " belle recrue": " quality signing",
+        "aucune grosse signature": "no marquee signing",
+        "Réalisme": "Realism",
+        "mercato crédible": "a credible window",
+        "aucun mouvement": "no moves",
+        "Le board voit rouge : plusieurs règles pas tenues. On va devoir en reparler…": "The board is seeing red: several rules missed. We're going to have to talk about this…",
+        "Un voyant rouge à régler : le board ne validera pas un mercato hors des clous.": "One red light to fix: the board will not sign off on a window outside the rules.",
+        "Le président t'embrasserait : saison de patron, sur tous les tableaux.": "The chairman would hug you: a boss of a season, on every front.",
+        "Les tribunes t'adorent · tu as parlé au cœur des supporters.": "The stands adore you · you spoke to the supporters' hearts.",
+        "Solide dans l'ensemble, mais ton point faible c'est le ": "Solid overall, but your weak spot is ",
+        " · le board a l'œil dessus.": " · the board has its eye on it.",
+        "Mercato équilibré, le board est satisfait.": "A balanced window, the board is satisfied.",
         // — 12e Homme : strategie, badges, bulletin —
         "Priorité à la jeunesse et aux plus-values.": "Youth first, and profit on sales.",
         "Du lourd offensivement, on vise l'Europe.": "Big money up front, we're going for Europe.",
