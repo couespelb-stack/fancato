@@ -13580,7 +13580,7 @@ const BACKOFFICE = (function () {
                 byNode = _liveCol2(byNode, clubSel, { "Règle de réinvestissement": (_liveVal.capRoom >= 0 ? "1:1 (conforme LCPD)" : "réinvest. partiel (excedido)") });
             } // LaLiga ② réinvestissement : racine live selon le statut LCPD (capRoom)
             return `<div class="crit">
-        <div class="crit-h"><span class="crit-n">${c.n}</span><h2>${c.title}</h2>${(c.what || c.formula || _sanc) ? `${(function () { _niMap["c" + ci] = { label: c.title, src: (c.what || "") + (c.formula ? ("<br><br><b>Formule&nbsp;:</b> " + c.formula) : "") + (_sanc ? ("<br><br><b> Si tu dépasses :</b> " + _sanc) : "") }; return ''; })()}<button class="tni l3" data-ni="c${ci}" title="L'adjoint t'explique cet indicateur">i</button>` : ''}<span class="thr">${c.thr}</span></div>
+        <div class="crit-h"><span class="crit-n">${c.n}</span><h2>${t(c.title)}</h2>${(c.what || c.formula || _sanc) ? `${(function () { _niMap["c" + ci] = { label: c.title, src: (c.what || "") + (c.formula ? ("<br><br><b>Formule&nbsp;:</b> " + c.formula) : "") + (_sanc ? ("<br><br><b> Si tu dépasses :</b> " + _sanc) : "") }; return ''; })()}<button class="tni l3" data-ni="c${ci}" title="L'adjoint t'explique cet indicateur">i</button>` : ''}<span class="thr">${t(c.thr)}</span></div>
         <div class="years single">
           ${[2].map((i) => {
                 var yr = c.years[i] || c.years[c.years.length - 1];
@@ -14789,7 +14789,7 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
     const inheritedRed = exPost && startInRed && investRoom < 0 && userNetSpend <= 0.5 && mercatoValid;
     const simpleState = !mercatoValid ? "ko" : ((investRoom < 0 && !inheritedRed) ? "warn" : "ok");
     const simpleDot = simpleState === "ok" ? "dotgreen" : simpleState === "warn" ? "dotorange" : "dotred";
-    const simpleLabel = inheritedRed ? "Sous surveillance" : (simpleState === "ok" ? "Ton club tient" : simpleState === "warn" ? "Limite atteinte" : "Règle à corriger");
+    const simpleLabel = inheritedRed ? t("Sous surveillance") : (simpleState === "ok" ? t("Ton club tient") : simpleState === "warn" ? t("Limite atteinte") : t("Règle à corriger"));
     const simpleColor = simpleState === "ok" ? "#00ff6a" : simpleState === "warn" ? "#ffb020" : "#ff6b81";
     const simpleShort = inheritedRed ? "Surveillé" : (simpleState === "ok" ? "Tenu" : simpleState === "warn" ? "Limite" : "Alerte");
     const simpleAdvice = inheritedRed
@@ -16853,7 +16853,7 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
                                 React.createElement("div", { style: { fontFamily: "Raleway,sans-serif", fontWeight: 800, fontSize: 15, color: simpleColor } }, simpleLabel),
                                 React.createElement("div", { style: { fontSize: 12, color: "#aebbd4", lineHeight: 1.4, marginTop: 2 } }, simpleAdvice))),
                         React.createElement("div", { style: { display: "flex", alignItems: "baseline", gap: 8, marginTop: 10, paddingTop: 10, borderTop: "1px solid rgba(255,255,255,.07)" } },
-                            React.createElement("span", { style: { fontSize: 12, color: "#93a4c4" } }, "Tu peux encore d\u00E9penser"),
+                            React.createElement("span", { style: { fontSize: 12, color: "#93a4c4" } }, t("Tu peux encore dépenser")),
                             React.createElement("span", { style: { fontFamily: "Raleway,sans-serif", fontWeight: 800, fontSize: 18, color: investRoom >= 0 ? "#00ff6a" : "#ff96a6" } },
                                 investRoom >= 0 ? "≈ " : "",
                                 fmt(investRoom)),
@@ -19752,6 +19752,27 @@ const I18N = {
         "Ton club tient": "Your club is holding up",
         "Tu peux encore dépenser": "You can still spend",
         "MODE PRO ›": "PRO MODE ›",
+        // — Budget / conformité (termes officiels UEFA & comptables) —
+        "Sous surveillance": "Under monitoring",
+        "Limite atteinte": "At the limit",
+        "Règle à corriger": "Rule breached",
+        "Tu peux encore dépenser": "You can still spend",
+        "indemnités + salaires": "fees + wages",
+        "Ratio des coûts d'effectif (Squad Cost Ratio)": "Squad Cost Ratio",
+        "Ratio de fonds propres": "Equity ratio",
+        "Fonds propres sur dettes": "Equity to liabilities",
+        "SCR · Squad Cost Ratio": "SCR · Squad Cost Ratio",
+        "Ta situation": "Your situation",
+        "C'est quoi ?": "What is it?",
+        "Si tu dépasses": "If you breach it",
+        "Aujourd'hui :": "Today:",
+        "D'où ça vient :": "Where it comes from:",
+        "Progression sauvegardée automatiquement sur cet appareil.": "Progress saved automatically on this device.",
+        "À propos": "About", "Méthodologie": "Methodology", "Sources": "Sources", "Confidentialité": "Privacy",
+        "Comment tes comptes sont contrôlés": "How your accounts are checked",
+        "blocage AVANT le mercato": "blocked BEFORE the window",
+        "jugé en fin de saison": "judged at season end",
+        "Formule": "Formula",
     },
 };
 function t(s) {
