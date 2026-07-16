@@ -14625,37 +14625,37 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
             }
             const recruitCost = salRecLoaded + amortRec + agentMercato; // coût des recrues (salaire chargé + amort + agents)
             investRoom = reinvestible - recruitCost;
-            bindingRule = "la règle de réinvestissement LaLiga (excedido : 60 % éco. salaire · 20 % plus-values ; 70 %/35 % pour un cadre ≥ 5 % de la masse)";
+            bindingRule = t("la règle de réinvestissement LaLiga (excedido : 60 % éco. salaire · 20 % plus-values ; 70 %/35 % pour un cadre ≥ 5 % de la masse)");
         }
         else {
             investRoom = capRoom;
-            bindingRule = "le plafond de coût d'effectif LaLiga (1:1)";
+            bindingRule = t("le plafond de coût d'effectif LaLiga (1:1)");
         }
     }
     else if (isPSR) {
         const den = cascade ? (cascade.b.produits + cascade.b.mut) : revenue;
         const num = cascade ? (cascade.b.remun + cascade.b.amort + cascade.b.agents) : 0;
         investRoom = 0.85 * den - num;
-        bindingRule = "le SCR anglais (85 %)";
+        bindingRule = t("le SCR anglais (85 %)");
     }
     else if (isSerieA) {
         investRoom = (liqAdj - liqThreshold) * curLiab;
-        bindingRule = "l'indicateur de liquidité (Serie A)";
+        bindingRule = t("l'indicateur de liquidité (Serie A)");
     }
     else if (isBundesliga) {
         investRoom = liqSeason;
-        bindingRule = "la liquidité (licence DFL)";
+        bindingRule = t("la liquidité (licence DFL)");
     }
     else {
         investRoom = res2627 + Math.max(0, ownerMax - (+apport || 0));
-        bindingRule = "l'équilibre DNCG (apport du proprio inclus)";
+        bindingRule = t("l'équilibre DNCG (apport du proprio inclus)");
     }
     // Marge NATIONALE (LCPD Espagne / liquidità Italie / DNCG / SCR) AVANT tout écrêtage UEFA : c'est ELLE qui gouverne le verrou d'inscription ex-ante ci-dessous.
     // L'UEFA ne bloque PAS une inscription domestique : elle sanctionne ex-post (settlement/amende, cf. Villarreal & co). On ne doit donc jamais bloquer une inscription sur la marge UEFA.
     const _domesticRoom = Math.round(investRoom);
     if (playsUEFA && uefaRoom_p != null && uefaRoom_p < investRoom) {
         investRoom = uefaRoom_p;
-        bindingRule = "le ratio coûts d'effectif UEFA (" + limit + " %)";
+        bindingRule = t("le ratio coûts d'effectif UEFA (") + limit + " %)";
     } // Europe : on prend la contrainte la plus serrée
     investRoom = Math.round(investRoom);
     // 🔒 VERROU D'INSCRIPTION EX-ANTE · Espagne (LCPD) & Italie (FIGC : liquidità/CLA) : le régulateur contrôle AVANT le mercato → tu ne peux PAS inscrire un achat qui dépasse ta marge (il faut d'abord vendre / faire apporter le proprio). France (DNCG) & Angleterre (PSR) = EX-POST : tu recrutes librement, tu es jugé en fin de saison → PAS de blocage ici.
@@ -14793,11 +14793,11 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
     const simpleColor = simpleState === "ok" ? "#00ff6a" : simpleState === "warn" ? "#ffb020" : "#ff6b81";
     const simpleShort = inheritedRed ? t("Surveillé") : (simpleState === "ok" ? t("Tenu") : simpleState === "warn" ? t("Limite") : t("Alerte"));
     const simpleAdvice = inheritedRed
-        ? "Marge négative HÉRITÉE (le club dépensait déjà plus qu'il ne gagne). En France comme en Angleterre, c'est jugé EN FIN DE SAISON, pas à l'inscription : tu peux jouer ton mercato normalement. Évite juste de creuser · une vente ou un apport du propriétaire te remet à l'aise."
+        ? t("Marge négative HÉRITÉE (le club dépensait déjà plus qu'il ne gagne). En France comme en Angleterre, c'est jugé EN FIN DE SAISON, pas à l'inscription : tu peux jouer ton mercato normalement. Évite juste de creuser · une vente ou un apport du propriétaire te remet à l'aise.")
         : ((investRoom >= 0
-            ? "Tu es dans les clous. Ce qui te limite en ce moment : " + bindingRule + " · vendre ou prêter augmente ta marge."
-            : "Tu es au-dessus de ta limite · vends, prête, ou fais apporter le propriétaire. Ce qui te contraint : " + bindingRule + ".")
-            + ((startInRed && simpleState !== "ok") ? " (situation héritée du club · pas ta faute)" : ""));
+            ? t("Tu es dans les clous. Ce qui te limite en ce moment : ") + bindingRule + t(" · vendre ou prêter augmente ta marge.")
+            : t("Tu es au-dessus de ta limite · vends, prête, ou fais apporter le propriétaire. Ce qui te contraint : ") + bindingRule + ".")
+            + ((startInRed && simpleState !== "ok") ? t(" (situation héritée du club · pas ta faute)") : ""));
     // === ADJOINT · IMPACT D'UNE ACTION SUR LES INDICATEURS (avant → après) ===
     // Le joueur ne voyait pas QUELS indicateurs une action allait bouger. impactOf() simule un geste
     // (vente / prêt / recrue) et renvoie le ratio clé, le résultat et la marge, AVANT et APRÈS.
@@ -19790,6 +19790,20 @@ const I18N = {
         "RECRUE · OFFICIALISÉ": "SIGNING · CONFIRMED", "OFFICIALISÉ": "CONFIRMED",
         "Réinvestir le cash": "Reinvest the cash",
         "Choisis un club pour voir comment les autres l'ont géré": "Pick a club to see how others handled it",
+        // — Phrase d'état (Budget/Mercato) —
+        "Tu es dans les clous. Ce qui te limite en ce moment : ": "You're within the rules. What's limiting you right now: ",
+        " · vendre ou prêter augmente ta marge.": " · selling or loaning out increases your headroom.",
+        "Tu es au-dessus de ta limite · vends, prête, ou fais apporter le propriétaire. Ce qui te contraint : ": "You're over your limit · sell, loan out, or get an owner injection. What's constraining you: ",
+        " (situation héritée du club · pas ta faute)": " (inherited from the club · not your doing)",
+        "Marge négative HÉRITÉE (le club dépensait déjà plus qu'il ne gagne). En France comme en Angleterre, c'est jugé EN FIN DE SAISON, pas à l'inscription : tu peux jouer ton mercato normalement. Évite juste de creuser · une vente ou un apport du propriétaire te remet à l'aise.": "INHERITED negative headroom (the club was already spending more than it earns). In France as in England, this is judged AT SEASON END, not at registration: you can run your window normally. Just avoid digging deeper · a sale or an owner injection puts you back at ease.",
+        // — Règles contraignantes (termes officiels des instances) —
+        "le ratio coûts d'effectif UEFA (": "the UEFA squad cost ratio (",
+        "le SCR anglais (85 %)": "the English SCR (85%)",
+        "l'équilibre DNCG (apport du proprio inclus)": "DNCG break-even (owner injection included)",
+        "l'indicateur de liquidité (Serie A)": "the liquidity indicator (Serie A)",
+        "la liquidité (licence DFL)": "liquidity (DFL licence)",
+        "le plafond de coût d'effectif LaLiga (1:1)": "the LaLiga squad cost limit (1:1)",
+        "la règle de réinvestissement LaLiga (excedido : 60 % éco. salaire · 20 % plus-values ; 70 %/35 % pour un cadre ≥ 5 % de la masse)": "the LaLiga reinvestment rule (excedido: 60% of wage savings · 20% of profits on disposal; 70%/35% for a key player ≥5% of the wage bill)",
     },
 };
 function t(s) {
