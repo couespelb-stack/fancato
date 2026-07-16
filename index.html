@@ -1280,7 +1280,7 @@ function drawPitch(canvas, d) {
         }
         ctx.fillStyle = "#00ff6a";
         ctx.font = "600 15px Raleway, Arial, sans-serif";
-        ctx.fillText("ENTRAÎNEUR", txtX, byy + 23);
+        ctx.fillText(t("ENTRAÎNEUR"), txtX, byy + 23);
         ctx.fillStyle = "#fff";
         ctx.font = "600 25px Raleway, Arial, sans-serif";
         ctx.fillText(d.coach, txtX, byy + 49);
@@ -17205,7 +17205,7 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
                                     React.createElement(PlayerPhoto, { name: coach.name, color: "#00ff6a" })),
                                 React.createElement("div", { style: { flex: "1 1 auto", minWidth: 0 } },
                                     React.createElement("div", { style: { display: "flex", alignItems: "baseline", gap: 6, minWidth: 0 } },
-                                        React.createElement("span", { style: { fontSize: 8.5, fontWeight: 700, color: "#9fb0d0", fontFamily: "Raleway, sans-serif", letterSpacing: ".08em", textTransform: "uppercase", flex: "0 0 auto" } }, "Entra\u00EEneur"),
+                                        React.createElement("span", { style: { fontSize: 8.5, fontWeight: 700, color: "#9fb0d0", fontFamily: "Raleway, sans-serif", letterSpacing: ".08em", textTransform: "uppercase", flex: "0 0 auto" } }, t("Entraîneur")),
                                         React.createElement("b", { style: { color: vacant ? "#ffd76b" : "#00ff6a", fontSize: 14.5, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", minWidth: 0 }, title: "Fiabilité identité " + coach.cName + " % · " + nameSrc }, coach.name),
                                         coach.nat ? React.createElement("span", { className: "mini", style: { textTransform: "none", flex: "0 0 auto" } }, coach.nat) : null),
                                     React.createElement("div", { className: "mini", style: { textTransform: "none", color: "#8b9cbe", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" } }, vacant ? "Poste vacant · nomme un remplaçant (obligatoire)." : ("jusqu'en " + coach.until + " · salaire " + coachSalEff + " " + CUR + (coachSalDelta === 0 ? "" : " · impact " + sign(coachSalDelta))))),
@@ -19740,6 +19740,8 @@ let _LANG = "fr";
 const LANGS = [["fr", "Français"], ["en", "English"], ["es", "Español"], ["it", "Italiano"], ["de", "Deutsch"]];
 const I18N = {
     en: {
+        "Entraîneur": "Manager",
+        "ENTRAÎNEUR": "MANAGER",
         "le CLA · coût du travail élargi (Serie A)": "the CLA · extended labour cost (Serie A)",
         // — Badges joueurs (marche) —
         "Bientôt libre": "Out of contract soon",
@@ -20459,6 +20461,8 @@ const I18N = {
         "la règle de réinvestissement LaLiga (excedido : 60 % éco. salaire · 20 % plus-values ; 70 %/35 % pour un cadre ≥ 5 % de la masse)": "the LaLiga reinvestment rule (excedido: 60% of wage savings · 20% of profits on disposal; 70%/35% for a key player ≥5% of the wage bill)",
     },
     es: {
+        "Entraîneur": "Entrenador",
+        "ENTRAÎNEUR": "ENTRENADOR",
         "le CLA · coût du travail élargi (Serie A)": "el CLA · coste del trabajo ampliado (Serie A)",
         // — Badges joueurs (marche) —
         "Bientôt libre": "Acaba contrato pronto",
@@ -21160,6 +21164,8 @@ const I18N = {
         "Commercial / sponsors": "Comercial / patrocinios",
     },
     it: {
+        "Entraîneur": "Allenatore",
+        "ENTRAÎNEUR": "ALLENATORE",
         "le CLA · coût du travail élargi (Serie A)": "il CLA · costo del lavoro allargato (Serie A)",
         // — Badges joueurs (marche) —
         "Bientôt libre": "In scadenza",
@@ -21860,6 +21866,8 @@ const I18N = {
         "Prix de vente demandé": "Prezzo di cessione richiesto",
     },
     de: {
+        "Entraîneur": "Trainer",
+        "ENTRAÎNEUR": "TRAINER",
         "le CLA · coût du travail élargi (Serie A)": "der CLA · erweiterter Personalaufwand (Serie A)",
         // — Badges joueurs (marche) —
         "Bientôt libre": "Vertrag läuft bald aus",
