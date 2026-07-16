@@ -11772,7 +11772,7 @@ const PLAYER_INDEX = (function () {
             if (m[p.name])
                 return;
             const f = UEFA_FORM[p.name];
-            m[p.name] = { mkt: +p.mkt || 0, sal: +p.sal || 0, end: +p.end || 0, clubId: id, age: p.by ? (2026 - p.by) : ((f && f.by) ? (2026 - f.by) : 0) };
+            m[p.name] = { mkt: +p.mkt || 0, sal: +p.sal || 0, end: +p.end || 0, clubId: id, age: p.by ? (2026 - p.by) : ((f && f.by) ? (2026 - f.by) : 0), na: p.na || (f ? f.na : null) };
         });
     });
     EXTRA_PLAYERS.forEach(function (p) { if (m[p.name])
@@ -13649,7 +13649,7 @@ const BACKOFFICE = (function () {
         }).join("")}
     </div>`;
     }
-    return { render: renderCrit, has: function (k) { return !!(BODIES[k] && LEAGUE[k]); }, inUefa: function (id) { return LEAGUE.uefa.clubs.some(function (c) { return c[0] === id; }); }, criteria: function (k) { return (BODIES[k] && BODIES[k].criteria) ? BODIES[k].criteria.map(function (c) { return { n: c.n, title: t(c.title) }; }) : []; }, ownerPanel: OWNER_PANEL, nodeInfo: function (p) { return _niMap[p]; } };
+    return { render: renderCrit, has: function (k) { return !!(BODIES[k] && LEAGUE[k]); }, inUefa: function (id) { return LEAGUE.uefa.clubs.some(function (c) { return c[0] === id; }); }, criteria: function (k) { return (BODIES[k] && BODIES[k].criteria) ? BODIES[k].criteria.map(function (c) { return { n: c.n, title: t(c.title) }; }) : []; }, ownerPanel: OWNER_PANEL, nodeInfo: function (p) { return _niMap[p]; }, claBase: function (cid) { return CLA_BY_CLUB[cid] || null; } };
 })();
 const BO_LK = { "Ligue 1": "ligue1", "Premier League": "premier", "LaLiga": "laliga", "Serie A": "seriea", "Bundesliga": "bundesliga" };
 function BoTable({ leagueKey, clubId, live, onlyCi }) {
@@ -14587,6 +14587,44 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
     // 🇮🇹 Indicatore di Indebitamento (dette ÷ valore produzione) rendu RÉACTIF : acheter (net cash out, souvent à crédit) ↑ la dette ; vendre (plus-value) ↑ la production → ↓ le ratio.
     const saIndebLive = (club.accounting.saDebt != null && club.accounting.saVdP != null) ? ((club.accounting.saDebt - cashMercato) / Math.max(1, club.accounting.saVdP + plusValue)) : null;
     const serieAOk = liqAdj >= liqThreshold;
+    // === 🇮🇹 Serie A · CLA (Costo del Lavoro Allargato) — 2ᵉ VERROU ex-ante, au même titre que la Liquidità ===
+    // FIGC, CU du 23/03/2026 (Conseil Fédéral du 19/03) : seuil abaissé 0,8 → 0,7 DÈS LE MERCATO D'ÉTÉ 2026.
+    // Au-delà → « saldo zero » : on n'achète qu'en finançant par des ventes (blocage réel du Napoli, janv. 2026).
+    // NOUVEAUTÉ 2026-27 : les U23 SÉLECTIONNABLES EN AZZURRO sont EXCLUS du numérateur (incitation au vivaio).
+    //   → on la CALCULE ici, on ne se contente plus de l'écrire dans l'explication.
+    // Méthode = celle du ratio UEFA ② : base OFFICIELLE 2024-25 + delta de TON mercato. La base vient de
+    // CLA_BY_CLUB, recoupée club par club : (costo del personale + amort. cartellini) ÷ ricavi redonne le CLA
+    // publié AU CHIFFRE PRÈS sur les 19 clubs qui ont des données (Frosinone, promu de Serie B, n'en a pas
+    // → pas de verrou CLA pour lui, on retombe sur la Liquidità seule). Les honoraires d'agents sont en MÉMO
+    // hors ratio dans les données officielles → volontairement exclus (le vrai ratio FIGC est ~3 pts au-dessus).
+    const _claParse = (x) => { const m = /^\s*([\d\s\u202f\u00a0]+(?:,\d+)?)/.exec(String(x == null ? "" : x)); if (!m)
+        return null; const v = parseFloat(m[1].replace(/[\s\u202f\u00a0]/g, "").replace(",", ".")); return isNaN(v) ? null : v; };
+    const _claRow = isSerieA ? BACKOFFICE.claBase(clubId) : null; // CLA_BY_CLUB vit DANS l'IIFE du back-office → passer par l'accesseur, sinon ReferenceError
+    const _claGet = (k) => { const r = _claRow && _claRow[k]; return r ? _claParse(r[0]) : null; };
+    const claPers = _claGet("Costo del personale (salaires)");
+    const claAmoBase = _claGet("+ Amort. cartellini (transferts)");
+    const claRicBase = _claGet("Ricavi");
+    const claHas = !!(isSerieA && claPers != null && claAmoBase != null && claRicBase > 0);
+    // U23 sélectionnables en azzurro, parmi les INSCRITS (gardés + prêts entrants + recrues).
+    const _claU23It = (p) => { const pi = PLAYER_INDEX[p.name] || {}; const b = +p.by || 0; const age = b ? (2026 - b) : (+pi.age || 0); const na = p.na || pi.na || ""; return age > 0 && age <= 23 && na === "Italie"; };
+    const claU23Cost = !claHas ? 0 : (keepers.concat(loanIn).reduce((a, p) => a + (_claU23It(p) ? ((+p.sal || 0) * load + (+p.amort || 0)) : 0), 0)
+        + recruits.reduce((a, r) => a + (_claU23It(r) ? ((+r.sal || 0) * load + recAmort(r)) : 0), 0));
+    // Numérateur : base officielle + ce que TON mercato change (salaires chargés, amortissements) − les U23 azzurri.
+    const claNumLive = !claHas ? 0 : Math.max(0, (claPers + claAmoBase)
+        + ((salBorneLoaded + salRecLoaded) - baseSalLoaded)
+        + ((amortStay + amortRec) - baseAmort)
+        - claU23Cost);
+    // Dénominateur : ricavi officiels (= valore della produzione) + le player trading de TON mercato.
+    // On n'y injecte PAS la projection sportive du modèle : elle est dans une autre échelle que le VdP officiel
+    // (un promu affichait −40 M€ de « delta classement » sur un VdP de 86 → CLA doublé, chiffre absurde).
+    // La FIGC juge d'ailleurs sur les comptes RÉELS au 31/03, pas sur un parcours sportif projeté.
+    const claDenLive = !claHas ? 1 : Math.max(1, claRicBase + plusValue + loanFeesOut);
+    const claLive = claHas ? (claNumLive / claDenLive) : null;
+    const claThreshold = 0.7; // 0,8 jusqu'en 2025-26 · 0,7 dès l'été 2026
+    const claOk = !claHas || claLive <= claThreshold;
+    const claRoom = claHas ? (claThreshold * claDenLive - claNumLive) : null; // coût annuel encore ajoutable
+    const liqRoomIt = isSerieA ? (liqAdj - liqThreshold) * curLiab : null; // marge de la Liquidità (cash)
+    const serieAPass = serieAOk && claOk; // les DEUX verrous FIGC doivent passer
     // === Bundesliga (DFL) : licence = preuve de solvabilité (capitaux propres positifs, going concern) ===
     const isBundesliga = club.meta.domesticRule === "Bundesliga";
     // Régulateur national PAR championnat (dissociation des 5 ligues · ne JAMAIS écrire "DNCG" en dur pour un club étranger).
@@ -14640,8 +14678,15 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
         bindingRule = t("le SCR anglais (85 %)");
     }
     else if (isSerieA) {
-        investRoom = (liqAdj - liqThreshold) * curLiab;
-        bindingRule = t("l'indicateur de liquidité (Serie A)");
+        // Deux verrous FIGC : la Liquidità (cash) ET le CLA (coût annuel). Le plus serré gouverne.
+        if (claRoom != null && claRoom < liqRoomIt) {
+            investRoom = claRoom;
+            bindingRule = t("le CLA · coût du travail élargi (Serie A)");
+        }
+        else {
+            investRoom = liqRoomIt;
+            bindingRule = t("l'indicateur de liquidité (Serie A)");
+        }
     }
     else if (isBundesliga) {
         investRoom = liqSeason;
@@ -14673,13 +14718,22 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
         _esitReason = (lcpdSaldo != null && lcpdSaldo < 0) ? "excedido" : "cap";
     }
     // 🇮🇹 Serie A : verrou uniquement si sous le seuil de liquidità (indice bloquant), sur le cash.
-    else if (isSerieA && _esitPaid && !serieAOk) {
-        esitBlocked = _domesticRoom < _draftCash - 0.1;
-        _esitReason = "liq";
+    // 🇮🇹 Serie A : DEUX verrous ex-ante (FIGC). La Liquidità juge le CASH (vendre avant d'acheter) ; le CLA juge
+    // le COÛT ANNUEL. Chacun impose le saldo zero s'il est franchi — le CLA bloque SEUL (cf. Napoli, janv. 2026).
+    else if (isSerieA && _esitPaid) {
+        if (!serieAOk && liqRoomIt < _draftCash - 0.1) {
+            esitBlocked = true;
+            _esitReason = "liq";
+        }
+        else if (!claOk && claRoom != null && claRoom < _draftAnnual - 0.1) {
+            esitBlocked = true;
+            _esitReason = "cla";
+        }
     }
     const esitBlockMsg = !esitBlocked ? "" : ("🔒 " + (_esitReason === "liq" ? "La FIGC bloque cette inscription : ton club est sous son seuil de liquidité (indice bloquant)."
-        : _esitReason === "excedido" ? "LaLiga bloque cette inscription : ton club est déjà au-dessus de son plafond de coût d'effectif (LCPD · excedido)."
-            : "LaLiga bloque cette inscription : elle ferait dépasser ton plafond de coût d'effectif (LCPD).") + " Tu ne peux inscrire qu'à SOLDE ZÉRO · vends un joueur ou fais apporter le propriétaire d'abord, PUIS recrute. (Verrou AVANT le mercato · ex-ante, pas un avertissement de fin de saison.)");
+        : _esitReason === "cla" ? "La FIGC bloque cette inscription : ton coût du travail élargi (CLA) dépasse 0,7 des ricavi."
+            : _esitReason === "excedido" ? "LaLiga bloque cette inscription : ton club est déjà au-dessus de son plafond de coût d'effectif (LCPD · excedido)."
+                : "LaLiga bloque cette inscription : elle ferait dépasser ton plafond de coût d'effectif (LCPD).") + " Tu ne peux inscrire qu'à SOLDE ZÉRO · vends un joueur ou fais apporter le propriétaire d'abord, PUIS recrute. (Verrou AVANT le mercato · ex-ante, pas un avertissement de fin de saison.)");
     const levVentes = Math.round(proceeds + loanFeesOut); // cash rapporté par tes ventes
     const levAchats = Math.round(feeArr + loanFeesIn); // cash dépensé en indemnités
     const levMasse = Math.round((salBorneLoaded - baseSalLoaded) + salRecLoaded); // surcoût annuel de masse salariale (chargé)
@@ -14717,7 +14771,7 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
     const licLabel = licState === "ok" ? "accordée" : licState === "cond" ? "sous conditions (Auflagen)" : "menacée · lacune " + fmt(liqGap);
     const licColor = licState === "ok" ? "#00ff6a" : licState === "cond" ? "#e8c46a" : "#ff96a6";
     const bundesOk = licState !== "risk"; // le mercato n'est bloqué QUE si la lacune de liquidité est incouvrable · fonds propres négatifs seuls = tolérés
-    const dncgCovered = isBundesliga ? bundesOk : isSerieA ? serieAOk : isLiga ? ligaOk : isPSR ? rule3yCovered : (dncgRes + apportEff >= 0);
+    const dncgCovered = isBundesliga ? bundesOk : isSerieA ? serieAPass : isLiga ? ligaOk : isPSR ? rule3yCovered : (dncgRes + apportEff >= 0);
     // Flags de PROJECTION 2026-27 · heroes + voyants alignés sur la colonne projetée
     const uefaOk_p = ratio2627 <= limit;
     // (uefaRoom_p est désormais déclaré plus haut, avant le bloc investRoom)
@@ -14729,7 +14783,7 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
     const equityCovers3y = apportUefaRetained >= excess3y; // l'excédent football-earnings n'est couvert QUE par l'apport retenu (plafonné) · au-delà du plafond, l'apport ne contourne pas la règle
     const rule3yOk_p = isPSR ? (cumul2627 >= r3lim) : (cumul2627 >= -5);
     const rule3yCovered_p = isPSR ? (cumul2627 + (+apport3y || 0) >= r3lim) : (cumul2627 >= r3cap && (rule3yOk_p || equityCovers3y));
-    const dncgCovered_p = isBundesliga ? bundesOk : isSerieA ? serieAOk : isLiga ? ligaOk : isPSR ? rule3yCovered_p : (res2627 + tresorPos + apportEff >= 0);
+    const dncgCovered_p = isBundesliga ? bundesOk : isSerieA ? serieAPass : isLiga ? ligaOk : isPSR ? rule3yCovered_p : (res2627 + tresorPos + apportEff >= 0);
     // === Ligue 1 (DNCG) : échelle réelle des sanctions (sain → couvert par apport → encadrement masse salariale → interdiction de recruter → rétrogradation administrative) ===
     const isDNCG = club.meta.domesticRule === "DNCG";
     // Capacité réaliste de couverture d'un déficit = apport actionnaire (ownerMax) + ventes de joueurs (~40 % des plus-values latentes, réalisables sur une fenêtre sans démanteler l'effectif) · la DNCG budgète explicitement les cessions.
@@ -15473,7 +15527,7 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
         const f = FORMATIONS[formation] || FORMATIONS["433d"];
         const { cols } = reconcileSlots(f, seedBase(f));
         const pcol = Object.fromEntries(POSITIONS.map((p) => [p[0], p[2]]));
-        const dncgPass = isBundesliga ? bundesOk : isSerieA ? serieAOk : isLiga ? ligaOk : (res2627 >= 0 || dncgCovered_p), rule3yPass = rule3yOk_p || rule3yCovered_p || settlement3y;
+        const dncgPass = isBundesliga ? bundesOk : isSerieA ? serieAPass : isLiga ? ligaOk : (res2627 >= 0 || dncgCovered_p), rule3yPass = rule3yOk_p || rule3yCovered_p || settlement3y;
         const domesticTxt = isBundesliga ? `Liq. ${sign(liqSeason)}` : isSerieA ? `liq. ${liqAdj.toFixed(2)}/${liqThreshold}` : isLiga ? `${fmt(squadCost)}/${fmt(salaryCap)}` : isPSR ? (scr != null ? `${Math.round(scr)}% SCR` : "n.d.") : sign(res2627);
         const starterNames = cols.map((c) => (c[0] ? c[0].name : null)).filter(Boolean);
         const imgMap = await _loadPhotos(starterNames);
@@ -19686,6 +19740,7 @@ let _LANG = "fr";
 const LANGS = [["fr", "Français"], ["en", "English"], ["es", "Español"], ["it", "Italiano"], ["de", "Deutsch"]];
 const I18N = {
     en: {
+        "le CLA · coût du travail élargi (Serie A)": "the CLA · extended labour cost (Serie A)",
         // — Badges joueurs (marche) —
         "Bientôt libre": "Out of contract soon",
         "Pépite": "Wonderkid",
@@ -20404,6 +20459,7 @@ const I18N = {
         "la règle de réinvestissement LaLiga (excedido : 60 % éco. salaire · 20 % plus-values ; 70 %/35 % pour un cadre ≥ 5 % de la masse)": "the LaLiga reinvestment rule (excedido: 60% of wage savings · 20% of profits on disposal; 70%/35% for a key player ≥5% of the wage bill)",
     },
     es: {
+        "le CLA · coût du travail élargi (Serie A)": "el CLA · coste del trabajo ampliado (Serie A)",
         // — Badges joueurs (marche) —
         "Bientôt libre": "Acaba contrato pronto",
         "Pépite": "Perla",
@@ -21104,6 +21160,7 @@ const I18N = {
         "Commercial / sponsors": "Comercial / patrocinios",
     },
     it: {
+        "le CLA · coût du travail élargi (Serie A)": "il CLA · costo del lavoro allargato (Serie A)",
         // — Badges joueurs (marche) —
         "Bientôt libre": "In scadenza",
         "Pépite": "Gioiello",
@@ -21803,6 +21860,7 @@ const I18N = {
         "Prix de vente demandé": "Prezzo di cessione richiesto",
     },
     de: {
+        "le CLA · coût du travail élargi (Serie A)": "der CLA · erweiterter Personalaufwand (Serie A)",
         // — Badges joueurs (marche) —
         "Bientôt libre": "Vertrag läuft bald aus",
         "Pépite": "Juwel",
