@@ -14791,7 +14791,7 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
     const simpleDot = simpleState === "ok" ? "dotgreen" : simpleState === "warn" ? "dotorange" : "dotred";
     const simpleLabel = inheritedRed ? t("Sous surveillance") : (simpleState === "ok" ? t("Ton club tient") : simpleState === "warn" ? t("Limite atteinte") : t("Règle à corriger"));
     const simpleColor = simpleState === "ok" ? "#00ff6a" : simpleState === "warn" ? "#ffb020" : "#ff6b81";
-    const simpleShort = inheritedRed ? "Surveillé" : (simpleState === "ok" ? "Tenu" : simpleState === "warn" ? "Limite" : "Alerte");
+    const simpleShort = inheritedRed ? t("Surveillé") : (simpleState === "ok" ? t("Tenu") : simpleState === "warn" ? t("Limite") : t("Alerte"));
     const simpleAdvice = inheritedRed
         ? "Marge négative HÉRITÉE (le club dépensait déjà plus qu'il ne gagne). En France comme en Angleterre, c'est jugé EN FIN DE SAISON, pas à l'inscription : tu peux jouer ton mercato normalement. Évite juste de creuser · une vente ou un apport du propriétaire te remet à l'aise."
         : ((investRoom >= 0
@@ -16948,7 +16948,7 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
                     })(),
                     React.createElement("div", { className: "marge-bar-main", style: { flex: 1 } },
                         React.createElement("span", { className: "marge-bar-lab" },
-                            "Marge d'invest.",
+                            t("Marge d'invest."),
                             React.createElement(InfoDot, { title: "Marge d'investissement", what: "Ce que tu peux ENCORE investir (indemnit\u00E9s + salaires) avant de d\u00E9passer la contrainte financi\u00E8re de ton club. Ce n'est PAS ta tr\u00E9sorerie.", why: "Elle te dit d'un coup d'\u0153il si tu as les moyens de recruter \u00B7 l'outil de d\u00E9cision n\u00B01 du directeur sportif au mercato.", how: "C'est ta distance à la règle qui te LIMITE en ce moment (ici : " + bindingRule + "). Vendre l'augmente ; acheter ou monter les salaires la réduit. Données : dérivée EN DIRECT de ton mercato et des contraintes calibrées de ton club. Décomposition : tes ventes " + (levVentes >= 0 ? "+" : "") + fmt(levVentes) + ", tes achats −" + fmt(levAchats) + ", masse salariale " + (levMasse >= 0 ? "−" : "+") + fmt(Math.abs(levMasse)) + ".", impact: "Positive \u2192 tu peux recruter ou monter un salaire. N\u00E9gative \u2192 vends, d\u00E9graisse, ou fais apporter le propri\u00E9taire." })),
                         React.createElement("span", { className: "marge-bar-val" + (cashFx ? " margePulse" : ""), style: { color: investRoom >= 0 ? "#00ff6a" : "#ff96a6" } },
                             investRoom >= 0 ? "+" : "",
@@ -17049,9 +17049,9 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
                                 hardestKey === "pertes" && hardBadge)),
                         React.createElement("button", { type: "button", onClick: () => setPro(!expertMode), title: expertMode ? "Revenir à l'affichage Débutant (l'essentiel)" : "Passer en affichage Pro (tous les ratios et calculs)", style: { marginLeft: 8, background: "none", border: "none", color: "#8fb8ff", fontSize: 10.5, cursor: "pointer", textTransform: "uppercase", letterSpacing: ".04em", fontFamily: "Raleway,sans-serif", fontWeight: 700, padding: 0 } }, expertMode ? "‹ mode Débutant" : "mode Pro ›"))),
                 React.createElement("div", { className: "mktsub" },
-                    React.createElement("button", { type: "button", className: "mktsub-b" + (mktSub === "recruter" ? " on" : ""), onClick: () => setMktSub("recruter") }, "Recruter"),
-                    React.createElement("button", { type: "button", className: "mktsub-b" + (mktSub === "effectif" ? " on" : ""), onClick: () => setMktSub("effectif") }, "Effectif"),
-                    React.createElement("button", { type: "button", className: "mktsub-b" + (mktSub === "departs" ? " on" : ""), onClick: () => setMktSub("departs") }, "D\u00E9parts")),
+                    React.createElement("button", { type: "button", className: "mktsub-b" + (mktSub === "recruter" ? " on" : ""), onClick: () => setMktSub("recruter") }, t("Recruter")),
+                    React.createElement("button", { type: "button", className: "mktsub-b" + (mktSub === "effectif" ? " on" : ""), onClick: () => setMktSub("effectif") }, t("Effectif")),
+                    React.createElement("button", { type: "button", className: "mktsub-b" + (mktSub === "departs" ? " on" : ""), onClick: () => setMktSub("departs") }, t("Départs"))),
                 false && microTip && microTipOpen && React.createElement("div", { style: { display: "flex", gap: 7, alignItems: "flex-start", margin: "-4px 0 12px", padding: "8px 11px", background: "rgba(201,160,255,.08)", border: "1px solid rgba(201,160,255,.25)", borderRadius: 10, fontSize: 12, color: "#dfe8f5", lineHeight: 1.45 } },
                     React.createElement("span", { style: { flex: "none" } }, "\uD83D\uDCA1"),
                     React.createElement("span", { style: { flex: 1 }, dangerouslySetInnerHTML: { __html: "<b style='color:#c9a0ff'>Le sais-tu&nbsp;?</b> " + microTip } }),
@@ -17232,7 +17232,7 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
                             return (React.createElement("div", { key: pk },
                                 React.createElement("button", { type: "button", className: "ghd ghd-acc", onClick: () => setPosOpen((o) => ({ ...o, [pk]: !o[pk] })), style: { color: pcol } },
                                     React.createElement("span", { className: "ghd-chev" }, posOpen[pk] ? "▾" : "▸"),
-                                    React.createElement("span", { className: "ghd-lab" }, PLABEL[pk]),
+                                    React.createElement("span", { className: "ghd-lab" }, t(PLABEL[pk])),
                                     React.createElement("span", { className: "ghd-sum" },
                                         ps.length,
                                         " joueur",
@@ -17297,8 +17297,8 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
                                                         React.createElement(Icon, { name: "lock", size: 12, style: { marginRight: 3, verticalAlign: "-1px" } }),
                                                         " ",
                                                         p.status === "sold" ? "Vendu" : p.status === "loanOut" ? "Prêté" : "Officialisé")) : (React.createElement("div", { className: "prow-actions" },
-                                                        React.createElement("button", { type: "button", className: "pactbtn loan", onClick: () => openLoan(p), title: "Pr\u00EAter \u00B7 n\u00E9gocier les conditions avant de valider" }, "Pr\u00EAter"),
-                                                        React.createElement("button", { type: "button", className: "pactbtn sell", onClick: () => openSell(p), title: "Vendre \u00B7 n\u00E9gocier le prix avant de valider" }, "Vendre")))))));
+                                                        React.createElement("button", { type: "button", className: "pactbtn loan", onClick: () => openLoan(p), title: "Pr\u00EAter \u00B7 n\u00E9gocier les conditions avant de valider" }, t("Prêter")),
+                                                        React.createElement("button", { type: "button", className: "pactbtn sell", onClick: () => openSell(p), title: "Vendre \u00B7 n\u00E9gocier le prix avant de valider" }, t("Vendre"))))))));
                                     }),
                                     rs.map((r) => {
                                         const u = uefaStatOf(r.name);
@@ -17333,7 +17333,7 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
                         }),
                         React.createElement("button", { type: "button", className: "sbtn ghost", style: { width: "100%", marginTop: 6, fontSize: 12.5, padding: "12px", color: "#c9a0ff", borderColor: "rgba(201,160,255,.4)", background: "rgba(201,160,255,.07)" }, onClick: () => setPromoteOpen((v) => !v) },
                             promoteOpen ? "▾ " : React.createElement(Icon, { name: "jeune", size: 13, style: { marginRight: 5, verticalAlign: "-2px" } }),
-                            "Faire monter un jeune du club"),
+                            t("Faire monter un jeune du club")),
                         promoteOpen && (() => {
                             const inSquad = {};
                             players.forEach((p) => { inSquad[p.name] = 1; });
@@ -17346,15 +17346,15 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
                                         y.name,
                                         React.createElement("br", null),
                                         React.createElement("span", { className: "lbl" },
-                                            (PLABEL[y.pos] || y.pos),
+                                            t(PLABEL[y.pos] || y.pos),
                                             y.by ? " · " + (2026 - y.by) + " ans" : "",
                                             (+y.mkt) ? " · " + fmt(+y.mkt) : "",
                                             " \u00B7 \uD83C\uDDEA\uD83C\uDDFA form\u00E9 au club")),
-                                    React.createElement("button", { type: "button", onClick: () => promoteYouth(y), style: { flex: "none", background: "rgba(201,160,255,.16)", border: "1px solid rgba(201,160,255,.5)", color: "#c9a0ff", borderRadius: 9, padding: "8px 12px", fontFamily: "Raleway,sans-serif", fontWeight: 700, fontSize: 12, cursor: "pointer", whiteSpace: "nowrap" } }, "\u2191 Faire monter"))))));
+                                    React.createElement("button", { type: "button", onClick: () => promoteYouth(y), style: { flex: "none", background: "rgba(201,160,255,.16)", border: "1px solid rgba(201,160,255,.5)", color: "#c9a0ff", borderRadius: 9, padding: "8px 12px", fontFamily: "Raleway,sans-serif", fontWeight: 700, fontSize: 12, cursor: "pointer", whiteSpace: "nowrap" } }, t("↑ Faire monter")))))));
                         })(),
                         React.createElement("button", { type: "button", className: "sbtn ghost", style: { width: "100%", marginTop: 6, fontSize: 12.5, padding: "12px", color: "#c9a0ff", borderColor: "rgba(201,160,255,.4)", background: "rgba(201,160,255,.07)" }, onClick: () => setYouthOpen((v) => !v) },
                             youthOpen ? "▾ " : React.createElement(Icon, { name: "jeune", size: 13, style: { marginRight: 5, verticalAlign: "-2px" } }),
-                            "Cr\u00E9er un jeune (fictif)"),
+                            t("Créer un jeune (fictif)")),
                         youthOpen && (React.createElement("div", { className: "form", style: { marginTop: 8 } },
                             React.createElement("div", { className: "fg" },
                                 React.createElement("label", null, "Pr\u00E9nom"),
@@ -17460,7 +17460,7 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
                                 p.name,
                                 React.createElement("br", null),
                                 React.createElement("span", { className: "lbl" },
-                                    PLABEL[p.pos],
+                                    t(PLABEL[p.pos]),
                                     " \u00B7 valeur de march\u00E9 ",
                                     p.mkt,
                                     " M\u20AC")),
@@ -17542,7 +17542,7 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
                                             React.createElement(Term, { k: "transfertLibre" }, "part libre")),
                                         React.createElement("br", null),
                                         React.createElement("span", { className: "lbl" },
-                                            PLABEL[p.pos],
+                                            t(PLABEL[p.pos]),
                                             " \u00B7 salaire ",
                                             p.sal,
                                             " M\u20AC (charg\u00E9 ",
@@ -17773,7 +17773,7 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
                                     React.createElement("span", { style: { fontSize: 12.5, color: "#f3e2c4", flex: 1, minWidth: 150 } },
                                         React.createElement(Icon, { name: "warn", size: 13, style: { marginRight: 4, verticalAlign: "-2px" } }),
                                         "Ton point faible : ",
-                                        React.createElement("b", null, PLABEL[_weakPos]),
+                                        React.createElement("b", null, t(PLABEL[_weakPos])),
                                         " (",
                                         cntByPos[_weakPos] || 0,
                                         " joueur",
@@ -17785,7 +17785,7 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
                                 React.createElement("div", { className: "rsec-title" },
                                     React.createElement(Icon, { name: "search", size: 14, style: { marginRight: 6, verticalAlign: "-2px" } }),
                                     "Recherche cibl\u00E9e"),
-                                React.createElement("input", { className: "fi", type: "text", placeholder: "Nom du joueur\u2026", value: market.q, onChange: (e) => setMarket({ ...market, q: e.target.value }) }),
+                                React.createElement("input", { className: "fi", type: "text", placeholder: t("Nom du joueur…"), value: market.q, onChange: (e) => setMarket({ ...market, q: e.target.value }) }),
                                 React.createElement("div", { className: "finderRow", style: { marginTop: 8 } },
                                     React.createElement("div", { className: "fg" },
                                         React.createElement("label", null, "Poste"),
@@ -17816,13 +17816,13 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
                                         React.createElement("div", { className: "mini search-hint", style: { padding: "6px 0 0" } },
                                             targeted.length,
                                             targeted.length >= 40 ? "+ résultats · affine tes critères" : (" joueur" + (targeted.length > 1 ? "s" : "")))) : React.createElement("div", { className: "mini search-hint" }, "Aucun joueur pour ces crit\u00E8res."))
-                                    : React.createElement("div", { className: "mini search-hint" }, "Tape un nom, ou choisis un poste / une valeur / un salaire / un profil de formation."),
+                                    : React.createElement("div", { className: "mini search-hint" }, t("Tape un nom, ou choisis un poste / une valeur / un salaire / un profil de formation.")),
                                 React.createElement("div", { style: { height: 1, background: "rgba(255,255,255,.1)", margin: "15px 0 10px" } }),
                                 React.createElement("div", { className: "rsec-title" },
                                     React.createElement(Icon, { name: "stadium", size: 14, style: { marginRight: 6, verticalAlign: "-2px" } }),
                                     "Par club"),
                                 React.createElement("select", { className: "fi sel", value: searchClub, onChange: (e) => setSearchClub(e.target.value) },
-                                    React.createElement("option", { value: "" }, "Choisis un club"),
+                                    React.createElement("option", { value: "" }, t("Choisis un club")),
                                     React.createElement("optgroup", { label: "Championnats mod\u00E9lis\u00E9s" }, Object.entries(CLUBS).filter(([id]) => id !== clubId).sort((a, b) => a[1].meta.name.localeCompare(b[1].meta.name)).map(([id, c]) => React.createElement("option", { key: id, value: id }, c.meta.name))),
                                     EXTRA_PLAYERS.length > 0 && React.createElement("optgroup", { label: "Autres championnats (joueurs vedettes)" }, [...new Map(EXTRA_PLAYERS.map((p) => [p.clubId, p])).values()].sort((a, b) => (a.club || "").localeCompare(b.club || "")).map((p) => React.createElement("option", { key: p.clubId, value: "x_" + p.clubId },
                                         p.club,
@@ -17837,7 +17837,7 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
                                                 clubRes.length,
                                                 " joueurs")),
                                         React.createElement("div", { className: "mkt-grid" }, clubRes.map((p, i) => Card(p, "c" + i)))) : React.createElement("div", { className: "mini search-hint" }, "Effectif indisponible pour ce club."))
-                                    : React.createElement("div", { className: "mini search-hint" }, "Choisis un club pour parcourir tout son effectif."),
+                                    : React.createElement("div", { className: "mini search-hint" }, t("Choisis un club pour parcourir tout son effectif.")),
                                 recoTop.length > 0 ? React.createElement(React.Fragment, null,
                                     React.createElement("div", { style: { height: 1, background: "rgba(255,255,255,.1)", margin: "15px 0 10px" } }),
                                     React.createElement("div", { className: "rsec-title", style: { color: "#9ad0ff" } },
@@ -19773,6 +19773,23 @@ const I18N = {
         "blocage AVANT le mercato": "blocked BEFORE the window",
         "jugé en fin de saison": "judged at season end",
         "Formule": "Formula",
+        // — Postes (affichage uniquement ; les codes GK/DC/MC… restent les clés) —
+        "Gardien": "Goalkeeper", "Défenseur droit": "Right-back", "Défenseur central": "Centre-back",
+        "Défenseur gauche": "Left-back", "Milieu défensif": "Defensive midfielder", "Milieu": "Midfielder",
+        "Milieu offensif": "Attacking midfielder", "Ailier droit": "Right winger", "Buteur": "Striker",
+        "Ailier gauche": "Left winger",
+        // — Mercato —
+        "Marge d'invest.": "Invest. headroom",
+        "Tenu": "On track", "Surveillé": "Monitored", "Limite": "At limit", "Alerte": "Alert",
+        "Tape un nom, ou choisis un poste / une valeur / un salaire / un profil de formation.": "Type a name, or pick a position / value / wage / training profile.",
+        "Choisis un club pour parcourir tout son effectif.": "Pick a club to browse its whole squad.",
+        "cibles réalistes pour ton budget": "realistic targets for your budget",
+        "Voir des": "Show",
+        "joueur": "player", "joueurs": "players", "ans": "yrs",
+        "valeur": "value", "transfert": "transfer", "sur": "over", "an": "yr",
+        "RECRUE · OFFICIALISÉ": "SIGNING · CONFIRMED", "OFFICIALISÉ": "CONFIRMED",
+        "Réinvestir le cash": "Reinvest the cash",
+        "Choisis un club pour voir comment les autres l'ont géré": "Pick a club to see how others handled it",
     },
 };
 function t(s) {
