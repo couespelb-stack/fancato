@@ -13886,6 +13886,11 @@ const YOUTH = /*VAULT:YOUTH*/ {
     venezia: [{ name: "Federico Tavernaro", pos: "AG", mkt: 0.175 }],
     villarreal: [{ name: "Ismael Sierra", pos: "DC", mkt: 0.8 }, { name: "Jean Ives Valou", pos: "DC", mkt: 0.6 }, { name: "Daniel Budesca", pos: "DD", by: 2006, mkt: 1 }, { name: "Joselillo Gaitán", pos: "AG", by: 2007, mkt: 0.8 }, { name: "Mahamoud Barry", pos: "AG", by: 2006, mkt: 0.15 }, { name: "Pau Cabanes", pos: "BU", by: 2005, mkt: 0.8 }],
 };
+// Canaux de signalement de bug (Paramètres → « Signaler un problème »).
+// FEEDBACK_FORM : URL d'un formulaire Tally/Google Forms (VIDE = bouton masqué tant que non créé).
+// FEEDBACK_EMAIL : e-mail de secours (mailto). Modifiable ici.
+const FEEDBACK_FORM = "";
+const FEEDBACK_EMAIL = "contact@fancato.com"; // e-mail DÉDIÉ Fancato (jamais l'e-mail perso)
 function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
     var _b, _e, _g, _h, _j, _k, _l, _o;
     CUR = club.meta.currency || "M€";
@@ -15126,7 +15131,10 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
     const _r3Over = !(rule3yCovered_p || settlement3y);
     const _uefaColor = _post(_uefaOver, _rel(ratio2627, limit), _r3Over);
     const _r3Sev = (r3cap && cumul2627 != null) ? Math.max(0, (Math.abs(cumul2627) - Math.abs(r3cap)) / Math.abs(r3cap)) : 0;
-    const _r3Color = !_r3Over ? OKC : (_uefaOver || _r3Sev > 0.30) ? KOC : WARNC;
+    // Vert UNIQUEMENT si réellement sous le plafond des pertes 3 ans. Un settlement UEFA (OL, PSG, OM…)
+    // veut dire « pas de nouvelle sanction », PAS « dans les clous » : au-delà du plafond, il reste JAUNE
+    // (avertissement), jamais vert. Sans accord et très au-delà → rouge.
+    const _r3Color = rule3yCovered_p ? OKC : (settlement3y ? WARNC : ((_uefaOver || _r3Sev > 0.30) ? KOC : WARNC));
     // === SANCTIONS RÉELLEMENT PRONONCÉES EN FIN DE SAISON ===
     // Avant, dépasser une règle ne coûtait qu'une mauvaise note : la menace n'était JAMAIS exécutée.
     // Désormais chaque infraction déclenche la vraie sanction de ta règle, dans ton championnat, dosée selon la gravité.
@@ -15857,7 +15865,28 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
                                 } } })),
                         editMode && React.createElement("button", { className: "sbtn", onClick: () => { setSheet(null); setDataEdit("joueurs"); } }, "\u270F\uFE0F Ouvrir l'\u00E9diteur de mes donn\u00E9es"),
                         editMode && React.createElement("button", { className: "sbtn ghost", onClick: exportDataOv }, "\u2913 Exporter mes corrections (pour l'\u00E9quipe FANCATO)"),
-                        React.createElement("p", { className: "setnote" }, "Tes corrections restent sur ce club et cette partie. Elles ne changent RIEN pour les autres \u00B7 mais elles sont not\u00E9es pour que FANCATO rep\u00E8re les infos souvent corrig\u00E9es et v\u00E9rifie la base."))))),
+                        React.createElement("p", { className: "setnote" }, "Tes corrections restent sur ce club et cette partie. Elles ne changent RIEN pour les autres \u00B7 mais elles sont not\u00E9es pour que FANCATO rep\u00E8re les infos souvent corrig\u00E9es et v\u00E9rifie la base."),
+                        React.createElement("h3", { className: "stitle", style: { marginTop: 18 } }, t("Signaler un problème")),
+                        React.createElement("div", { className: "ssub" },
+                            React.createElement("span", null, t("Un bug, une donnée fausse ? Dis-le-moi, je corrige."))),
+                        React.createElement("select", { id: "fb-type", className: "fi sel", style: { width: "100%", marginBottom: 8 } },
+                            React.createElement("option", { value: t("Bug d'affichage") }, t("Bug d'affichage")),
+                            React.createElement("option", { value: t("Donnée / chiffre faux") }, t("Donnée / chiffre faux")),
+                            React.createElement("option", { value: t("Suggestion d'amélioration") }, t("Suggestion d'amélioration")),
+                            React.createElement("option", { value: t("Autre") }, t("Autre"))),
+                        React.createElement("textarea", { id: "fb-text", className: "fi", rows: 4, placeholder: t("Décris le problème : club, écran, ce que tu attendais…"), style: { width: "100%", resize: "vertical", marginBottom: 8, fontFamily: "Raleway, sans-serif", boxSizing: "border-box" } }),
+                        React.createElement("button", { className: "sbtn", onClick: () => { const ty = (document.getElementById("fb-type") || {}).value || t("Signalement"); const tx = (document.getElementById("fb-text") || {}).value || ""; if (!tx.trim()) {
+                                const el = document.getElementById("fb-text");
+                                if (el)
+                                    el.focus();
+                                return;
+                            } const body = t("Type :") + " " + ty + "\n\n" + t("Problème :") + "\n" + tx + "\n\n———\n" + t("Contexte (auto) :") + "\n· " + club.meta.name + "\n· " + (expertMode ? "Pro" : "Débutant") + " · " + _LANG.toUpperCase(); try {
+                                window.location.href = "mailto:" + FEEDBACK_EMAIL + "?subject=" + encodeURIComponent("[Fancato] " + ty) + "&body=" + encodeURIComponent(body);
+                            }
+                            catch (e) { } } },
+                            "\u2709\uFE0F ",
+                            t("Envoyer")),
+                        React.createElement("p", { className: "setnote" }, t("Le plus précis possible (club, écran, ce que tu attendais) m'aide à corriger vite. Merci !")))))),
             React.createElement("div", { className: "topbar" },
                 React.createElement("button", { type: "button", className: "fcwm", onClick: goHome, title: t("Retour au menu"), "aria-label": "Menu", style: { background: "none", border: "none", padding: 0, cursor: "pointer", lineHeight: 0 } },
                     React.createElement("img", { src: LOGO_IMG, alt: "Menu FANCATO", style: { display: "block", width: 28, height: 28, borderRadius: 7, objectFit: "cover" } })),
@@ -16992,13 +17021,15 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
                                         " ",
                                         CUR,
                                         "/an"),
-                                    " pour combler les pertes \u00B7 capacit\u00E9 max ",
-                                    React.createElement("b", null,
-                                        "~",
-                                        o.cap,
-                                        " ",
-                                        CUR,
-                                        "/an"),
+                                    " pour combler les pertes",
+                                    activeKey === "uefa" ? React.createElement(React.Fragment, null,
+                                        " \u00B7 plafond UEFA ",
+                                        React.createElement("b", null,
+                                            "~",
+                                            o.cap,
+                                            " ",
+                                            CUR,
+                                            "/an")) : "",
                                     ". ",
                                     React.createElement("span", { style: { color: "#93a4c4" } }, o.note))
                                 : React.createElement("div", { style: { fontSize: 12, color: "#c8d3e8", lineHeight: 1.45, marginBottom: 9 } },
@@ -17010,8 +17041,8 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
                                 React.createElement("span", { style: { fontSize: 12.5, color: "#e7edf8", fontWeight: 600 } }, "Ton apport 2026-27\u00A0:"),
                                 React.createElement("input", { type: "number", inputMode: "numeric", value: apport, onChange: (e) => setApport(e.target.value), placeholder: "0", style: { width: 88, background: "#0f1622", border: "1px solid rgba(0,255,106,.45)", borderRadius: 8, color: "#fff", padding: "6px 9px", fontSize: 15, fontWeight: 800, textAlign: "right" } }),
                                 React.createElement("span", { style: { color: "#93a4c4", fontSize: 13 } }, CUR),
-                                o && React.createElement("button", { type: "button", onClick: () => setApport(o.cap), style: { background: "rgba(0,255,106,.14)", border: "1px solid rgba(0,255,106,.4)", color: "#00ff6a", borderRadius: 8, padding: "5px 10px", fontSize: 11.5, fontWeight: 700, cursor: "pointer" } },
-                                    "max (~",
+                                o && activeKey === "uefa" && React.createElement("button", { type: "button", onClick: () => setApport(o.cap), style: { background: "rgba(0,255,106,.14)", border: "1px solid rgba(0,255,106,.4)", color: "#00ff6a", borderRadius: 8, padding: "5px 10px", fontSize: 11.5, fontWeight: 700, cursor: "pointer" } },
+                                    "plafond UEFA (~",
                                     o.cap,
                                     ")"),
                                 +apport > 0 && React.createElement("button", { type: "button", onClick: () => setApport(0), style: { background: "none", border: "none", color: "#ff96a6", cursor: "pointer", fontSize: 11.5, textDecoration: "underline" } }, "remettre \u00E0 0")),
@@ -17153,8 +17184,7 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
                                     " \u00B7 ",
                                     Math.abs(cumul2627 / r3cap).toFixed(1),
                                     "\u00D7 le plafond") : null,
-                                hardestKey === "pertes" && hardBadge)),
-                        React.createElement("button", { type: "button", onClick: () => setPro(!expertMode), title: expertMode ? "Revenir à l'affichage Débutant (l'essentiel)" : "Passer en affichage Pro (tous les ratios et calculs)", style: { marginLeft: 8, background: "none", border: "none", color: "#8fb8ff", fontSize: 10.5, cursor: "pointer", textTransform: "uppercase", letterSpacing: ".04em", fontFamily: "Raleway,sans-serif", fontWeight: 700, padding: 0 } }, expertMode ? "‹ mode Débutant" : "mode Pro ›"))),
+                                hardestKey === "pertes" && hardBadge)))),
                 React.createElement("div", { className: "mktsub" },
                     React.createElement("button", { type: "button", className: "mktsub-b" + (mktSub === "recruter" ? " on" : ""), onClick: () => setMktSub("recruter") }, t("Recruter")),
                     React.createElement("button", { type: "button", className: "mktsub-b" + (mktSub === "effectif" ? " on" : ""), onClick: () => setMktSub("effectif") }, t("Effectif")),
@@ -19789,6 +19819,26 @@ let _LANG = "fr";
 const LANGS = [["fr", "Français"], ["en", "English"], ["es", "Español"], ["it", "Italiano"], ["de", "Deutsch"]];
 const I18N = {
     en: {
+        // — Formulaire de signalement —
+        "Bug d'affichage": "Display bug",
+        "Donnée / chiffre faux": "Wrong data / figure",
+        "Suggestion d'amélioration": "Improvement idea",
+        "Autre": "Other",
+        "Décris le problème : club, écran, ce que tu attendais…": "Describe it: club, screen, what you expected…",
+        "Type :": "Type:",
+        "Problème :": "Problem:",
+        "Contexte (auto) :": "Context (auto):",
+        "Envoyer": "Send",
+        "Signalement": "Report",
+        // — Signaler un problème (Paramètres) —
+        "Signaler un problème": "Report a problem",
+        "Un bug, une donnée fausse ? Dis-le-moi, je corrige.": "A bug or wrong data? Tell me, I'll fix it.",
+        "Remplir le formulaire": "Fill in the form",
+        "Envoyer un e-mail": "Send an email",
+        "Décris ton problème ici :": "Describe your problem here:",
+        "Contexte (laisse tel quel) :": "Context (leave as is):",
+        "Signalement de problème": "Problem report",
+        "Le plus précis possible (club, écran, ce que tu attendais) m'aide à corriger vite. Merci !": "The more specific (club, screen, what you expected), the faster I can fix it. Thanks!",
         "Version bêta · en test": "Beta · in testing",
         // — Attributs (2e lot) —
         "Nationalité": "Nationality",
@@ -20577,6 +20627,26 @@ const I18N = {
         "la règle de réinvestissement LaLiga (dépassé : 60 % éco. salaire · 20 % plus-values ; 70 %/35 % pour un cadre ≥ 5 % de la masse)": "the LaLiga reinvestment rule (dépassé: 60% of wage savings · 20% of profits on disposal; 70%/35% for a key player ≥5% of the wage bill)",
     },
     es: {
+        // — Formulaire de signalement —
+        "Bug d'affichage": "Fallo de visualización",
+        "Donnée / chiffre faux": "Dato / cifra erróneo",
+        "Suggestion d'amélioration": "Sugerencia de mejora",
+        "Autre": "Otro",
+        "Décris le problème : club, écran, ce que tu attendais…": "Descríbelo: club, pantalla, lo que esperabas…",
+        "Type :": "Tipo:",
+        "Problème :": "Problema:",
+        "Contexte (auto) :": "Contexto (auto):",
+        "Envoyer": "Enviar",
+        "Signalement": "Informe",
+        // — Signaler un problème (Paramètres) —
+        "Signaler un problème": "Informar de un problema",
+        "Un bug, une donnée fausse ? Dis-le-moi, je corrige.": "¿Un fallo o un dato erróneo? Dímelo y lo corrijo.",
+        "Remplir le formulaire": "Rellenar el formulario",
+        "Envoyer un e-mail": "Enviar un correo",
+        "Décris ton problème ici :": "Describe tu problema aquí:",
+        "Contexte (laisse tel quel) :": "Contexto (déjalo tal cual):",
+        "Signalement de problème": "Informe de problema",
+        "Le plus précis possible (club, écran, ce que tu attendais) m'aide à corriger vite. Merci !": "Cuanto más preciso (club, pantalla, lo que esperabas), más rápido lo corrijo. ¡Gracias!",
         "Version bêta · en test": "Versión beta · en pruebas",
         // — Attributs (2e lot) —
         "Nationalité": "Nacionalidad",
@@ -21347,6 +21417,26 @@ const I18N = {
         "Commercial / sponsors": "Comercial / patrocinios",
     },
     it: {
+        // — Formulaire de signalement —
+        "Bug d'affichage": "Bug di visualizzazione",
+        "Donnée / chiffre faux": "Dato / cifra errato",
+        "Suggestion d'amélioration": "Suggerimento",
+        "Autre": "Altro",
+        "Décris le problème : club, écran, ce que tu attendais…": "Descrivilo: club, schermata, cosa ti aspettavi…",
+        "Type :": "Tipo:",
+        "Problème :": "Problema:",
+        "Contexte (auto) :": "Contesto (auto):",
+        "Envoyer": "Invia",
+        "Signalement": "Segnalazione",
+        // — Signaler un problème (Paramètres) —
+        "Signaler un problème": "Segnala un problema",
+        "Un bug, une donnée fausse ? Dis-le-moi, je corrige.": "Un bug o un dato sbagliato? Dimmelo, lo correggo.",
+        "Remplir le formulaire": "Compila il modulo",
+        "Envoyer un e-mail": "Invia una email",
+        "Décris ton problème ici :": "Descrivi qui il tuo problema:",
+        "Contexte (laisse tel quel) :": "Contesto (lascia così):",
+        "Signalement de problème": "Segnalazione problema",
+        "Le plus précis possible (club, écran, ce que tu attendais) m'aide à corriger vite. Merci !": "Più sei preciso (club, schermata, cosa ti aspettavi), più in fretta correggo. Grazie!",
         "Version bêta · en test": "Versione beta · in test",
         // — Attributs (2e lot) —
         "Nationalité": "Nazionalità",
@@ -22116,6 +22206,26 @@ const I18N = {
         "Prix de vente demandé": "Prezzo di cessione richiesto",
     },
     de: {
+        // — Formulaire de signalement —
+        "Bug d'affichage": "Anzeigefehler",
+        "Donnée / chiffre faux": "Falsche Daten / Zahl",
+        "Suggestion d'amélioration": "Verbesserungsidee",
+        "Autre": "Sonstiges",
+        "Décris le problème : club, écran, ce que tu attendais…": "Beschreibe es: Klub, Bildschirm, was du erwartet hast…",
+        "Type :": "Art:",
+        "Problème :": "Problem:",
+        "Contexte (auto) :": "Kontext (auto):",
+        "Envoyer": "Senden",
+        "Signalement": "Meldung",
+        // — Signaler un problème (Paramètres) —
+        "Signaler un problème": "Ein Problem melden",
+        "Un bug, une donnée fausse ? Dis-le-moi, je corrige.": "Ein Bug oder falsche Daten? Sag's mir, ich korrigiere es.",
+        "Remplir le formulaire": "Formular ausfüllen",
+        "Envoyer un e-mail": "E-Mail senden",
+        "Décris ton problème ici :": "Beschreibe dein Problem hier:",
+        "Contexte (laisse tel quel) :": "Kontext (unverändert lassen):",
+        "Signalement de problème": "Problemmeldung",
+        "Le plus précis possible (club, écran, ce que tu attendais) m'aide à corriger vite. Merci !": "Je genauer (Klub, Bildschirm, was du erwartet hast), desto schneller korrigiere ich. Danke!",
         "Version bêta · en test": "Beta-Version · im Test",
         // — Attributs (2e lot) —
         "Nationalité": "Nationalität",
