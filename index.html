@@ -14,6 +14,7 @@
 <link rel="manifest" href="manifest.webmanifest" />
 <title>FANCATO — Le mercato imaginé par les fans</title>
 <meta name="description" content="Refais le mercato de ton club et vois si tes transferts passent les règles financières : DNCG, PSR anglais, LaLiga, Serie A, Bundesliga, UEFA. 96 clubs, comptes réels 2024-25, projection 2026-27." />
+
 <script async src="https://fundingchoicesmessages.google.com/i/pub-4018730850191392?ers=1" nonce=""></script>
 <script nonce="">(function(){function signalGooglefcPresent(){if(!window.frames.googlefcPresent){if(document.body){const iframe=document.createElement("iframe");iframe.style="width:0;height:0;border:none;z-index:-1000;left:-1000px;top:-1000px;";iframe.style.display="none";iframe.name="googlefcPresent";document.body.appendChild(iframe);}else{setTimeout(signalGooglefcPresent,0);}}}signalGooglefcPresent();})();</script>
 <script async data-ad-frequency-hint="60s"
@@ -781,6 +782,14 @@ function drawBrand(ctx, logoImg, cx, cy, h, align) {
     ctx.fillText("FAN", x, cy + 1);
     ctx.fillStyle = "#00ff6a";
     ctx.fillText("CATO", x + wFan, cy + 1);
+    // URL sous le mot-marque : chaque image partagée doit ramener vers le site. Sans elle, on lit
+    // « FANCATO » sur une carte qui circule mais on ne sait pas où aller → carburant brûlé pour rien.
+    const us = Math.round(h * 0.40);
+    ctx.font = "700 " + us + "px Raleway, Arial, sans-serif";
+    ctx.textBaseline = "alphabetic";
+    ctx.textAlign = align === "right" ? "right" : align === "center" ? "center" : "left";
+    ctx.fillStyle = "rgba(159,176,208,.92)";
+    ctx.fillText("fancato.com", cx, cy + Math.round(h * 0.43) + us);
     ctx.restore();
     ctx.textAlign = "left";
     ctx.textBaseline = "alphabetic";
@@ -19780,6 +19789,7 @@ let _LANG = "fr";
 const LANGS = [["fr", "Français"], ["en", "English"], ["es", "Español"], ["it", "Italiano"], ["de", "Deutsch"]];
 const I18N = {
     en: {
+        "Version bêta · en test": "Beta · in testing",
         // — Attributs (2e lot) —
         "Nationalité": "Nationality",
         "Vendre un joueur": "Sell a player",
@@ -20567,6 +20577,7 @@ const I18N = {
         "la règle de réinvestissement LaLiga (dépassé : 60 % éco. salaire · 20 % plus-values ; 70 %/35 % pour un cadre ≥ 5 % de la masse)": "the LaLiga reinvestment rule (dépassé: 60% of wage savings · 20% of profits on disposal; 70%/35% for a key player ≥5% of the wage bill)",
     },
     es: {
+        "Version bêta · en test": "Versión beta · en pruebas",
         // — Attributs (2e lot) —
         "Nationalité": "Nacionalidad",
         "Vendre un joueur": "Vender un jugador",
@@ -21336,6 +21347,7 @@ const I18N = {
         "Commercial / sponsors": "Comercial / patrocinios",
     },
     it: {
+        "Version bêta · en test": "Versione beta · in test",
         // — Attributs (2e lot) —
         "Nationalité": "Nazionalità",
         "Vendre un joueur": "Cedere un giocatore",
@@ -22104,6 +22116,7 @@ const I18N = {
         "Prix de vente demandé": "Prezzo di cessione richiesto",
     },
     de: {
+        "Version bêta · en test": "Beta-Version · im Test",
         // — Attributs (2e lot) —
         "Nationalité": "Nationalität",
         "Vendre un joueur": "Einen Spieler verkaufen",
@@ -22919,6 +22932,7 @@ function Splash({ onStart, lang, changeLang }) {
             "FAN",
             React.createElement("span", { style: { color: "#00ff6a" } }, "CATO")),
         React.createElement("div", { style: { fontSize: 12, fontWeight: 700, letterSpacing: ".16em", textTransform: "uppercase", color: "#9fb0d0" } }, t("Le mercato imaginé par les fans")),
+        React.createElement("div", { style: { marginTop: 10, padding: "3px 11px", borderRadius: 999, background: "rgba(0,255,106,.1)", border: "1px solid rgba(0,255,106,.4)", color: "#00ff6a", fontSize: 10.5, fontWeight: 800, letterSpacing: ".08em", textTransform: "uppercase" } }, t("Version bêta · en test")),
         React.createElement("div", { style: { flex: 1 } }),
         React.createElement("button", { onClick: onStart, style: { width: "100%", maxWidth: 330, background: "linear-gradient(180deg,#00ff6a,#00c452)", color: "#04120a", border: "none", borderRadius: 13, padding: "16px", fontFamily: "Raleway,sans-serif", fontWeight: 800, fontSize: 16, letterSpacing: ".05em", textTransform: "uppercase", cursor: "pointer", boxShadow: "0 10px 30px rgba(0,255,106,.3)" } }, t("Commencer")),
         React.createElement("button", { disabled: true, title: t("Compte en ligne bientôt disponible"), style: { width: "100%", maxWidth: 330, marginTop: 11, background: "rgba(255,255,255,.035)", color: "#6b7a95", border: "1px solid rgba(255,255,255,.09)", borderRadius: 13, padding: "15px", fontFamily: "Raleway,sans-serif", fontWeight: 700, fontSize: 15, letterSpacing: ".05em", textTransform: "uppercase", cursor: "not-allowed" } }, t("Connexion · bientôt")),
