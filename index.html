@@ -14248,7 +14248,14 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
     const cupDelta = D26.cupP + eflP;
     const matchB = D26.billet + D26.cupBil + eflBil; // Δ recettes de matches 26-27
     const revenue = club.revenue.reduce((s, g) => s + groupSum(g), 0) + dPers + D26.posMerit + matchB + D26.cupP;
-    const recAmort = (r) => (r.kind === "loan" ? 0 : (r.fee > 0 ? r.fee / Math.min(r.yrs || 5, 5) : 0));
+    // === GARDE-FOUS DES SAISIES ===
+    // `min="0"` sur un <input type=number> N'EMPÊCHE PAS de taper −500 : ce n'est qu'un indice
+    // pour les flèches. On borne donc à l'ENTRÉE DANS LE MODÈLE, seul endroit fiable.
+    // Sans ça : montant −500 → trésorerie +500 M€ ; durée −3 → amortissement NÉGATIF ;
+    // salaire −50 → masse salariale allégée. Trois façons de se fabriquer de l'argent gratuit.
+    const _num0 = (v) => Math.max(0, +v || 0); // jamais négatif
+    const _yrs = (v) => Math.min(10, Math.max(1, Math.round(+v || 5))); // durée de contrat plausible
+    const recAmort = (r) => (r.kind === "loan" ? 0 : (r.fee > 0 ? r.fee / Math.min(Math.max(1, r.yrs || 5), 5) : 0));
     const load = 1 + (+chargeRate || 0) / 100;
     // === Fin de contrat : un joueur dont le contrat se termine en juin de la saison en cours (end <= EXP_YEAR)
     // part LIBRE l'an prochain · retiré de l'effectif ET des comptes 2026-27 · SAUF si on le prolonge (extended). ===
@@ -15599,7 +15606,7 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
             return;
         } // 🔒 verrou ex-ante Espagne/Italie : inscription refusée tant que le club est au-delà de son plafond
         const loan = draft.kind === "loan";
-        setRecruits((r) => [...r, { id: Date.now(), name: draft.name.trim() || "Recrue", pos: draft.pos === "any" ? "MC" : draft.pos, kind: draft.kind, fee: loan ? 0 : (+draft.fee || 0), yrs: +draft.yrs || 5, sal: +draft.sal || 0, loanFee: loan ? (+draft.lfee || 0) : 0, buyFee: loan ? (+draft.buy || 0) : 0, from: draft.from || "" }]);
+        setRecruits((r) => [...r, { id: Date.now(), name: draft.name.trim() || "Recrue", pos: draft.pos === "any" ? "MC" : draft.pos, kind: draft.kind, fee: loan ? 0 : _num0(draft.fee), yrs: _yrs(draft.yrs), sal: _num0(draft.sal), loanFee: loan ? _num0(draft.lfee) : 0, buyFee: loan ? _num0(draft.buy) : 0, from: draft.from || "" }]);
         setDraft({ name: "", pos: "any", fee: "", yrs: 5, sal: "", kind: "transfer", lfee: 0, buy: 0 });
         setSuggOn(false);
         setOffer(null); // referme l'écran d'offre après validation
@@ -15670,7 +15677,10 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
             .map((x) => x.p);
         setFinderRes(res);
     };
-    const upRec = (id, k, v) => setRecruits((r) => r.map((x) => (x.id === id ? { ...x, [k]: v } : x)));
+    // Modifier une recrue déjà ajoutée est un SECOND point d'entrée : mêmes bornes.
+    const upRec = (id, k, v) => setRecruits((r) => r.map((x) => (x.id === id
+        ? { ...x, [k]: (k === "yrs" ? _yrs(v) : (k === "fee" || k === "sal" || k === "loanFee" || k === "buyFee") ? _num0(v) : v) }
+        : x)));
     const rmRec = (id) => setRecruits((r) => r.filter((x) => x.id !== id || x.locked)); // ne retire pas les recrues verrouillées (officielles)
     const _tsh = nickOf(club.meta.id);
     const _treg = _rule === "DNCG" ? "la DNCG" : _rule === "PSR" ? "le SCR/PSR" : _rule === "Bundesliga" ? "la licence DFL" : _rule === "LaLiga" ? "le plafond LaLiga" : "l'indicateur FIGC";
@@ -15859,8 +15869,12 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
           background:radial-gradient(900px 460px at 50% -6%, rgba(0,255,106,.06), rgba(0,255,106,0) 62%),var(--navy2);color:#fff;min-height:100%;padding:calc(16px + env(safe-area-inset-top)) calc(16px + env(safe-area-inset-right)) 16px calc(16px + env(safe-area-inset-left));max-width:780px;margin:0 auto;}
         /* === PC / grand écran : l'appli est conçue pour un téléphone. À 980px tout s'étirait (visages géants, boutons démesurés).
            On la cadre à sa largeur naturelle, centrée, et on habille les côtés. Rien ne change en dessous de 1040px (mobile intact). === */
-        @media(min-width:1040px){
-          .wrap{max-width:560px;padding:calc(20px + env(safe-area-inset-top)) 20px 20px;box-shadow:0 0 0 1px rgba(255,255,255,.06),0 30px 90px rgba(0,0,0,.55);border-radius:22px;background:linear-gradient(180deg,rgba(18,26,38,.55),rgba(10,15,22,.55));backdrop-filter:blur(2px);margin-top:18px;margin-bottom:18px;}
+        /* backdrop-filter RETIRÉ de .wrap : il crée un BLOC CONTENEUR (comme transform) → la barre
+   d'onglets .tabs (position:fixed;bottom:0) se calait sur .wrap (1299px de haut) au lieu de la
+   fenêtre et DÉPASSAIT de 35px sur desktop (rect 875→935 pour une fenêtre de 900).
+   Le flou de 2px derrière un fond déjà semi-opaque n'apportait rien de visible. NE PAS REMETTRE. */
+@media(min-width:1040px){
+          .wrap{max-width:560px;padding:calc(20px + env(safe-area-inset-top)) 20px 20px;box-shadow:0 0 0 1px rgba(255,255,255,.06),0 30px 90px rgba(0,0,0,.55);border-radius:22px;background:linear-gradient(180deg,rgba(18,26,38,.55),rgba(10,15,22,.55));margin-top:18px;margin-bottom:18px;}
           body{background:radial-gradient(1200px 700px at 50% -10%, rgba(123,61,255,.10), transparent 60%), radial-gradient(900px 600px at 50% 110%, rgba(0,255,106,.07), transparent 60%), #070b11;}
         }
         .kicker{font-family:'Raleway';letter-spacing:.22em;text-transform:uppercase;font-size:11px;color:var(--gold);margin:0 0 2px;}
