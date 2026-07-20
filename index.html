@@ -10201,7 +10201,12 @@ const S2526 = {
 // Primes par place gravie au championnat (M€/position, ESTIMÉ · part "mérite/classement") par règle nationale.
 const LEAGUE_STEP = { "DNCG": 0.3, "PSR": 3.2, "LaLiga": 5, "Serie A": 2.2, "Bundesliga": 2 };
 // Position de référence 2024-25 par club (base du calcul de delta classement)
-const REFPOS = { psg: 1, om: 2, monaco: 3, ol: 6, losc: 5, lens: 5, nice: 7, strasbourg: 9, parisfc: 14, auxerre: 15, toulouse: 11, rennes: 7, lorient: 13, lemans: 18, lehavre: 16, brest: 12, angers: 14, troyes: 17, chelsea: 4, mancity: 2, arsenal: 2, liverpool: 2, manutd: 4, newcastle: 5, forest: 10, tottenham: 8, palace: 12, leeds: 17, everton: 14, fulham: 11, brentford: 10, brighton: 8, bournemouth: 9, sunderland: 12, ipswich: 16, coventry: 18, hull: 19, villa: 6, realmadrid: 2, juventus: 4, bayern: 1, dortmund: 4, leipzig: 4, stuttgart: 4, hoffenheim: 7, freiburg: 5, frankfurt: 3, augsburg: 12, union: 13, mainz: 6, koln: 15, leverkusen: 3, werder: 12, gladbach: 9, paderborn: 17, hsv: 14, schalke: 16, elversberg: 18 };
+const REFPOS = { psg: 1, om: 2, monaco: 3, ol: 6, losc: 5, lens: 5, nice: 7, strasbourg: 9, parisfc: 14, auxerre: 15, toulouse: 11, rennes: 7, lorient: 13, lemans: 18, lehavre: 16, brest: 12, angers: 14, troyes: 17, chelsea: 4, mancity: 2, arsenal: 2, liverpool: 2, manutd: 4, newcastle: 5, forest: 10, tottenham: 8, palace: 12, leeds: 17, everton: 14, fulham: 11, brentford: 10, brighton: 8, bournemouth: 9, sunderland: 12, ipswich: 16, coventry: 18, hull: 19, villa: 6, realmadrid: 2, juventus: 4, bayern: 1, dortmund: 4, leipzig: 4, stuttgart: 4, hoffenheim: 7, freiburg: 5, frankfurt: 3, augsburg: 12, union: 13, mainz: 6, koln: 15, leverkusen: 3, werder: 12, gladbach: 9, paderborn: 17, hsv: 14, schalke: 16, elversberg: 18,
+    // Classements finaux 2024-25 (LaLiga et Serie A, sources : tableaux officiels de fin de saison).
+    // Les clubs alors en 2e division (Elche, Levante, Malaga, Racing, La Corogne, Frosinone, Sassuolo)
+    // restent volontairement absents : pas de classement comparable, le repli neutre est correct.
+    barcelona: 1, atletico: 3, athletic: 4, villarreal: 5, betis: 6, celta: 7, rayo: 8, osasuna: 9, realsociedad: 11, valencia: 12, getafe: 13, espanyol: 14, alaves: 15, sevilla: 17, napoli: 1, inter: 2, atalanta: 3, roma: 5, fiorentina: 6, lazio: 7, milan: 8, bologna: 9, como: 10, torino: 11, udinese: 12, genoa: 13, cagliari: 15, parma: 16, lecce: 17, venezia: 19, monza: 20
+};
 // Parcours coupe nationale → [label, prime estimée (M€), matchs à domicile en coupe]
 // Barème coupe nationale PAR PAYS : [tour, prime M€ (cumul du parcours), matchs à domicile].
 // La finale (Stade de France / Wembley / etc.) est jouée sur terrain neutre → 0 match à domicile en plus (Finaliste/Vainqueur = même domicile que Demies).
@@ -14302,14 +14307,37 @@ function ClubApp({ club, clubId, scnKey, mode, setClubId, goHome }) {
     const dPers = dTV + dSPO; // deltas 2025-26 PERSISTANTS (chute TV + sponsor) → conservés en 2026-27
     // Projection sportive 2026-27 : classement visé (gain par place gravie) + parcours coupe
     const _step = LEAGUE_STEP[club.meta.domesticRule] || 0;
-    const gate_c = GATE[clubId] || 3;
+    // Recette guichet d'UN match européen à domicile. GATE ne couvre que 56 clubs sur 96 : le repli
+    // était un « 3 » plat pour tous les autres — trop bas pour Barcelone ou l'Atlético (gros stades),
+    // trop haut pour un promu. Or aucun club ne publie sa recette PAR match européen : la source
+    // (rapport UEFA) ne donne que des fourchettes par calibre (élite 5-8 M€, milieu 2-4).
+    // On dérive donc le repli des recettes de matches OFFICIELLES du club, avec des paliers calibrés
+    // sur les 56 valeurs déjà renseignées (médianes : ≥60 M€ → 5 · 35-60 → 3 · 15-35 → 2,5 · <15 → 1,5).
+    // Cas particulier : 5 clubs (Valence, Real Sociedad, Alavés, Málaga, Frosinone) ont une ligne
+    // « recettes de matches » à 0 — donnée ABSENTE, pas stade vide. Les faire tomber au palier le plus
+    // bas serait refaire l'erreur de REFPOS. Pour eux, second repli sur les revenus TOTAUX, calibré de
+    // la même façon (≥400 M€ → 5 · 200-400 → 3 · 50-200 → 2,5 · <50 → 1,5).
+    const _gateAuto = (mt, prod) => (mt > 0
+        ? (mt >= 60 ? 5 : mt >= 35 ? 3 : mt >= 15 ? 2.5 : 1.5)
+        : (prod >= 400 ? 5 : prod >= 200 ? 3 : prod >= 50 ? 2.5 : 1.5));
+    // On lit COMPTES directement, PAS la variable CO : CO est déclarée ~190 lignes plus bas, donc en
+    // zone morte temporelle ici. Le `||` masquait la faute tant que GATE[clubId] existait — les 40 clubs
+    // sans entrée GATE plantaient sur un ReferenceError (écran blanc). Même piège que le bouton « i ».
+    // Les surcharges « mes données » de CO ne changent de toute façon pas le palier grossier ci-dessus.
+    const _coGate = COMPTES[clubId] || null;
+    const gate_c = GATE[clubId] || _gateAuto(_coGate ? (+_coGate.match || 0) : 0, _coGate ? (+_coGate.produits || 0) : 0);
     // === Revenus dérivés du PARCOURS (classement + Europe + coupe), en écart vs 2024-25 · identique pour 25-26 et 26-27 ===
     const uefaPrime = (comp, stage) => { if (!comp || comp === "none")
         return 0; const t = (UEFA_SCN[comp] || []).find((x) => x[0] === stage); return t ? t[1] : 0; };
     const cupPrizeOf = (stage) => { const t = CUP_SCN.find((x) => x[0] === stage); return t ? t[1] : 0; };
     const cupHomeOf = (stage) => { const t = CUP_SCN.find((x) => x[0] === stage); return t ? t[2] : 0; };
     const homeEuro = (stage) => BILLET_STAGE[stage] || 0;
-    const _ec25 = EURCOMP2425[clubId], _es25 = EUR2425[clubId], _refPos = REFPOS[clubId] || 0, _cup25 = CUP2425[clubId] || "Élim. précoce";
+    // Classement de reference 2024-25. Le repli « || 0 » etait un PIEGE : 0 vaut mieux que 1er, donc un
+    // club sans reference voyait n'importe quel classement reel traite comme une chute catastrophique
+    // (Elche : 5 M€ x (0 - 16e) = -80 M€ de « merite » perdu, soit plus que toute sa ligne de droits TV).
+    // REFPOS manque pour 38 clubs sur 96 — tous les espagnols et italiens. Repli correct : le classement
+    // 2025-26 du club, ce qui donne un ecart NUL tant qu'on ne connait pas sa vraie reference.
+    const _ec25 = EURCOMP2425[clubId], _es25 = EUR2425[clubId], _refPos = REFPOS[clubId] || POS2526[clubId] || 10, _cup25 = CUP2425[clubId] || "Élim. précoce";
     const seasonDelta = (comp, stage, pos, cupP, cupH) => ({
         prime: uefaPrime(comp, stage) - uefaPrime(_ec25, _es25), // primes UEFA → droits AV
         posMerit: _step * (_refPos - (pos == null ? _refPos : pos)), // mérite/droits de classement → droits AV
