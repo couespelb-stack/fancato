@@ -11899,7 +11899,11 @@ function clubMercatoContext(clubId) {
     const reg = (c.regulatory && c.regulatory.level) || "";
     const past = (+a.prior1 || 0) + (+a.prior2 || 0);
     const rt = +a.recurTrade || 0;
-    const constrained = reg === "surveillance" || reg === "sanction" || reg === "critique";
+    // Niveaux GRAVES = le club est contraint de vendre. « danger » manquait alors qu'il est PLUS severe
+    // que « surveillance » : 4 clubs anglais sous pression PSR (Newcastle, Aston Villa, Forest, Crystal
+    // Palace) etaient traites comme sereins. Les niveaux LEGERS (« attention », « vigilance ») restent
+    // volontairement hors contrainte.
+    const constrained = reg === "surveillance" || reg === "sanction" || reg === "critique" || reg === "danger";
     let stance;
     if (constrained || (past < -60 && rt >= 40))
         stance = "mustSell";
