@@ -2,6 +2,15 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8" />
+<!-- Durcissement securite (defense en profondeur). Volontairement SANS script-src :
+     l'app inline React + son code, et la pub (AdSense/Funding Choices) tire des scripts
+     de nombreux domaines Google qui tournent ; une regle script-src casserait la pub sans
+     rien gagner (aucun point d'injection : pas d'eval, pas d'innerHTML sur entree utilisateur,
+     aucune reflexion d'URL). On bloque donc les deux vecteurs qui NE touchent ni la pub ni le
+     rendu : plugins (<object>/<embed>) et detournement d'URL relatives par une balise <base>. -->
+<meta http-equiv="Content-Security-Policy" content="object-src 'none'; base-uri 'self'" />
+<!-- Ne fuite pas l'URL complete de fancato.com vers les domaines tiers (Wikimedia, pub). -->
+<meta name="referrer" content="strict-origin-when-cross-origin" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 <script>document.addEventListener("gesturestart",function(e){e.preventDefault();},{passive:false});document.addEventListener("gesturechange",function(e){e.preventDefault();},{passive:false});</script>
 <meta name="theme-color" content="#0c1118" />
