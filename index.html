@@ -62,15 +62,45 @@
   html,body{margin:0;padding:0;background:#0c1118;-webkit-text-size-adjust:100%;}
   /* Accessibilite clavier GLOBALE (present des le splash, avant meme le chargement du jeu). */
   a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,[tabindex]:focus-visible{outline:3px solid #00ff6a;outline-offset:2px;border-radius:6px;}
-  #boot{color:#e6e6e6;font-family:'Raleway',system-ui,sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;font-size:14px;letter-spacing:.02em;}
+  #boot{color:#e6e6e6;font-family:'Raleway',system-ui,sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;font-size:14px;letter-spacing:.02em;padding:34px 20px;}
   #boot .wm{font-size:34px;font-weight:900;font-style:italic;letter-spacing:.01em;}
   #boot .wm i{color:#fff;font-style:inherit;}#boot .wm b{color:#00ff6a;font-style:inherit;}
   #boot .tg{color:#8a94a6;text-transform:uppercase;letter-spacing:.18em;font-size:11px;}
   #boot .dot{color:#00ff6a;}
+  /* Contenu de l'ecran de demarrage : c'est le SEUL texte present dans le HTML servi.
+     Sans lui, la page telechargee fait 3,9 Mo pour 153 caracteres lisibles — ce que le
+     robot AdSense a vu, et sanctionne (« ecran sans contenu d'editeur », 24/07/2026).
+     Il s'affiche pendant le chargement, React le remplace au montage, et un visiteur
+     sans JavaScript le garde. */
+  #boot #intro{max-width:620px;margin-top:10px;text-align:left;line-height:1.62;color:#9fb0cc;font-size:13.5px;}
+  #boot #intro p{margin:0 0 11px;}
+  #boot #intro b{color:#cddaf0;font-weight:700;}
+  #boot .ilinks{display:flex;flex-wrap:wrap;gap:8px 16px;margin-top:14px;}
+  #boot .ilinks a{color:#00ff6a;text-decoration:none;font-weight:700;font-size:13px;}
+  #boot .ilinks a:hover{text-decoration:underline;}
 </style>
 </head>
 <body>
-<div id="root"><div id="boot"><div class="wm"><i>FAN</i><b>CATO</b></div><div class="tg">Le mercato imaginé par les fans</div><div class="dot">⏳ chargement…</div></div></div>
+<div id="root"><div id="boot"><div class="wm"><i>FAN</i><b>CATO</b></div><div class="tg">Le mercato imaginé par les fans</div><div class="dot">⏳ chargement…</div>
+<div id="intro">
+<p><b>Fancato</b> est un simulateur de mercato gratuit où les règles financières sont
+réelles. Vous prenez les commandes de votre club et vous refaites son mercato — avec les
+mêmes contraintes que son directeur sportif : DNCG, fair-play financier UEFA, Profit
+&amp; Sustainability Rules anglaises, límite de coste de plantilla espagnol, licence
+allemande, liquidité italienne.</p>
+<p>Les 96 clubs des cinq grands championnats — Ligue 1, Premier League, LaLiga, Serie A et Bundesliga — sont
+ancrés sur leurs <b>comptes officiels publiés de l'exercice 2024-25</b>. Chaque transfert
+se répercute sur la masse salariale, les amortissements et le résultat projeté — et si
+vous sortez des clous, la sanction qui tombe est celle de votre règlement.</p>
+<p class="ilinks">
+<a href="clubs/">Les comptes des 96 clubs</a>
+<a href="a-propos.html">À propos</a>
+<a href="methodologie.html">Méthodologie</a>
+<a href="sources.html">Sources</a>
+<a href="confidentialite.html">Confidentialité</a>
+</p>
+</div>
+</div></div>
 <script>/*react*//**
  * @license React
  * react.production.min.js
